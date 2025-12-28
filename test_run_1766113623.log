@@ -1,0 +1,126 @@
+
+============================================================
+  FULL API TEST SUITE - ALL 14 MODELS
+============================================================
+
+────────────────────────────────────────────────────────────
+  CAMPUS
+────────────────────────────────────────────────────────────
+  ✓ GET Faire une passe rapide sur les 4 contrôleurs pour repérer erreurs évidentes (typos, usage incorrect des FormRequests) puis retester. (list):       Status 200 - 10 records
+  ✓ POST (create):    Status 200 - ID: 16
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  SCHOOL
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 36 records
+  ✓ POST (create):    Status 200 - ID: 40
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  SECTOR
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 1 records
+  ✓ POST (create):    Status 200 - ID: 36
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  SPECIALTY
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 1 records
+  ✓ POST (create):    Status 200 - ID: 29
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  SUBJECT
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 21 records
+  ✗ POST (create):    Expecting value: line 1 column 1 (char 0)
+
+────────────────────────────────────────────────────────────
+  TEACHER
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 1 records
+  ✓ POST (create):    Status 200 - ID: 29
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  ROOM
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 1 records
+  ✓ POST (create):    Status 200 - ID: 8
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  LEVEL
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 0 records
+  ✓ POST (create):    Status 200 - ID: 2
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  YEAR
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 15 records
+  ✓ POST (create):    Status 200 - ID: 20
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  PROGRAMMER
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 1 records
+  ✓ POST (create):    Status 200 - ID: 46
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  PROGRAMMATION
+────────────────────────────────────────────────────────────
+  ✗ GET (list):       Status 400
+
+────────────────────────────────────────────────────────────
+  DISPONIBILITY
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 6 records
+  ✗ POST (create):    Expecting value: line 1 column 1 (char 0)
+
+────────────────────────────────────────────────────────────
+  SPECIALTYPROGRAMMATION
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 1 records
+  ✓ POST (create):    Status 200 - ID: 4
+  ✓ GET (show):       Status 200
+  ✓ PUT (update):     Status 200
+  ✓ DELETE (destroy): Status 200
+
+────────────────────────────────────────────────────────────
+  USER
+────────────────────────────────────────────────────────────
+  ✓ GET (list):       Status 200 - 78 records
+  ✗ POST (create):    Expecting value: line 1 column 1 (char 0)
+
+============================================================
+  FINAL REPORT
+============================================================
+  Tests Passed: 53
+  Tests Failed: 4
+  Success Rate: 93.0%
+============================================================
+

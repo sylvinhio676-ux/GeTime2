@@ -1,0 +1,20 @@
+{
+  "intelephense.exclude": [
+    "**/_ide_helper.php",
+    "**/vendor"
+  ],
+  "intelephense.files.maxSize": 1000000,
+
+  // Ignore unknown Tailwind at-rules reported by the built-in CSS linter
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+
+  // Optional: provide Tailwind language support if you have the extension installed
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html",
+    "javascript": "javascript",
+    "javascriptreact": "html",
+    "typescriptreact": "html"
+  }
+}

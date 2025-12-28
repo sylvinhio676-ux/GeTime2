@@ -1,0 +1,44 @@
+frontend/
+│
+├── public/                     # fichiers publics (index.html, favicon, etc.)
+│   └── index.html
+│
+├── src/
+│   ├── assets/                 # images, icônes, fichiers CSS globaux
+│   │   └── logo.png
+│   │
+│   ├── components/             # composants réutilisables
+│   │   ├── Layout.jsx          # Layout global (Navbar, Footer)
+│   │   ├── Button.jsx
+│   │   └── Input.jsx
+│   │
+│   ├── pages/                  # pages visibles
+│   │   ├── Auth/
+│   │   │   ├── Login.jsx
+│   │   │   └── Register.jsx
+│   │   │
+│   │   ├── Dashboard.jsx
+│   │   ├── Admin/
+│   │   │   ├── Users.jsx
+│   │   │   └── Roles.jsx
+│   │   └── NotFound.jsx
+│   │
+│   ├── router/                 # routes React
+│   │   └── AppRouter.jsx
+│   │
+│   ├── services/               # appels API (Axios)
+│   │   └── api.js
+│   │
+│   ├── context/                # contexte global (auth, thème, etc.)
+│   │   └── AuthContext.jsx
+│   │
+│   ├── utils/                  # fonctions utilitaires
+│   │   └── helpers.js
+│   │
+│   ├── App.jsx                 # composant racine
+│   └── main.jsx                # point d’entrée React
+│
+├── .env                        # variables d’environnement (API URL, etc.)
+├── package.json
+├── vite.config.js
+└── tailwind.config.js (si utilisé)

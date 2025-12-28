@@ -1,0 +1,240 @@
+import React, { useEffect, useState, useMemo } from 'react';
+import { sectorService } from '../../../services/sectorService';
+import { schoolService } from '../../../services/schoolService';
+import SectorForm from './SectorForm';
+import { 
+  Pencil, 
+  Trash2, 
+  Plus, 
+  Search, 
+  Layers, 
+  University, 
+  X, 
+  AlertCircle, 
+  CheckCircle2,
+  Tag
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+
+export default function SectorList() {
+  const [sectors, setSectors] = useState([]);
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editingData, setEditingData] = useState(null);
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [sectorData, schoolData] = await Promise.all([
+        sectorService.getAll(),
+        schoolService.getAll()
+      ]);
+      setSectors(sectorData || []);
+      setSchools(schoolData || []);
+    } catch (error) {
+      showNotify('Erreur de chargement des données', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showNotify = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000);
+  };
+
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (editingData) {
+        await sectorService.update(editingData.id, formData);
+        showNotify('Filière mise à jour');
+      } else {
+        await sectorService.create(formData);
+        showNotify('Nouvelle filière créée');
+      }
+      setShowForm(false);
+      setEditingData(null);
+      refreshSectors();
+    } catch (error) {
+      showNotify('Erreur lors de l\'enregistrement', 'error');
+    }
+  };
+
+  const refreshSectors = async () => {
+    const data = await sectorService.getAll();
+    setSectors(data);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Supprimer cette filière ?')) {
+      try {
+        await sectorService.delete(id);
+        showNotify('Filière supprimée');
+        setSectors(sectors.filter(s => s.id !== id));
+      } catch (error) {
+        showNotify('Erreur de suppression', 'error');
+      }
+    }
+  };
+
+  const filteredSectors = useMemo(() => {
+    return sectors.filter(s => 
+      s.sector_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.school?.school_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [sectors, searchTerm]);
+
+  if (loading && sectors.length === 0) {
+    return <div className="p-8"><Progress value={60} className="h-1" /></div>;
+  }
+
+  return (
+    <div className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+      
+      {/* --- HEADER --- */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+            <Layers className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Filières & Secteurs</h1>
+            <p className="text-slate-500 text-xs md:text-sm font-medium">Organisation académique</p>
+          </div>
+        </div>
+        <Button 
+          onClick={() => { setEditingData(null); setShowForm(true); }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
+        >
+          <Plus className="w-5 h-5" /> Ajouter une filière
+        </Button>
+      </div>
+
+      {/* --- NOTIFICATIONS --- */}
+      {notification.show && (
+        <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 p-4 rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-10 ${
+          notification.type === 'error' ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'
+        }`}>
+          {notification.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+          <p className="text-sm font-bold">{notification.message}</p>
+          <button onClick={() => setNotification({ ...notification, show: false })} className="ml-4 opacity-50"><X className="w-4 h-4" /></button>
+        </div>
+      )}
+
+      {/* --- LISTE ET FILTRES --- */}
+      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+        
+        <div className="p-5 border-b border-slate-50 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/30">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input 
+              type="text"
+              placeholder="Rechercher une filière ou un code..."
+              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-none font-bold px-4 py-1">
+            {filteredSectors.length} Secteurs enregistrés
+          </Badge>
+        </div>
+
+        <div className="overflow-x-auto">
+          {filteredSectors.length === 0 ? (
+            <div className="py-20 flex flex-col items-center text-slate-400">
+              <Tag className="w-12 h-12 mb-3 opacity-10" />
+              <p className="text-sm font-bold">Aucune filière trouvée</p>
+            </div>
+          ) : (
+            <table className="w-full text-left min-w-[850px]">
+              <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-black tracking-widest border-b border-slate-100">
+                <tr>
+                  <th className="px-8 py-5">Filière / Secteur</th>
+                  <th className="px-8 py-5">Code</th>
+                  <th className="px-8 py-5">École de rattachement</th>
+                  <th className="px-8 py-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {filteredSectors.map((sector) => (
+                  <tr key={sector.id} className="group hover:bg-slate-50/50 transition-colors">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                          {sector.sector_name?.substring(0, 2)}
+                        </div>
+                        <p className="font-bold text-slate-900 tracking-tight">{sector.sector_name}</p>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <Badge variant="outline" className="font-mono text-indigo-600 border-indigo-100 bg-indigo-50/30">
+                        {sector.code || 'N/A'}
+                      </Badge>
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-2 text-slate-500 font-medium">
+                        <University className="w-4 h-4 opacity-40" />
+                        {sector.school?.school_name || 'Non assigné'}
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => { setEditingData(sector); setShowForm(true); }}
+                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(sector.id)}
+                          className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* --- MODAL FORMULAIRE --- */}
+      {showForm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 className="font-black text-slate-900 tracking-tight">
+                {editingData ? 'Modifier la filière' : 'Nouvelle filière'}
+              </h3>
+              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-8">
+              <SectorForm
+                initialData={editingData}
+                schools={schools}
+                onSubmit={handleFormSubmit}
+                onCancel={() => setShowForm(false)}
+                isLoading={loading}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
