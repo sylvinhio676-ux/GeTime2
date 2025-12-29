@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { disponibilityService } from '../../../services/disponibilityService';
 import { subjectService } from '../../../services/subjectService';
-import { campusService } from '../../../services/campusService';
+import { etablishmentService } from '../../../services/etablishmentService';
 import DisponibilityForm from './DisponibilityForm';
 import Button from '../../../components/Button';
 import { Progress } from '@/components/ui/progress';
@@ -10,7 +10,7 @@ import { DeleteIcon, EditIcon } from 'lucide-react';
 export default function DisponibilityList() {
   const [disponibilities, setDisponibilities] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [campuses, setCampuses] = useState([]);
+  const [etablishments, setEtablishments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -20,7 +20,7 @@ export default function DisponibilityList() {
 
   useEffect(() => {
     fetchSubjects();
-    fetchCampuses();
+    fetchEtablishments();
     fetchDisponibilities();
   }, []);
 
@@ -33,12 +33,12 @@ export default function DisponibilityList() {
     }
   };
 
-  const fetchCampuses = async () => {
+  const fetchEtablishments = async () => {
     try {
-      const data = await campusService.getAll();
-      setCampuses(data || []);
+      const data = await etablishmentService.getAll();
+      setEtablishments(data || []);
     } catch (error) {
-      console.error('Failed to fetch campuses', error);
+      console.error('Failed to fetch etablishments', error);
     }
   };
 
@@ -142,7 +142,7 @@ export default function DisponibilityList() {
           <DisponibilityForm
             initialData={editingData}
             subjects={subjects}
-            campuses={campuses}
+            etablishments={etablishments}
             onSubmit={editingId ? handleUpdate : handleCreate}
             onCancel={cancelEdit}
             isLoading={loading}
@@ -172,7 +172,7 @@ export default function DisponibilityList() {
                 <th className="px-6 py-3 text-left font-semibold text-white">Start Hour</th>
                 <th className="px-6 py-3 text-left font-semibold text-white">End Hour</th>
                 <th className="px-6 py-3 text-left font-semibold text-white">Subject</th>
-                <th className="px-6 py-3 text-left font-semibold text-white">Campus</th>
+                <th className="px-6 py-3 text-left font-semibold text-white">Etablissement</th>
                 <th className="px-6 py-3 text-center font-semibold text-white">Actions</th>
               </tr>
             </thead>
@@ -187,7 +187,7 @@ export default function DisponibilityList() {
                   <td className="px-6 py-3 text-gray-700">{disp.hour_star}</td>
                   <td className="px-6 py-3 text-gray-700">{disp.hour_end}</td>
                   <td className="px-6 py-3 text-gray-700">{disp.subject?.subject_name}</td>
-                  <td className="px-6 py-3 text-gray-700">{disp.campus?.campus_name || '-'}</td>
+                  <td className="px-6 py-3 text-gray-700">{disp.etablishment?.etablishment_name || '-'}</td>
                   <td className="flex justify-center items-center px-6 py-3 text-center space-x-2">
                     <button
                       onClick={() => startEdit(disp)}

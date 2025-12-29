@@ -16,7 +16,7 @@ class DisponibilityController extends Controller
     public function index()
     {
         try {
-            $disponibilities = Disponibility::with(['subject.teacher.user','campus'])->get();
+            $disponibilities = Disponibility::with(['subject.teacher.user','etablishment'])->get();
             return successResponse($disponibilities);
         } catch (Exception $e) {
             return errorResponse($e->getMessage());

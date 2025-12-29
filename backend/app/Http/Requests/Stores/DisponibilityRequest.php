@@ -28,7 +28,7 @@ class DisponibilityRequest extends FormRequest
             'hour_star' => ['required', 'date_format:H:i'],
             'hour_end' => ['required', 'date_format:H:i', 'after:hour_star'],
             'subject_id' => ['required', 'exists:subjects,id'],
-            'campus_id' => ['required', 'exists:campuses,id'],
+            'etablishment_id' => ['required', 'exists:etablishments,id'],
         ];
     }
 }

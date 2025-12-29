@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Enum\JourEnum;
-use App\Models\Campus;
+use App\Models\Etablishment;
 use App\Models\Subject;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -33,7 +33,7 @@ class DisponibilityFactory extends Factory
             'hour_star' => $start,
             'hour_end' => $end,
             'subject_id' => Subject::factory(),
-            'campus_id' => Campus::factory(),
+            'etablishment_id' => Etablishment::factory(),
         ];
     }
 }

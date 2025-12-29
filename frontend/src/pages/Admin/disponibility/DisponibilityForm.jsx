@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import Button from '../../../components/Button';
 
-export default function DisponibilityForm({ initialData = null, subjects = [], campuses = [], onSubmit, onCancel, isLoading = false }) {
+export default function DisponibilityForm({ initialData = null, subjects = [], etablishments = [], onSubmit, onCancel, isLoading = false }) {
   const [formData, setFormData] = useState(
     initialData || {
       day: '',
       hour_star: '',
       hour_end: '',
       subject_id: '',
-      campus_id: '',
+      etablishment_id: '',
     }
   );
 
@@ -21,7 +21,7 @@ export default function DisponibilityForm({ initialData = null, subjects = [], c
         hour_star: initialData.hour_star || '',
         hour_end: initialData.hour_end || '',
         subject_id: initialData.subject_id || '',
-        campus_id: initialData.campus_id || '',
+        etablishment_id: initialData.etablishment_id || '',
       });
     }
   }, [initialData]);
@@ -50,7 +50,7 @@ export default function DisponibilityForm({ initialData = null, subjects = [], c
           hour_star: '',
           hour_end: '',
           subject_id: '',
-          campus_id: '',
+          etablishment_id: '',
         });
       }
     } catch (error) {
@@ -142,23 +142,23 @@ export default function DisponibilityForm({ initialData = null, subjects = [], c
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Campus *</label>
+          <label className="block text-sm font-medium text-primary mb-1">Etablissement *</label>
           <select 
-            name="campus_id" 
-            value={formData.campus_id}
+            name="etablishment_id" 
+            value={formData.etablishment_id}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
             required
           >
-            <option value="">--Select a Campus--</option>
-            {campuses.map((campus) => (
-              <option key={campus.id} value={campus.id}>
-                {campus.campus_name}
+            <option value="">--Select an Etablishment--</option>
+            {etablishments.map((etab) => (
+              <option key={etab.id} value={etab.id}>
+                {etab.etablishment_name}
               </option>
             ))}
           </select>
-          {errors.campus_id && (
-            <p className="text-danger text-sm mt-1">{errors.campus_id[0]}</p>
+          {errors.etablishment_id && (
+            <p className="text-danger text-sm mt-1">{errors.etablishment_id[0]}</p>
           )}
         </div>
 

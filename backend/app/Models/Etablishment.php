@@ -22,4 +22,8 @@ class Etablishment extends Model
     public function campus(){
         return $this->hasMany(Campus::class);
     }
+
+    public function disponibilities(){
+        return $this->hasMany(Disponibility::class);
+    }
 }
