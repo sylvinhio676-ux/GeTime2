@@ -16,7 +16,6 @@ class Disponibility extends Model
         'hour_end',
         'subject_id',
         'campus_id',
-        'room_id',
     ];
 
     protected $casts =[
@@ -37,9 +36,5 @@ class Disponibility extends Model
 
     public function campus(){
         return $this->belongsTo(Campus::class);
-    }
-
-    public function room(){
-        return $this->belongsTo(Room::class);
     }
 }

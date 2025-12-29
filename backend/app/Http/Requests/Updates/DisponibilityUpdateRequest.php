@@ -29,7 +29,6 @@ class DisponibilityUpdateRequest extends FormRequest
             'hour_end' => ['nullable', 'date_format:H:i', 'after:hour_star'],
             'subject_id' => ['nullable', 'exists:subjects,id'],
             'campus_id' => ['nullable', 'exists:campuses,id'],
-            'room_id' => ['nullable', 'exists:rooms,id'],
         ];
     }
 }

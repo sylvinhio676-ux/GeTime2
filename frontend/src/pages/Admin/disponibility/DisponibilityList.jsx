@@ -173,7 +173,6 @@ export default function DisponibilityList() {
                 <th className="px-6 py-3 text-left font-semibold text-white">End Hour</th>
                 <th className="px-6 py-3 text-left font-semibold text-white">Subject</th>
                 <th className="px-6 py-3 text-left font-semibold text-white">Campus</th>
-                <th className="px-6 py-3 text-left font-semibold text-white">Room</th>
                 <th className="px-6 py-3 text-center font-semibold text-white">Actions</th>
               </tr>
             </thead>
@@ -189,7 +188,6 @@ export default function DisponibilityList() {
                   <td className="px-6 py-3 text-gray-700">{disp.hour_end}</td>
                   <td className="px-6 py-3 text-gray-700">{disp.subject?.subject_name}</td>
                   <td className="px-6 py-3 text-gray-700">{disp.campus?.campus_name || '-'}</td>
-                  <td className="px-6 py-3 text-gray-700">{disp.room?.code || '-'}</td>
                   <td className="flex justify-center items-center px-6 py-3 text-center space-x-2">
                     <button
                       onClick={() => startEdit(disp)}
