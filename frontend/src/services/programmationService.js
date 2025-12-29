@@ -4,9 +4,9 @@ const ENDPOINT = '/programmations';
 
 export const programmationService = {
     //Get all programmation
-    getAll: async () => {
+    getAll: async (params = {}) => {
         try {
-            const response = await api.get(ENDPOINT);
+            const response = await api.get(ENDPOINT, { params });
             return response.data.data || [];
         } catch (error) {
             throw error.response?.data || error;

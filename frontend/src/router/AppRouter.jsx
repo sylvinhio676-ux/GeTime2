@@ -9,6 +9,7 @@ import ProgrammerList from "@/pages/Admin/programmer/ProgrammerList";
 import DashboardLayouts from "@/layouts/DashboadLayouts";
 import Dashboard from "@/pages/dashbaord/Dashboard";
 import ProgrammationList from "@/pages/Admin/programmation/ProgrammationList";
+import TableGris from "@/pages/Admin/programmation/TableGris";
 import YearList from "@/pages/Admin/year/YearList";
 import LevelList from "@/pages/Admin/level/LevelList";
 import SectorList from "@/pages/Admin/sector/SectorList";
@@ -38,6 +39,7 @@ export default function AppRouter() {
           <Route path="teachers" element={<TeacherList />} />
           <Route path="programmers" element={<ProgrammerList />} />
           <Route path="programmations" element={<ProgrammationList />} />
+          <Route path="timetable" element={<TableGris />} />
           <Route path="years" element={<YearList />} />
           <Route path="levels" element={<LevelList />} />
           <Route path="sectors" element={<SectorList />} />

@@ -74,6 +74,7 @@ export default function Sidebar() {
             <NavSection title="Planification">
               <SidebarItem to="/dashboard/years" icon={Calendar} label="Années" onClick={toggleSidebar} />
               <SidebarItem to="/dashboard/programmations" icon={ClipboardListIcon} label="Plannings" badge={3} onClick={toggleSidebar} />
+              <SidebarItem to="/dashboard/timetable" icon={CalendarClock} label="Emploi du temps" onClick={toggleSidebar} />
               <SidebarItem to="/dashboard/disponibilities" icon={CalendarClock} label="Disponibilités" onClick={toggleSidebar} />
             </NavSection>
           </nav>
