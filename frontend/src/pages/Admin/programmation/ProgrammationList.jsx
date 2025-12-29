@@ -4,6 +4,8 @@ import { subjectService } from '../../../services/subjectService';
 import { programmersService } from '../../../services/programmerService';
 import { yearService } from '../../../services/yearService';
 import { levelService } from '../../../services/levelService'; // Ajouté
+import { campusService } from '../../../services/campusService';
+import { roomService } from '../../../services/roomService';
 import ProgrammationForm from './ProgrammationForm';
 import { 
   CalendarRange, 
@@ -29,6 +31,8 @@ export default function ProgrammationList() {
   const [programmers, setProgrammers] = useState([]);
   const [years, setYears] = useState([]);
   const [levels, setLevels] = useState([]); // Ajouté
+  const [campuses, setCampuses] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -43,18 +47,22 @@ export default function ProgrammationList() {
     try {
       setLoading(true);
       // Récupération de toutes les dépendances en parallèle
-      const [progData, subData, profData, yearData, levelData] = await Promise.all([
+      const [progData, subData, profData, yearData, levelData, campusData, roomData] = await Promise.all([
         programmationService.getAll(),
         subjectService.getAll(),
         programmersService.getAll(),
         yearService.getAll(),
-        levelService.getAll() // Ajouté
+        levelService.getAll(), // Ajouté
+        campusService.getAll(),
+        roomService.getAll(),
       ]);
       setProgrammations(progData || []);
       setSubjects(subData || []);
       setProgrammers(profData || []);
       setYears(yearData || []);
       setLevels(levelData || []); // Ajouté
+      setCampuses(campusData || []);
+      setRooms(roomData || []);
     } catch (error) {
       showNotify('Erreur de chargement des données', error);
     } finally {
@@ -99,7 +107,7 @@ export default function ProgrammationList() {
   const filteredProgrammations = useMemo(() => {
     return programmations.filter(p => 
       p.subject?.subject_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.level?.level_name?.toLowerCase().includes(searchTerm.toLowerCase()) || // Recherche par niveau
+      p.subject?.specialty?.level?.name_level?.toLowerCase().includes(searchTerm.toLowerCase()) || // Recherche par niveau
       p.day?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [programmations, searchTerm]);
@@ -188,7 +196,7 @@ export default function ProgrammationList() {
                           <p className="font-bold text-slate-900 text-sm tracking-tight">{prog.subject?.subject_name}</p>
                           <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-[10px] uppercase mt-0.5">
                             <GraduationCap className="w-3 h-3" />
-                            {prog.level?.level_name || 'Groupe non défini'}
+                            {prog.subject?.specialty?.level?.name_level || 'Groupe non défini'}
                           </div>
                         </div>
                       </div>
@@ -199,7 +207,12 @@ export default function ProgrammationList() {
                              <CalendarDays className="w-3.5 h-3.5 text-slate-300" />
                              {prog.year?.date_star}
                            </div>
-                           {/* Ici on pourrait afficher le campus/salle si l'API le permet */}
+                           <div className="text-[11px] text-slate-500 font-semibold">
+                             {prog.campus?.campus_name || 'Campus non défini'}
+                           </div>
+                           <div className="text-[11px] text-slate-400 font-semibold">
+                             {prog.room?.code ? `Salle ${prog.room.code}` : 'Salle auto'}
+                           </div>
                         </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -234,6 +247,8 @@ export default function ProgrammationList() {
                 programmers={programmers}
                 years={years}
                 levels={levels} // Passage des niveaux au formulaire
+                campuses={campuses}
+                rooms={rooms}
                 onSubmit={handleFormSubmit}
                 onCancel={() => setShowForm(false)}
                 isLoading={loading}

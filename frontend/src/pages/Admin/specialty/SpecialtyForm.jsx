@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import Button from '../../../components/Button';
 
-export default function SpecialtyForm({ initialData = null, sectors = [], programmers = [], onSubmit, onCancel, isLoading = false }) {
+export default function SpecialtyForm({ initialData = null, sectors = [], programmers = [], levels = [], onSubmit, onCancel, isLoading = false }) {
   const [formData, setFormData] = useState(
     initialData || {
       specialty_name: '',
+      code: '',
       description: '',
       number_student: '',
       sector_id: '',
       programmer_id: '',
+      level_id: '',
     }
   );
 
@@ -18,10 +20,12 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
     if (initialData) {
       setFormData({
         specialty_name: initialData.specialty_name || '',
+        code: initialData.code || '',
         description: initialData.description || '',
         number_student: initialData.number_student || '',
         sector_id: initialData.sector_id || '',
         programmer_id: initialData.programmer_id || '',
+        level_id: initialData.level_id || '',
       });
     }
   }, [initialData]);
@@ -47,10 +51,12 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
       if (!initialData) {
         setFormData({
           specialty_name: '',
+          code: '',
           description: '',
           number_student: '',
           sector_id: '',
           programmer_id: '',
+          level_id: '',
         });
       }
     } catch (error) {
@@ -77,6 +83,23 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
           />
           {errors.specialty_name && (
             <p className="text-danger text-sm mt-1">{errors.specialty_name[0]}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-primary mb-1">Code *</label>
+          <input
+            type="text"
+            name="code"
+            value={formData.code}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/30 transition ${
+              errors.code ? 'border-danger' : 'border-gray-300'
+            }`}
+            required
+          />
+          {errors.code && (
+            <p className="text-danger text-sm mt-1">{errors.code[0]}</p>
           )}
         </div>
 
@@ -114,6 +137,27 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-primary mb-1">Level *</label>
+          <select 
+            name="level_id" 
+            value={formData.level_id}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+            required
+          >
+            <option value="">--Select a Level--</option>
+            {levels.map((level) => (
+              <option key={level.id} value={level.id}>
+                {level.name_level}
+              </option>
+            ))}
+          </select>
+          {errors.level_id && (
+            <p className="text-danger text-sm mt-1">{errors.level_id[0]}</p>
+          )}
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-primary mb-1">Sector *</label>
           <select 
             name="sector_id" 
@@ -141,6 +185,7 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
             value={formData.programmer_id}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+            required
           >
             <option value="">--Select a Programmer--</option>
             {programmers.map((programmer) => (

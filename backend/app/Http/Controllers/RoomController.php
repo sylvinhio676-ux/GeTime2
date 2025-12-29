@@ -16,7 +16,7 @@ class RoomController extends Controller
     public function index()
     {
         try {
-            $rooms = Room::with(['campus','programmation'])->get();
+            $rooms = Room::with(['campus','programmations'])->get();
             if (!$rooms) throw new Exception("Aucune salle trouvée");
             return successResponse($rooms);
         } catch (Exception $e) {

@@ -1,0 +1,134 @@
+1️⃣ Ouvrir un fichier (fopen)
+FILE *f = fopen("data.txt", "r");
+
+Modes principaux
+Mode	Signification
+"r"	lecture
+"w"	écriture (écrase)
+"a"	ajout
+"r+"	lecture + écriture
+"w+"	écriture + lecture
+
+⚠️ Toujours vérifier :
+
+if (f == NULL) {
+    printf("Erreur ouverture fichier\n");
+    return 1;
+}
+
+2️⃣ Écrire dans un fichier
+Avec fprintf
+FILE *f = fopen("data.txt", "w");
+
+fprintf(f, "Nom: Alice\n");
+fprintf(f, "Age: 25\n");
+
+fclose(f);
+
+
+👉 Écrit dans le fichier au lieu de l’écran.
+
+3️⃣ Lire depuis un fichier
+Lire ligne par ligne (fgets)
+char ligne[100];
+FILE *f = fopen("data.txt", "r");
+
+while (fgets(ligne, sizeof(ligne), f) != NULL) {
+    printf("%s", ligne);
+}
+
+fclose(f);
+
+Lire mot / nombre (fscanf)
+int age;
+char nom[20];
+
+FILE *f = fopen("data.txt", "r");
+fscanf(f, "%s %d", nom, &age);
+fclose(f);
+
+4️⃣ Copier un fichier (exemple complet)
+#include <stdio.h>
+
+int main() {
+    FILE *src = fopen("source.txt", "r");
+    FILE *dest = fopen("copie.txt", "w");
+
+    if (!src || !dest) {
+        printf("Erreur fichier\n");
+        return 1;
+    }
+
+    char c;
+    while ((c = fgetc(src)) != EOF) {
+        fputc(c, dest);
+    }
+
+    fclose(src);
+    fclose(dest);
+    return 0;
+}
+
+5️⃣ Lire / écrire caractère par caractère
+Fonction	Rôle
+fgetc	lire un caractère
+fputc	écrire un caractère
+6️⃣ Position dans le fichier
+Se déplacer (fseek)
+fseek(f, 0, SEEK_SET); // début
+fseek(f, 0, SEEK_END); // fin
+
+Position actuelle
+long pos = ftell(f);
+
+7️⃣ Supprimer / renommer un fichier
+remove("data.txt");
+rename("ancien.txt", "nouveau.txt");
+
+8️⃣ Exemple réel : enregistrer des étudiants
+#include <stdio.h>
+
+typedef struct {
+    char nom[20];
+    int age;
+} Etudiant;
+
+int main() {
+    FILE *f = fopen("etudiants.txt", "a");
+    Etudiant e;
+
+    printf("Nom: ");
+    scanf("%s", e.nom);
+    printf("Age: ");
+    scanf("%d", &e.age);
+
+    fprintf(f, "%s %d\n", e.nom, e.age);
+
+    fclose(f);
+    return 0;
+}
+
+🧠 Schéma mental
+Programme C
+   |
+   |--> fopen()
+   |--> fread / fwrite / fscanf / fprintf
+   |--> fclose()
+
+⚠️ Erreurs courantes
+
+❌ Oublier fclose()
+❌ Ne pas vérifier NULL
+❌ Mauvais mode (r, w, a)
+
+✨ Résumé express
+
+FILE * = fichier
+
+fopen / fclose
+
+fprintf / fscanf
+
+fgets / fgetc
+
+Toujours vérifier les erreurs

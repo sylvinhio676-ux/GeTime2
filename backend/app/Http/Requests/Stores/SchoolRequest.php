@@ -24,6 +24,7 @@ class SchoolRequest extends FormRequest
         return [
             'school_name' => ['required', 'string', 'max:255', 'unique:schools,school_name'],
             'description' => ['nullable', 'string'],
+            'responsible_user_id' => ['nullable', 'exists:users,id'],
         ];
     }
 }

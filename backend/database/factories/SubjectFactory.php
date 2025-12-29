@@ -25,6 +25,7 @@ class SubjectFactory extends Factory
             'hour_by_week' => $this->faker->numberBetween(4,8),
             'total_hour' => $this->faker->numberBetween(4,100),
             'type_subject' => $this->faker->randomElement($type),
+            'color' => $this->faker->hexColor(),
             'teacher_id' => Teacher::factory(),
             'specialty_id' => Specialty::factory()
         ];

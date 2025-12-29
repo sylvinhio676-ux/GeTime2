@@ -12,9 +12,14 @@ class School extends Model
     protected $fillable = [
         'school_name',
         'description',
+        'responsible_user_id',
     ];
 
     public function sectors(){
         return $this->hasMany(Sector::class);
+    }
+
+    public function responsible(){
+        return $this->belongsTo(User::class, 'responsible_user_id');
     }
 }

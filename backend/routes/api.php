@@ -19,7 +19,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/login', [AuthController::class, 'login']);
+ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/login', function(){
 	return redirect("http://localhost:5173/login");
 });

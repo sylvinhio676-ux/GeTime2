@@ -22,9 +22,11 @@ class RoomUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'room_number' => ['nullable', 'string', 'max:255'],
-            'type_subject_enum' => ['nullable', 'in:THEORIQUE,PRATIQUE,TD'],
-            'level_id' => ['nullable', 'exists:levels,id'],
+            'code' => ['nullable', 'string', 'max:255'],
+            'capacity' => ['nullable', 'integer', 'min:1'],
+            'is_available' => ['nullable', 'boolean'],
+            'type_room' => ['nullable', 'in:cours,td,tp'],
+            'campus_id' => ['nullable', 'exists:campuses,id'],
         ];
     }
 }

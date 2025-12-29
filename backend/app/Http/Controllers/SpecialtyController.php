@@ -16,7 +16,7 @@ class SpecialtyController extends Controller
     public function index()
     {
         try {
-            $specialties = Specialty::with(['sector','programmer'])->get();
+            $specialties = Specialty::with(['sector.school.responsible','programmer.user','level'])->get();
             if (!$specialties) throw new Exception("Aucune spécialité trouvée");
             return successResponse($specialties);
         } catch (Exception $e) {

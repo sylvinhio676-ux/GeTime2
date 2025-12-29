@@ -13,16 +13,16 @@ class Room extends Model
         'code',
         'capacity',
         'is_available',
+        'type_room',
         'campus_id',
-        'programmation_id'
     ];
 
     protected $casts = [
         'is_available' => 'boolean',
     ];
 
-    public function programmation(){
-        return $this->belongsTo(Programmation::class);
+    public function programmations(){
+        return $this->hasMany(Programmation::class);
     }
 
     public function campus(){

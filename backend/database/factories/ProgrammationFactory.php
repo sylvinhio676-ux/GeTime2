@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enum\JourEnum;
 use App\Models\Programmer;
+use App\Models\Room;
 use App\Models\Subject;
 use App\Models\Year;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -35,7 +36,9 @@ class ProgrammationFactory extends Factory
             'hour_end' => $end,
             'subject_id' => Subject::factory(),
             'programmer_id' => Programmer::factory(),
-            'year_id' => Year::factory()
+            'year_id' => Year::factory(),
+            'campus_id' => \App\Models\Campus::factory(),
+            'room_id' => Room::factory(),
 
         ];
     }

@@ -23,6 +23,8 @@ class SchoolUpdateRequest extends FormRequest
     {
         return [
             'school_name' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'responsible_user_id' => ['nullable', 'exists:users,id'],
         ];
     }
 }

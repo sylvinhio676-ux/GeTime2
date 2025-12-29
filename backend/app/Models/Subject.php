@@ -15,6 +15,7 @@ class Subject extends Model
         'hour_by_week',
         'total_hour',
         'type_subject',
+        'color',
         'teacher_id',
         'specialty_id',
     ];

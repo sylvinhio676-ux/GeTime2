@@ -25,8 +25,8 @@ class RoomRequest extends FormRequest
             'code' => ['required', 'string', 'max:255', 'unique:rooms,code'],
             'capacity' => ['required', 'integer', 'min:1'],
             'is_available' => ['boolean'],
+            'type_room' => ['required', 'in:cours,td,tp'],
             'campus_id' => ['required', 'exists:campuses,id'],
-            'programmation_id' => ['nullable', 'exists:programmations,id'],
         ];
     }
 }

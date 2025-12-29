@@ -11,10 +11,12 @@ class Specialty extends Model
     use HasFactory, Notifiable;
     protected $fillable = [
         'specialty_name',
+        'code',
         'description',
         'number_student',
         'sector_id',
-        'programmer_id'
+        'programmer_id',
+        'level_id',
     ];
 
     public function subjects(){
@@ -34,6 +36,6 @@ class Specialty extends Model
     }
 
     public function programmations(){
-        return $this->belongsToMany(Programmation::class, 'specialty_programmation', 'specialty_id', 'programmation_id');
+        return $this->belongsToMany(Programmation::class, 'specialty_programmations', 'specialty_id', 'programmation_id');
     }
 }

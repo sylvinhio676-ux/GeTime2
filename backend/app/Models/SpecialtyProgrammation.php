@@ -14,4 +14,14 @@ class SpecialtyProgrammation extends Model
         'specialty_id',
         'programmation_id',
     ];
+
+    public function specialty()
+    {
+        return $this->belongsTo(Specialty::class);
+    }
+
+    public function programmation()
+    {
+        return $this->belongsTo(Programmation::class);
+    }
 }

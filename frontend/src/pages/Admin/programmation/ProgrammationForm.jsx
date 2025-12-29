@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Calendar, 
@@ -9,7 +9,8 @@ import {
   ChevronDown, 
   Loader2, 
   CheckCircle2,
-  AlertCircle
+  GraduationCap,
+  DoorOpen
 } from 'lucide-react';
 
 export default function ProgrammationForm({ 
@@ -17,6 +18,8 @@ export default function ProgrammationForm({
   subjects = [], 
   programmers = [], 
   years = [], 
+  campuses = [],
+  rooms = [],
   onSubmit, 
   onCancel, 
   isLoading = false 
@@ -28,6 +31,8 @@ export default function ProgrammationForm({
     subject_id: '',
     programmer_id: '',
     year_id: '',
+    campus_id: '',
+    room_id: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -41,6 +46,8 @@ export default function ProgrammationForm({
         subject_id: initialData.subject_id || '',
         programmer_id: initialData.programmer_id || '',
         year_id: initialData.year_id || '',
+        campus_id: initialData.campus_id || '',
+        room_id: initialData.room_id || '',
       });
     }
   }, [initialData]);
@@ -63,6 +70,10 @@ export default function ProgrammationForm({
   };
 
   const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  const filteredRooms = useMemo(() => {
+    if (!formData.campus_id) return rooms;
+    return rooms.filter((room) => String(room.campus_id) === String(formData.campus_id));
+  }, [rooms, formData.campus_id]);
 
   const inputClasses = (name) => `
     w-full px-4 py-3 border bg-slate-50/50 rounded-2xl text-sm transition-all focus:bg-white focus:outline-none focus:ring-4
@@ -169,6 +180,42 @@ export default function ProgrammationForm({
             <option value="">-- Sélectionner --</option>
             {years.map((y) => (
               <option key={y.id} value={y.id}>{y.date_star} - {y.date_end}</option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-4 bottom-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+        </div>
+      </div>
+
+      {/* --- CAMPUS & SALLE --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1 relative group">
+          <label className={labelClasses}><GraduationCap className="w-3.5 h-3.5 text-indigo-500" /> Campus *</label>
+          <select 
+            name="campus_id" 
+            value={formData.campus_id}
+            onChange={handleChange}
+            className={`${inputClasses('campus_id')} appearance-none cursor-pointer`}
+            required
+          >
+            <option value="">-- Sélectionner --</option>
+            {campuses.map((campus) => (
+              <option key={campus.id} value={campus.id}>{campus.campus_name}</option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-4 bottom-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+        </div>
+
+        <div className="space-y-1 relative group">
+          <label className={labelClasses}><DoorOpen className="w-3.5 h-3.5 text-indigo-500" /> Salle (auto si vide)</label>
+          <select 
+            name="room_id" 
+            value={formData.room_id}
+            onChange={handleChange}
+            className={`${inputClasses('room_id')} appearance-none cursor-pointer`}
+          >
+            <option value="">-- Auto assignation --</option>
+            {filteredRooms.map((room) => (
+              <option key={room.id} value={room.id}>{room.code} • {room.capacity} places</option>
             ))}
           </select>
           <ChevronDown className="absolute right-4 bottom-3.5 w-4 h-4 text-slate-400 pointer-events-none" />

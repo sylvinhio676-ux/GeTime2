@@ -18,6 +18,8 @@ class Programmation extends Model
         'subject_id',
         'programmer_id',
         'year_id',
+        'room_id',
+        'campus_id',
     ];
 
     protected $casts = [
@@ -36,19 +38,27 @@ class Programmation extends Model
         return $this->belongsTo(Subject::class);
     }
 
-    public function rooms(){
-        return $this->hasMany(Room::class);
+    public function room(){
+        return $this->belongsTo(Room::class);
     }
 
     public function year(){
         return $this->belongsTo(Year::class);
     }
 
-    public function programer(){
+    public function programmer(){
         return $this->belongsTo(Programmer::class);
     }
 
+    public function campus(){
+        return $this->belongsTo(Campus::class);
+    }
+
     public function specialities(){
-        return $this->belongsToMany(Specialty::class, 'spcialty_programmation', 'programmation_id', 'specialty_id');
+        return $this->belongsToMany(Specialty::class, 'specialty_programmations', 'programmation_id', 'specialty_id');
+    }
+
+    public function specialties(){
+        return $this->specialities();
     }
 }

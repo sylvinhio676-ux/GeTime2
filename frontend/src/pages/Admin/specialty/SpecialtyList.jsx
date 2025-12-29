@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { specialtyService } from '../../../services/specialtyService';
 import { sectorService } from '../../../services/sectorService';
 import { programmersService } from '../../../services/programmerService';
+import { levelService } from '../../../services/levelService';
 import SpecialtyForm from './SpecialtyForm';
 import Button from '../../../components/Button';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +12,7 @@ export default function SpecialtyList() {
   const [specialties, setSpecialties] = useState([]);
   const [sectors, setSectors] = useState([]);
   const [programmers, setProgrammers] = useState([]);
+  const [levels, setLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -21,6 +23,7 @@ export default function SpecialtyList() {
   useEffect(() => {
     fetchSectors();
     fetchProgrammers();
+    fetchLevels();
     fetchSpecialties();
   }, []);
 
@@ -39,6 +42,15 @@ export default function SpecialtyList() {
       setProgrammers(data || []);
     } catch (error) {
       console.error('Failed to fetch programmers', error);
+    }
+  };
+
+  const fetchLevels = async () => {
+    try {
+      const data = await levelService.getAll();
+      setLevels(data || []);
+    } catch (error) {
+      console.error('Failed to fetch levels', error);
     }
   };
 
@@ -143,6 +155,7 @@ export default function SpecialtyList() {
             initialData={editingData}
             sectors={sectors}
             programmers={programmers}
+            levels={levels}
             onSubmit={editingId ? handleUpdate : handleCreate}
             onCancel={cancelEdit}
             isLoading={loading}

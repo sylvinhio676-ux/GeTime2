@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Updates;
 
+use App\Enum\TypeSubject;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class SubjectUpdateRequest extends FormRequest
 {
@@ -22,9 +24,13 @@ class SubjectUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255'],
-            'code' => ['nullable', 'string', 'max:255'],
-            'level_id' => ['nullable', 'exists:levels,id'],
+            'subject_name' => ['nullable', 'string', 'max:255'],
+            'hour_by_week' => ['nullable', 'integer', 'min:1'],
+            'total_hour' => ['nullable', 'integer', 'min:1'],
+            'type_subject' => ['nullable', 'string', new Enum(TypeSubject::class)],
+            'color' => ['nullable', 'string', 'max:20'],
+            'teacher_id' => ['nullable', 'exists:teachers,id'],
+            'specialty_id' => ['nullable', 'exists:specialties,id'],
         ];
     }
 }

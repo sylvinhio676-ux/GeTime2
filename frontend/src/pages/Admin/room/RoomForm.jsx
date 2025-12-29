@@ -23,6 +23,7 @@ export default function RoomForm({
     code: '',
     capacity: '',
     is_available: true,
+    type_room: '',
     campus_id: '',
   });
 
@@ -34,6 +35,7 @@ export default function RoomForm({
         code: initialData.code || '',
         capacity: initialData.capacity || '',
         is_available: initialData.is_available ?? true,
+        type_room: initialData.type_room || '',
         campus_id: initialData.campus_id || '',
       });
     }
@@ -119,6 +121,26 @@ export default function RoomForm({
             {formData.is_available ? <ToggleRight className="w-6 h-6 text-emerald-500" /> : <ToggleLeft className="w-6 h-6 text-slate-300" />}
           </div>
         </div>
+      </div>
+
+      {/* --- TYPE DE SALLE --- */}
+      <div className="space-y-1 relative group">
+        <label className={labelClasses}>
+          <AlertCircle className="w-3.5 h-3.5 text-indigo-500" /> Type de Salle *
+        </label>
+        <select 
+          name="type_room" 
+          value={formData.type_room}
+          onChange={handleChange}
+          className={`${inputClasses('type_room')} appearance-none cursor-pointer`}
+          required
+        >
+          <option value="">-- Sélectionner un type --</option>
+          <option value="cours">Cours</option>
+          <option value="td">TD</option>
+          <option value="tp">TP</option>
+        </select>
+        <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-slate-400 pointer-events-none group-focus-within:rotate-180 transition-transform" />
       </div>
 
       {/* --- SÉLECTION CAMPUS --- */}

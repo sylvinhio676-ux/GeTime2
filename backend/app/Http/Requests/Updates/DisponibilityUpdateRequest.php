@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Updates;
 
+use App\Enum\JourEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class DisponibilityUpdateRequest extends FormRequest
 {
@@ -22,10 +24,11 @@ class DisponibilityUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i'],
-            'jour_enum' => ['nullable', 'in:LUNDI,MARDI,MERCREDI,JEUDI,VENDREDI,SAMEDI,DIMANCHE'],
-            'teacher_id' => ['nullable', 'exists:teachers,id'],
+            'day' => ['nullable', 'string', new Enum(JourEnum::class)],
+            'hour_star' => ['nullable', 'date_format:H:i'],
+            'hour_end' => ['nullable', 'date_format:H:i', 'after:hour_star'],
+            'subject_id' => ['nullable', 'exists:subjects,id'],
+            'campus_id' => ['nullable', 'exists:campuses,id'],
             'room_id' => ['nullable', 'exists:rooms,id'],
         ];
     }

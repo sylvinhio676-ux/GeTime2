@@ -16,7 +16,7 @@ class SpecialtyProgrammationController extends Controller
     public function index()
     {
         try {
-            $specialtyProgrammations = SpecialtyProgrammation::with(['specialty', 'programmation']);
+            $specialtyProgrammations = SpecialtyProgrammation::with(['specialty', 'programmation'])->get();
             if (!$specialtyProgrammations) throw new Exception("Aucune programmation de spécialité trouvée");
             return successResponse($specialtyProgrammations);
         } catch (Exception $e) {

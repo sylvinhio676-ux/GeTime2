@@ -24,6 +24,7 @@ export default function SubjectForm({
     hour_by_week: '',
     total_hour: '',
     type_subject: '',
+    color: '#4f46e5',
     teacher_id: '',
     specialty_id: '',
   });
@@ -32,7 +33,15 @@ export default function SubjectForm({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        subject_name: initialData.subject_name || '',
+        hour_by_week: initialData.hour_by_week || '',
+        total_hour: initialData.total_hour || '',
+        type_subject: initialData.type_subject || '',
+        color: initialData.color || '#4f46e5',
+        teacher_id: initialData.teacher_id || '',
+        specialty_id: initialData.specialty_id || '',
+      });
     }
   }, [initialData]);
 
@@ -132,11 +141,26 @@ export default function SubjectForm({
           required
         >
           <option value="">-- Sélectionner le type --</option>
-          <option value="theory">Théorique (CM)</option>
-          <option value="practice">Pratique (TP)</option>
-          <option value="mixed">Mixte (CM/TP)</option>
+          <option value="cours">Cours (CM)</option>
+          <option value="td">TD</option>
+          <option value="tp">TP</option>
         </select>
         <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-slate-400 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+      </div>
+
+      {/* --- COULEUR --- */}
+      <div className="space-y-1">
+        <label className={labelClasses}>
+          <Check className="w-3.5 h-3.5 text-indigo-500" /> Couleur de la Matière
+        </label>
+        <input
+          type="color"
+          name="color"
+          value={formData.color}
+          onChange={handleChange}
+          className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-3"
+        />
+        {errors.color && <p className="text-rose-500 text-[10px] font-bold mt-1 ml-1">{errors.color[0]}</p>}
       </div>
 
       {/* --- ENSEIGNANT & SPÉCIALITÉ --- */}
@@ -148,8 +172,9 @@ export default function SubjectForm({
             value={formData.teacher_id}
             onChange={handleChange}
             className={`${inputClasses('teacher_id')} appearance-none cursor-pointer`}
+            required
           >
-            <option value="">-- Non assigné --</option>
+            <option value="">-- Sélectionner --</option>
             {teachers.map((t) => (
               <option key={t.id} value={t.id}>{t.user?.name || `Prof. ${t.id}`}</option>
             ))}
@@ -164,8 +189,9 @@ export default function SubjectForm({
             value={formData.specialty_id}
             onChange={handleChange}
             className={`${inputClasses('specialty_id')} appearance-none cursor-pointer`}
+            required
           >
-            <option value="">-- Toutes --</option>
+            <option value="">-- Sélectionner --</option>
             {specialties.map((s) => (
               <option key={s.id} value={s.id}>{s.specialty_name}</option>
             ))}

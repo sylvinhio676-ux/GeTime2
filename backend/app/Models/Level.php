@@ -13,7 +13,7 @@ class Level extends Model
         'name_level',
     ];
 
-    public function specialty() {
+    public function specialties() {
         return $this->hasMany(Specialty::class);
     }
 }

@@ -28,6 +28,7 @@ class SubjectRequest extends FormRequest
             'hour_by_week' => ['required', 'integer', 'min:1'],
             'total_hour' => ['required', 'integer', 'min:1'],
             'type_subject' => ['required', 'string', new Enum(TypeSubject::class)],
+            'color' => ['nullable', 'string', 'max:20'],
             'teacher_id' => ['required', 'exists:teachers,id'],
             'specialty_id' => ['required', 'exists:specialties,id'],
         ];
