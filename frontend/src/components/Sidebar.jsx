@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { 
   LayoutDashboard, Users, GraduationCap, BookOpen, Building, 
   Calendar, Settings, LogOut, Building2, Clock1, CircleUser, 
-  University, BarChart2, ClipboardListIcon, Factory, Menu, X 
+  University, BarChart2, ClipboardListIcon, Factory, Menu, X, CalendarClock
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -61,17 +61,20 @@ export default function Sidebar() {
               <SidebarItem to="/dashboard/campuses" icon={Building} label="Campus" onClick={toggleSidebar} />
               <SidebarItem to="/dashboard/sectors" icon={Factory} label="Secteurs" onClick={toggleSidebar} />
               <SidebarItem to="/dashboard/levels" icon={BarChart2} label="Niveaux" onClick={toggleSidebar} />
+              <SidebarItem to="/dashboard/specialties" icon={GraduationCap} label="Spécialités" onClick={toggleSidebar} />
             </NavSection>
 
             <NavSection title="Ressources">
               <SidebarItem to="/dashboard/teachers" icon={Users} label="Enseignants" onClick={toggleSidebar} />
               <SidebarItem to="/dashboard/subjects" icon={BookOpen} label="Matières" onClick={toggleSidebar} />
               <SidebarItem to="/dashboard/rooms" icon={Building2} label="Salles" onClick={toggleSidebar} />
+              <SidebarItem to="/dashboard/programmers" icon={CircleUser} label="Programmeurs" onClick={toggleSidebar} />
             </NavSection>
 
             <NavSection title="Planification">
               <SidebarItem to="/dashboard/years" icon={Calendar} label="Années" onClick={toggleSidebar} />
               <SidebarItem to="/dashboard/programmations" icon={ClipboardListIcon} label="Plannings" badge={3} onClick={toggleSidebar} />
+              <SidebarItem to="/dashboard/disponibilities" icon={CalendarClock} label="Disponibilités" onClick={toggleSidebar} />
             </NavSection>
           </nav>
 
