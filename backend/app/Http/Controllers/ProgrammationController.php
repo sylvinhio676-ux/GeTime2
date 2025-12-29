@@ -61,8 +61,7 @@ class ProgrammationController extends Controller
                 'subject.specialty.sector.school.responsible',
                 'programmer.user',
                 'year',
-                'room',
-                'campus',
+                'room.campus',
                 'specialties',
             ]);
 
@@ -89,7 +88,9 @@ class ProgrammationController extends Controller
             }
 
             if (request('campus_id')) {
-                $query->where('campus_id', request('campus_id'));
+                $query->whereHas('room', function ($q) {
+                    $q->where('campus_id', request('campus_id'));
+                });
             }
 
             $programmations = $query->get();
@@ -110,8 +111,13 @@ class ProgrammationController extends Controller
             $subject = Subject::with('specialty')->findOrFail($data['subject_id']);
             $specialtyIds = $data['specialty_ids'] ?? [$subject->specialty_id];
 
+            $campusId = $data['campus_id'] ?? null;
+
             if (empty($data['room_id'])) {
-                $room = $this->pickAvailableRoom($data['campus_id'], $subject, $data['day'], $data['hour_star'], $data['hour_end']);
+                if (!$campusId) {
+                    return errorResponse("Campus requis pour l'assignation automatique de salle");
+                }
+                $room = $this->pickAvailableRoom($campusId, $subject, $data['day'], $data['hour_star'], $data['hour_end']);
                 if (!$room) {
                     return errorResponse("Aucune salle disponible pour ce créneau");
                 }
@@ -157,6 +163,7 @@ class ProgrammationController extends Controller
                 }
             }
 
+            unset($data['campus_id']);
             $programmation = Programmation::create($data);
 
             if (!empty($specialtyIds)) {
@@ -195,7 +202,7 @@ class ProgrammationController extends Controller
             $day = $data['day'] ?? $programmation->day;
             $start = $data['hour_star'] ?? $programmation->hour_star;
             $end = $data['hour_end'] ?? $programmation->hour_end;
-            $campusId = $data['campus_id'] ?? $programmation->campus_id;
+            $campusId = $data['campus_id'] ?? $programmation->room?->campus_id;
 
             if (empty($data['room_id'])) {
                 if (!$campusId) {
@@ -250,6 +257,7 @@ class ProgrammationController extends Controller
                 }
             }
 
+            unset($data['campus_id']);
             $programmation->update($data);
 
             if (!empty($specialtyIds)) {

@@ -208,7 +208,7 @@ export default function ProgrammationList() {
                              {prog.year?.date_star}
                            </div>
                            <div className="text-[11px] text-slate-500 font-semibold">
-                             {prog.campus?.campus_name || 'Campus non défini'}
+                             {prog.room?.campus?.campus_name || 'Campus non défini'}
                            </div>
                            <div className="text-[11px] text-slate-400 font-semibold">
                              {prog.room?.code ? `Salle ${prog.room.code}` : 'Salle auto'}

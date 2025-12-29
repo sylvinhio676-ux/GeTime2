@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('programmations', function (Blueprint $table) {
-            $table->foreignId('room_id')->nullable()->constrained()->nullOnDelete();
+            if (Schema::hasColumn('programmations', 'campus_id')) {
+                $table->dropConstrainedForeignId('campus_id');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('programmations', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('room_id');
+            if (!Schema::hasColumn('programmations', 'campus_id')) {
+                $table->foreignId('campus_id')->nullable()->constrained()->cascadeOnDelete();
+            }
         });
     }
 };

@@ -37,7 +37,6 @@ class ProgrammationFactory extends Factory
             'subject_id' => Subject::factory(),
             'programmer_id' => Programmer::factory(),
             'year_id' => Year::factory(),
-            'campus_id' => \App\Models\Campus::factory(),
             'room_id' => Room::factory(),
 
         ];

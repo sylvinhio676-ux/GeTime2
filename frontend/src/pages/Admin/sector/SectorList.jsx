@@ -41,7 +41,7 @@ export default function SectorList() {
       setSectors(sectorData || []);
       setSchools(schoolData || []);
     } catch (error) {
-      showNotify('Erreur de chargement des données', 'error');
+      showNotify('Erreur de chargement des données', error);
     } finally {
       setLoading(false);
     }

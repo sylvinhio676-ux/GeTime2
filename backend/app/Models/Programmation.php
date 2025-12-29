@@ -19,7 +19,6 @@ class Programmation extends Model
         'programmer_id',
         'year_id',
         'room_id',
-        'campus_id',
     ];
 
     protected $casts = [
@@ -48,10 +47,6 @@ class Programmation extends Model
 
     public function programmer(){
         return $this->belongsTo(Programmer::class);
-    }
-
-    public function campus(){
-        return $this->belongsTo(Campus::class);
     }
 
     public function specialities(){

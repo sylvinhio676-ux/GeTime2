@@ -39,6 +39,7 @@ export default function ProgrammationForm({
 
   useEffect(() => {
     if (initialData) {
+      const campusId = initialData.campus_id || initialData.room?.campus_id || '';
       setFormData({
         day: initialData.day || '',
         hour_star: initialData.hour_star || '',
@@ -46,7 +47,7 @@ export default function ProgrammationForm({
         subject_id: initialData.subject_id || '',
         programmer_id: initialData.programmer_id || '',
         year_id: initialData.year_id || '',
-        campus_id: initialData.campus_id || '',
+        campus_id: campusId,
         room_id: initialData.room_id || '',
       });
     }

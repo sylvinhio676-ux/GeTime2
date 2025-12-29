@@ -30,8 +30,8 @@ class ProgrammationUpdateRequest extends FormRequest
             'subject_id' => ['nullable', 'exists:subjects,id'],
             'programmer_id' => ['nullable', 'exists:programmers,id'],
             'year_id' => ['nullable', 'exists:years,id'],
-            'campus_id' => ['nullable', 'exists:campuses,id'],
             'room_id' => ['nullable', 'exists:rooms,id'],
+            'campus_id' => ['nullable', 'exists:campuses,id'],
             'specialty_ids' => ['nullable', 'array'],
             'specialty_ids.*' => ['integer', 'exists:specialties,id'],
         ];
