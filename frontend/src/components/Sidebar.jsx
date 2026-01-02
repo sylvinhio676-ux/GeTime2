@@ -4,12 +4,23 @@ import {
   Calendar, Settings, LogOut, Building2, Clock1, CircleUser, 
   University, BarChart2, ClipboardListIcon, Factory, Menu, X, CalendarClock
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { logout } from "@/services/auth";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { can, hasRole, loading } = useAuth();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+  const handleLogout = async () => {
+    logout();
+    navigate("/", { replace: true });
+  };
+
+  const canAny = (...permissions) => permissions.some((perm) => can(perm));
+  const isAdmin = hasRole("admin") || hasRole("super_admin");
 
   return (
     <>
@@ -56,33 +67,70 @@ export default function Sidebar() {
               <SidebarItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" onClick={toggleSidebar} />
             </div>
 
-            <NavSection title="Structure">
-              <SidebarItem to="/dashboard/schools" icon={University} label="Écoles" badge={1} onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/campuses" icon={Building} label="Campus" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/sectors" icon={Factory} label="Secteurs" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/levels" icon={BarChart2} label="Niveaux" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/specialties" icon={GraduationCap} label="Spécialités" onClick={toggleSidebar} />
-            </NavSection>
+            {!loading && (
+              <NavSection title="Structure">
+                {isAdmin && (
+                  <>
+                    <SidebarItem to="/dashboard/schools" icon={University} label="Écoles" badge={1} onClick={toggleSidebar} />
+                    <SidebarItem to="/dashboard/campuses" icon={Building} label="Campus" onClick={toggleSidebar} />
+                  </>
+                )}
+                {canAny("view-sector") && (
+                  <SidebarItem to="/dashboard/sectors" icon={Factory} label="Secteurs" onClick={toggleSidebar} />
+                )}
+                {canAny("view-level") && (
+                  <SidebarItem to="/dashboard/levels" icon={BarChart2} label="Niveaux" onClick={toggleSidebar} />
+                )}
+                {canAny("view-specialty") && (
+                  <SidebarItem to="/dashboard/specialties" icon={GraduationCap} label="Spécialités" onClick={toggleSidebar} />
+                )}
+              </NavSection>
+            )}
 
-            <NavSection title="Ressources">
-              <SidebarItem to="/dashboard/teachers" icon={Users} label="Enseignants" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/subjects" icon={BookOpen} label="Matières" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/rooms" icon={Building2} label="Salles" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/programmers" icon={CircleUser} label="Programmeurs" onClick={toggleSidebar} />
-            </NavSection>
+            {!loading && (
+              <NavSection title="Ressources">
+                {isAdmin && (
+                  <SidebarItem to="/dashboard/users" icon={Users} label="Utilisateurs" onClick={toggleSidebar} />
+                )}
+                {!isAdmin && canAny("view-teacher") && (
+                  <SidebarItem to="/dashboard/teachers" icon={Users} label="Enseignants" onClick={toggleSidebar} />
+                )}
+                {canAny("view-subject") && (
+                  <SidebarItem to="/dashboard/subjects" icon={BookOpen} label="Matières" onClick={toggleSidebar} />
+                )}
+                {canAny("view-room") && (
+                  <SidebarItem to="/dashboard/rooms" icon={Building2} label="Salles" onClick={toggleSidebar} />
+                )}
+                {!isAdmin && canAny("view-teacher") && (
+                  <SidebarItem to="/dashboard/programmers" icon={CircleUser} label="Programmeurs" onClick={toggleSidebar} />
+                )}
+              </NavSection>
+            )}
 
-            <NavSection title="Planification">
-              <SidebarItem to="/dashboard/years" icon={Calendar} label="Années" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/programmations" icon={ClipboardListIcon} label="Plannings" badge={3} onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/timetable" icon={CalendarClock} label="Emploi du temps" onClick={toggleSidebar} />
-              <SidebarItem to="/dashboard/disponibilities" icon={CalendarClock} label="Disponibilités" onClick={toggleSidebar} />
-            </NavSection>
+            {!loading && (
+              <NavSection title="Planification">
+                {canAny("view-year") && (
+                  <SidebarItem to="/dashboard/years" icon={Calendar} label="Années" onClick={toggleSidebar} />
+                )}
+                {canAny("view-programmation") && !hasRole("teacher") && (
+                  <SidebarItem to="/dashboard/programmations" icon={ClipboardListIcon} label="Planning" badge={3} onClick={toggleSidebar} />
+                )}
+                {canAny("view-programmation") && (
+                  <SidebarItem to="/dashboard/timetable" icon={CalendarClock} label="Emploi du temps" onClick={toggleSidebar} />
+                )}
+                {canAny("view-disponibility") && (
+                  <SidebarItem to="/dashboard/disponibilities" icon={CalendarClock} label="Disponibilités" onClick={toggleSidebar} />
+                )}
+              </NavSection>
+            )}
           </nav>
 
           {/* FOOTER */}
           <div className="p-4 bg-slate-50 border-t border-slate-100">
-            <SidebarItem to="/dashboard/settings" icon={Settings} label="Paramètres" onClick={toggleSidebar} />
-            <SidebarItem to="/logout" icon={LogOut} label="Déconnexion" danger onClick={toggleSidebar} />
+            {isAdmin && (
+              <SidebarItem to="/dashboard/settings" icon={Settings} label="Paramètres" onClick={toggleSidebar} />
+            )}
+            <SidebarAction icon={LogOut} label="Déconnexion" danger onClick={() => { handleLogout(); toggleSidebar(); }} />
           </div>
         </div>
       </aside>
@@ -119,5 +167,20 @@ function SidebarItem({ to, icon: Icon, label, badge, danger, onClick }) {
         </span>
       )}
     </NavLink>
+  );
+}
+
+function SidebarAction({ icon: Icon, label, danger, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+        danger ? "text-rose-500 hover:bg-rose-50" : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
+      }`}
+    >
+      <Icon className="w-5 h-5 shrink-0" />
+      <span className="flex-1 truncate">{label}</span>
+    </button>
   );
 }

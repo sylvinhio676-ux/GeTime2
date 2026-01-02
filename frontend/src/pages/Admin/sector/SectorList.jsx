@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Pagination from '@/components/Pagination';
 
 export default function SectorList() {
   const [sectors, setSectors] = useState([]);
@@ -26,10 +27,13 @@ export default function SectorList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const getErrorMessage = (error, fallback) => {
+    if (!error) return fallback;
+    if (typeof error === 'string') return error;
+    return error.message || error.error || fallback;
+  };
 
   const loadData = async () => {
     try {
@@ -41,11 +45,15 @@ export default function SectorList() {
       setSectors(sectorData || []);
       setSchools(schoolData || []);
     } catch (error) {
-      showNotify('Erreur de chargement des données', error);
+      showNotify(getErrorMessage(error, 'Erreur de chargement des données'), 'error');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const showNotify = (message, type = 'success') => {
     setNotification({ show: true, message, type });
@@ -65,7 +73,7 @@ export default function SectorList() {
       setEditingData(null);
       refreshSectors();
     } catch (error) {
-      showNotify('Erreur lors de l\'enregistrement', 'error');
+      showNotify(getErrorMessage(error, 'Erreur lors de l\'enregistrement'), 'error');
     }
   };
 
@@ -81,7 +89,7 @@ export default function SectorList() {
         showNotify('Filière supprimée');
         setSectors(sectors.filter(s => s.id !== id));
       } catch (error) {
-        showNotify('Erreur de suppression', 'error');
+        showNotify(getErrorMessage(error, 'Erreur de suppression'), 'error');
       }
     }
   };
@@ -93,6 +101,15 @@ export default function SectorList() {
       s.school?.school_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [sectors, searchTerm]);
+  const PAGE_SIZE = 5;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, sectors.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredSectors.length / PAGE_SIZE));
+  const pagedSectors = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredSectors.slice(start, start + PAGE_SIZE);
+  }, [filteredSectors, page]);
 
   if (loading && sectors.length === 0) {
     return <div className="p-8"><Progress value={60} className="h-1" /></div>;
@@ -167,7 +184,7 @@ export default function SectorList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredSectors.map((sector) => (
+                {pagedSectors.map((sector) => (
                   <tr key={sector.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
@@ -210,6 +227,7 @@ export default function SectorList() {
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL FORMULAIRE --- */}

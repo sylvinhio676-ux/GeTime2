@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as doLogin } from '../../services/auth';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { 
   Mail, 
@@ -18,6 +19,7 @@ export default function Login() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { refreshUser } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,6 +27,7 @@ export default function Login() {
         setLoading(true);
         try {
             await doLogin(email, password);
+            await refreshUser();
             setLoading(false);
             navigate('/dashboard');
         } catch (err) {

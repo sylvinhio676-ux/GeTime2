@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Pagination from '@/components/Pagination';
 
 export default function CampusList() {
   const [campuses, setCampuses] = useState([]);
@@ -26,6 +27,7 @@ export default function CampusList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     loadInitialData();
@@ -93,6 +95,15 @@ export default function CampusList() {
       c.etablishment?.etablishment_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [campuses, searchTerm]);
+  const PAGE_SIZE = 10;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, campuses.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredCampuses.length / PAGE_SIZE));
+  const pagedCampuses = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredCampuses.slice(start, start + PAGE_SIZE);
+  }, [filteredCampuses, page]);
 
   if (loading && campuses.length === 0) {
     return <div className="p-10 space-y-4"><Progress value={40} className="w-full h-1" /></div>;
@@ -169,7 +180,7 @@ export default function CampusList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredCampuses.map((campus) => (
+                {pagedCampuses.map((campus) => (
                   <tr key={campus.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
@@ -210,6 +221,7 @@ export default function CampusList() {
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL FORM (Identique à School) --- */}

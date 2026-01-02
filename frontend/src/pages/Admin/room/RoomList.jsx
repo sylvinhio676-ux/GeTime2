@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Pagination from '@/components/Pagination';
 
 export default function RoomList() {
   const [rooms, setRooms] = useState([]);
@@ -28,6 +29,7 @@ export default function RoomList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchInitialData();
@@ -89,6 +91,15 @@ export default function RoomList() {
       r.campus?.campus_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [rooms, searchTerm]);
+  const PAGE_SIZE = 5;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, rooms.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredRooms.length / PAGE_SIZE));
+  const pagedRooms = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredRooms.slice(start, start + PAGE_SIZE);
+  }, [filteredRooms, page]);
 
   if (loading && rooms.length === 0) {
     return <div className="p-6 max-w-6xl mx-auto"><Progress value={40} className="h-1 w-full" /></div>;
@@ -153,7 +164,7 @@ export default function RoomList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredRooms.map((room) => (
+                {pagedRooms.map((room) => (
                   <tr key={room.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -208,6 +219,7 @@ export default function RoomList() {
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL --- */}

@@ -23,6 +23,13 @@ class User extends Authenticatable
     use HasApiTokens,HasFactory, Notifiable, HasRoles;
 
     /**
+     * Spatie guard for API auth (Sanctum).
+     *
+     * @var string
+     */
+    protected $guard_name = 'sanctum';
+
+    /**
      * Minimal static factory property to satisfy static analysis (no runtime change).
      *
      * @var string|null
@@ -39,16 +46,15 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
-        'role',
     ];
 
-    public function generateRoleUser(){
-        return RuleEnum::from($this->role);
-    }
+    // public function generateRoleUser(){
+    //     return RuleEnum::from($this->role);
+    // }
 
-    public function setRoleUserAttribut($value){
-        $this->attributes['role'] = $value->value;
-    }
+    // public function setRoleUserAttribut($value){
+    //     $this->attributes['role'] = $value->value;
+    // }
 
     /**
      * The attributes that should be hidden for serialization.

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Users, BookOpen, School, Activity, CalendarCheck,
-  GraduationCap, MapPin, TrendingUp, Plus, Download, 
-  ArrowUpRight, CheckCircle2, AlertTriangle, 
-  University, BarChart2, Factory, Clock, Calendar
+  GraduationCap, TrendingUp, Plus, 
+  ArrowUpRight, AlertTriangle, 
+  University, BarChart2, Factory, Clock, Calendar,
+  ClipboardList, CalendarClock, UserCheck, Layers
 } from "lucide-react";
 
 // Services
@@ -14,6 +15,11 @@ import { specialtyService } from "@/services/specialtyService";
 import { campusService } from "@/services/campusService";
 import { programmersService } from "@/services/programmerService";
 import { etablishmentService } from "@/services/etablishmentService";
+import { programmationService } from "@/services/programmationService";
+import { teacherService } from "@/services/teacherService";
+import { levelService } from "@/services/levelService";
+import { yearService } from "@/services/yearService";
+import { disponibilityService } from "@/services/disponibilityService";
 // Ajoute tes nouveaux services ici (sectorService, levelService, etc.)
 
 // UI Components
@@ -22,20 +28,46 @@ import ActivityList from '@/components/ui/ActivityList';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Dashboard() {
-  const [data, setData] = useState({
+  const { user, loading: authLoading, hasRole } = useAuth();
+  const isAdmin = hasRole("super_admin") || hasRole("admin");
+  const isProgrammer = hasRole("programmer");
+  const isTeacher = hasRole("teacher");
+  const [adminData, setAdminData] = useState({
     users: [], rooms: [], subjects: [], specialities: [], 
     campuses: [], programmers: [], etablishments: [],
     sectors: [], levels: [], years: [] 
   });
+  const [roleData, setRoleData] = useState({
+    programmations: [],
+    subjects: [],
+    rooms: [],
+    specialties: [],
+    levels: [],
+    years: [],
+    teachers: [],
+    disponibilities: [],
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    if (isAdmin) {
+      loadAdminDashboardData();
+    } else if (isTeacher) {
+      loadRoleDashboardData({ includeTeachers: false, includeDisponibilities: true });
+    } else {
+      loadRoleDashboardData({ includeTeachers: isProgrammer, includeDisponibilities: false });
+    }
+  }, [authLoading, user, isAdmin, isProgrammer, isTeacher]);
 
-  const loadDashboardData = async () => {
+  const loadAdminDashboardData = async () => {
     try {
       setLoading(true);
       // Simule l'appel à tous tes services incluant les nouveaux
@@ -46,7 +78,7 @@ export default function Dashboard() {
         etablishmentService.getAll(),
       ]);
       
-      setData(prev => ({ 
+      setAdminData(prev => ({ 
         ...prev,
         users: u, rooms: r, subjects: s, 
         specialities: sp, campuses: c, 
@@ -59,6 +91,57 @@ export default function Dashboard() {
     }
   };
 
+  const loadRoleDashboardData = async ({ includeTeachers, includeDisponibilities }) => {
+    try {
+      setLoading(true);
+      const requests = [
+        programmationService.getAll(),
+        subjectService.getAll(),
+        roomService.getAll(),
+        specialtyService.getAll(),
+        levelService.getAll(),
+        yearService.getAll(),
+      ];
+      if (includeTeachers) {
+        requests.push(teacherService.getAll());
+      }
+      if (includeDisponibilities) {
+        requests.push(disponibilityService.getAll());
+      }
+      const [
+        programmations,
+        subjects,
+        rooms,
+        specialties,
+        levels,
+        years,
+        teachers,
+        disponibilities,
+      ] = await Promise.all(requests);
+      setRoleData({
+        programmations: programmations || [],
+        subjects: subjects || [],
+        rooms: rooms || [],
+        specialties: specialties || [],
+        levels: levels || [],
+        years: years || [],
+        teachers: teachers || [],
+        disponibilities: disponibilities || [],
+      });
+    } catch (error) {
+      console.error("Erreur de chargement:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <DashboardSkeleton />;
+  if (isAdmin) return <AdminDashboard data={adminData} />;
+  if (isTeacher) return <TeacherDashboard data={roleData} />;
+  return <ProgrammerDashboard data={roleData} isProgrammer={isProgrammer} />;
+}
+
+function AdminDashboard({ data }) {
   // --- CALCULS ANALYTIQUES AVANCÉS ---
   const analytics = useMemo(() => {
     const totalRooms = data.rooms.length;
@@ -72,8 +155,6 @@ export default function Dashboard() {
       activeYear: "2024-2025"
     };
   }, [data]);
-
-  if (loading) return <DashboardSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4 lg:p-8">
@@ -217,6 +298,242 @@ export default function Dashboard() {
             <ActivityList />
           </div>
 
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProgrammerDashboard({ data, isProgrammer }) {
+  const title = isProgrammer ? "Tableau de bord Programmeur" : "Tableau de bord Enseignant";
+  const subtitle = isProgrammer
+    ? "Planification, salles et matières à portée de main"
+    : "Suivi des matières et de l'emploi du temps";
+  const activeYear = data.years[data.years.length - 1];
+
+  return (
+    <div className="min-h-screen bg-[#F7FAF8] p-4 lg:p-8">
+      <div className="max-w-[1400px] mx-auto space-y-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50">
+                <CalendarClock className="w-3 h-3 mr-1" />
+                Année active: {activeYear ? `${activeYear.date_star} → ${activeYear.date_end}` : "—"}
+              </Badge>
+            </div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">{title}</h1>
+            <p className="text-slate-500 text-sm font-medium mt-1">{subtitle}</p>
+          </div>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200 shadow-lg">
+            <ClipboardList className="w-4 h-4 mr-2" /> Nouvelle Programmation
+          </Button>
+        </header>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatWidget title="Programmations" value={data.programmations.length} icon={ClipboardList} color="emerald" />
+          <StatWidget title="Matières" value={data.subjects.length} icon={BookOpen} color="blue" />
+          <StatWidget title="Salles" value={data.rooms.length} icon={School} color="orange" />
+          <StatWidget title="Spécialités" value={data.specialties.length} icon={GraduationCap} color="indigo" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                  <CalendarCheck className="w-5 h-5 text-emerald-500" /> Séances à venir
+                </h3>
+                <Button variant="ghost" size="sm">Voir tout</Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                    <tr>
+                      <th className="px-6 py-4">Matière</th>
+                      <th className="px-6 py-4">Jour & Horaire</th>
+                      <th className="px-6 py-4">Salle</th>
+                      <th className="px-6 py-4">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 text-sm">
+                    {data.programmations.slice(0, 6).map((prog) => (
+                      <tr key={prog.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-slate-800">
+                          {prog.subject?.subject_name || "Matière"}
+                          <div className="text-[10px] text-slate-400 font-medium">
+                            {prog.subject?.specialty?.level?.name_level || "Niveau —"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">
+                          <div className="font-bold">{prog.day}</div>
+                          <div className="text-xs text-slate-400">{prog.hour_star} — {prog.hour_end}</div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">
+                          {prog.room?.code || "Salle auto"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-bold">Planifié</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <ChartPlaceholder title="Répartition des séances" subtitle="Vue rapide par niveau et spécialité" />
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-emerald-900 rounded-3xl p-6 text-white shadow-2xl">
+              <h3 className="font-bold flex items-center gap-2 mb-6">
+                <Activity className="w-5 h-5 text-emerald-200" /> Raccourcis
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <QuickAction icon={UserCheck} label="Enseignants" count={isProgrammer ? data.teachers.length : undefined} />
+                <QuickAction icon={Layers} label="Niveaux" count={data.levels.length} />
+                <QuickAction icon={BookOpen} label="Matières" count={data.subjects.length} />
+                <QuickAction icon={School} label="Salles" count={data.rooms.length} />
+              </div>
+              <Button className="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 border-none h-12">
+                Générer Planning
+              </Button>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="font-bold text-slate-800 mb-4">Charge par niveau</h3>
+              <div className="space-y-5">
+                {data.levels.slice(0, 3).map((level) => (
+                  <div key={level.id} className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-slate-600 uppercase tracking-tighter">{level.name_level}</span>
+                      <span className="text-slate-900">—</span>
+                    </div>
+                    <Progress value={40} className="h-1.5 bg-emerald-100" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <ActivityList />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TeacherDashboard({ data }) {
+  const activeYear = data.years[data.years.length - 1];
+
+  return (
+    <div className="min-h-screen bg-[#F6F8FB] p-4 lg:p-8">
+      <div className="max-w-[1400px] mx-auto space-y-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-blue-100 shadow-sm">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="text-blue-700 border-blue-200 bg-blue-50">
+                <CalendarClock className="w-3 h-3 mr-1" />
+                Année active: {activeYear ? `${activeYear.date_star} → ${activeYear.date_end}` : "—"}
+              </Badge>
+            </div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tableau de bord Enseignant</h1>
+            <p className="text-slate-500 text-sm font-medium mt-1">Vos cours, disponibilités et emploi du temps</p>
+          </div>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 shadow-lg">
+            <CalendarClock className="w-4 h-4 mr-2" /> Voir l'emploi du temps
+          </Button>
+        </header>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatWidget title="Matières" value={data.subjects.length} icon={BookOpen} color="blue" />
+          <StatWidget title="Spécialités" value={data.specialties.length} icon={GraduationCap} color="indigo" />
+          <StatWidget title="Disponibilités" value={data.disponibilities.length} icon={CalendarCheck} color="emerald" />
+          <StatWidget title="Séances" value={data.programmations.length} icon={ClipboardList} color="orange" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-blue-500" /> Séances planifiées
+                </h3>
+                <Button variant="ghost" size="sm">Tout voir</Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                    <tr>
+                      <th className="px-6 py-4">Matière</th>
+                      <th className="px-6 py-4">Jour & Horaire</th>
+                      <th className="px-6 py-4">Salle</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 text-sm">
+                    {data.programmations.slice(0, 6).map((prog) => (
+                      <tr key={prog.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-slate-800">
+                          {prog.subject?.subject_name || "Matière"}
+                          <div className="text-[10px] text-slate-400 font-medium">
+                            {prog.subject?.specialty?.level?.name_level || "Niveau —"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">
+                          <div className="font-bold">{prog.day}</div>
+                          <div className="text-xs text-slate-400">{prog.hour_star} — {prog.hour_end}</div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">
+                          {prog.room?.code || "Salle auto"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <ChartPlaceholder title="Charge hebdomadaire" subtitle="Résumé des heures par semaine" />
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-blue-900 rounded-3xl p-6 text-white shadow-2xl">
+              <h3 className="font-bold flex items-center gap-2 mb-6">
+                <Activity className="w-5 h-5 text-blue-200" /> Raccourcis
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <QuickAction icon={CalendarCheck} label="Dispos" count={data.disponibilities.length} />
+                <QuickAction icon={BookOpen} label="Matières" count={data.subjects.length} />
+                <QuickAction icon={GraduationCap} label="Spécialités" count={data.specialties.length} />
+                <QuickAction icon={CalendarClock} label="Emploi du temps" />
+              </div>
+              <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-500 border-none h-12">
+                Ajouter disponibilités
+              </Button>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="font-bold text-slate-800 mb-4">Progression par niveau</h3>
+              <div className="space-y-5">
+                {data.levels.slice(0, 3).map((level) => (
+                  <div key={level.id} className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-slate-600 uppercase tracking-tighter">{level.name_level}</span>
+                      <span className="text-slate-900">—</span>
+                    </div>
+                    <Progress value={50} className="h-1.5 bg-blue-100" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <ActivityList />
+          </div>
         </div>
       </div>
     </div>

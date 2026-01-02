@@ -18,6 +18,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Pagination from '@/components/Pagination';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TeacherList() {
   const [teachers, setTeachers] = useState([]);
@@ -26,6 +28,9 @@ export default function TeacherList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("super_admin") || hasRole("admin");
 
   useEffect(() => {
     fetchTeachers();
@@ -83,6 +88,15 @@ export default function TeacherList() {
       t.registration_number?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [teachers, searchTerm]);
+  const PAGE_SIZE = 5;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, teachers.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredTeachers.length / PAGE_SIZE));
+  const pagedTeachers = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredTeachers.slice(start, start + PAGE_SIZE);
+  }, [filteredTeachers, page]);
 
   if (loading && teachers.length === 0) {
     return <div className="p-8"><Progress value={40} className="h-1 w-full" /></div>;
@@ -102,12 +116,14 @@ export default function TeacherList() {
             <p className="text-slate-500 text-xs md:text-sm font-medium mt-1">Gestion du personnel académique</p>
           </div>
         </div>
-        <Button 
-          onClick={() => { setEditingData(null); setShowForm(true); }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold"
-        >
-          <Plus className="w-5 h-5" /> Nouveau Teacher
-        </Button>
+        {isAdmin && (
+          <Button 
+            onClick={() => { setEditingData(null); setShowForm(true); }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold"
+          >
+            <Plus className="w-5 h-5" /> Nouveau Teacher
+          </Button>
+        )}
       </div>
 
       {/* --- NOTIFICATIONS --- */}
@@ -157,7 +173,7 @@ export default function TeacherList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredTeachers.map((teacher) => (
+                {pagedTeachers.map((teacher) => (
                   <tr key={teacher.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
@@ -186,32 +202,46 @@ export default function TeacherList() {
                         )}
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-right">
-                      <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => { setEditingData(teacher); setShowForm(true); }}
-                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(teacher.id)}
-                          className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {isAdmin && (
+                      <td className="px-8 py-5 text-right">
+                        <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => { setEditingData(teacher); setShowForm(true); }}
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(teacher.id)}
+                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                    {/* button pour appeler un enseignant ou l'envoyer un email */}
+                    <div className='flex justify-center gap-2 transition-opacity'>
+                      <a href={`mailto:${teacher.user?.email}`} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <Mail className="w-4 h-4" />
+                      </a>
+                      {teacher.user?.phone && (
+                        <a href={`tel:${teacher.user?.phone}`} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                          <Phone className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL (Style Campus/School) --- */}
-      {showForm && (
+      {showForm && isAdmin && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowForm(false)} />
           <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">

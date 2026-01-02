@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001/api';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -10,6 +10,30 @@ const api = axios.create({
   // token-based auth does not use credentials by default
   withCredentials: false,
 });
+
+const TOKEN_KEY = 'api_token';
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token && !config.headers?.Authorization) {
+    config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem(TOKEN_KEY);
+      delete api.defaults.headers.common['Authorization'];
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
  export function setAuthToken(token) {
   if (token) {

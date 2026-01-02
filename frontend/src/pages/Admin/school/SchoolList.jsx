@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import Pagination from '@/components/Pagination';
 
 export default function SchoolList() {
   const [schools, setSchools] = useState([]);
@@ -16,6 +17,7 @@ export default function SchoolList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchSchools();
@@ -73,6 +75,15 @@ export default function SchoolList() {
       s.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [schools, searchTerm]);
+  const PAGE_SIZE = 5;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, schools.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredSchools.length / PAGE_SIZE));
+  const pagedSchools = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredSchools.slice(start, start + PAGE_SIZE);
+  }, [filteredSchools, page]);
 
   if (loading && schools.length === 0) {
     return <div className="p-8"><Progress value={30} className="h-1" /></div>;
@@ -146,7 +157,7 @@ export default function SchoolList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredSchools.map((school) => (
+                {pagedSchools.map((school) => (
                   <tr key={school.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
@@ -183,6 +194,7 @@ export default function SchoolList() {
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- FORM MODAL RESPONSIVE --- */}

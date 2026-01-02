@@ -7,16 +7,31 @@ use App\Http\Requests\Updates\UserUpdateRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Exception;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    private function canManageRole(User $actor, ?string $roleName): bool
+    {
+        if (!$roleName) {
+            return false;
+        }
+        if ($actor->hasRole('super_admin')) {
+            return true;
+        }
+        if (!$actor->hasRole('admin')) {
+            return false;
+        }
+        return in_array($roleName, ['admin', 'teacher', 'programmer'], true);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         try {
-            $users = User::all();
+            $users = User::with('roles')->get();
             if (!$users) throw new Exception("Aucun utilisateur trouvé");
             return successResponse($users);
         } catch (Exception $e) {
@@ -31,8 +46,22 @@ class UserController extends Controller
     {
         try {
             $data = $request->validated();
+            $roleName = $data['role'] ?? null;
+            unset($data['role']);
+            $actor = $request->user();
+            if (!$actor || !$this->canManageRole($actor, $roleName) || $roleName === 'super_admin') {
+                return forbiddenResponse("Accès refusé");
+            }
             // Ensure password is present and will be hashed via model cast
             $user = User::create($data);
+            if (!empty($roleName)) {
+                Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'sanctum']);
+                $rolesToSync = [$roleName];
+                if ($roleName === 'super_admin') {
+                    $rolesToSync[] = 'admin';
+                }
+                $user->syncRoles($rolesToSync);
+            }
             return successResponse($user, "Utilisateur créé avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -58,7 +87,28 @@ class UserController extends Controller
     public function update(UserUpdateRequest $request, User $user)
     {
         try {
-            $user->update($request->validated());
+            $data = $request->validated();
+            $roleName = $data['role'] ?? null;
+            unset($data['role']);
+            $actor = $request->user();
+            if (!$actor) {
+                return forbiddenResponse("Accès refusé");
+            }
+            if ($user->hasRole('super_admin') && !$actor->hasRole('super_admin')) {
+                return forbiddenResponse("Accès refusé");
+            }
+            $user->update($data);
+            if (!empty($roleName)) {
+                if (!$this->canManageRole($actor, $roleName) || $roleName === 'super_admin') {
+                    return forbiddenResponse("Accès refusé");
+                }
+                Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'sanctum']);
+                $rolesToSync = [$roleName];
+                if ($roleName === 'super_admin') {
+                    $rolesToSync[] = 'admin';
+                }
+                $user->syncRoles($rolesToSync);
+            }
             return successResponse($user, "Utilisateur modifié avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -71,6 +121,17 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         try {
+            $actor = request()->user();
+            if (!$actor) {
+                return forbiddenResponse("Accès refusé");
+            }
+            if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+                if (!$actor->hasRole('super_admin')) {
+                    return forbiddenResponse("Accès refusé");
+                }
+            } elseif (!$actor->hasRole('admin') && !$actor->hasRole('super_admin')) {
+                return forbiddenResponse("Accès refusé");
+            }
             $user->delete();
             return successResponse(null, "Utilisateur supprimé avec succès");
         } catch (Exception $e) {

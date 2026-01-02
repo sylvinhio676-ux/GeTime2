@@ -14,7 +14,7 @@ import { campusService } from '@/services/campusService';
 import { roomService } from '@/services/roomService';
 import ProgrammationForm from './ProgrammationForm';
 
-export default function TimetableDashboard() {
+export default function TimetableDashboard({ readOnly = false }) {
   const [programmations, setProgrammations] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -105,18 +105,21 @@ export default function TimetableDashboard() {
   }, [programmations, selectedSpecialtyObj, teachers, selectedTeacher]);
 
   const handleCreate = (seed) => {
+    if (readOnly) return;
     setFormSeed({ ...seed, year_id: selectedYear || '' });
     setEditingData(null);
     setShowForm(true);
   };
 
   const handleEdit = (prog) => {
+    if (readOnly) return;
     setFormSeed(null);
     setEditingData(prog);
     setShowForm(true);
   };
 
   const handleDelete = async (prog) => {
+    if (readOnly) return;
     if (!window.confirm('Supprimer ce créneau ?')) return;
     await programmationService.delete(prog.id);
     const params = {};
@@ -150,8 +153,12 @@ export default function TimetableDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200">
         <div>
-          <h2 className="text-xl font-black text-slate-900">Vue Calendrier</h2>
-          <p className="text-slate-500 text-xs font-medium">Tableau gris interactif par spécialité ou enseignant</p>
+          <h2 className="text-xl font-black text-slate-900">
+            {readOnly ? 'Emploi du Temps' : 'Planning'}
+          </h2>
+          <p className="text-slate-500 text-xs font-medium">
+            {readOnly ? 'Vue des séances déjà programmées' : 'Tableau gris interactif par spécialité ou enseignant'}
+          </p>
         </div>
 
         <div className="flex gap-3">
@@ -276,6 +283,7 @@ export default function TimetableDashboard() {
             onCreate={handleCreate}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            readOnly={readOnly}
           />
         )}
 
@@ -284,7 +292,7 @@ export default function TimetableDashboard() {
         </div>
       </div>
 
-      {showForm && (
+      {showForm && !readOnly && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowForm(false)} />
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">

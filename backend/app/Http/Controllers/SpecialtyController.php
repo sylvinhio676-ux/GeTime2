@@ -16,7 +16,17 @@ class SpecialtyController extends Controller
     public function index()
     {
         try {
-            $specialties = Specialty::with(['sector.school.responsible','programmer.user','level'])->get();
+            $query = Specialty::with(['sector.school.responsible', 'programmer.user', 'level']);
+            $user = request()->user();
+            if ($user && $user->hasRole('teacher')) {
+                $teacherId = $user->teacher?->id;
+                $query->when($teacherId, function ($q) use ($teacherId) {
+                    $q->whereHas('subjects', function ($subjectQuery) use ($teacherId) {
+                        $subjectQuery->where('teacher_id', $teacherId);
+                    });
+                });
+            }
+            $specialties = $query->get();
             if (!$specialties) throw new Exception("Aucune spécialité trouvée");
             return successResponse($specialties);
         } catch (Exception $e) {
@@ -44,6 +54,16 @@ class SpecialtyController extends Controller
     {
         try {
             if (!$specialty) return notFoundResponse("Spécialité non trouvée");
+            $user = request()->user();
+            if ($user && $user->hasRole('teacher')) {
+                $teacherId = $user->teacher?->id;
+                if ($teacherId) {
+                    $hasSubject = $specialty->subjects()->where('teacher_id', $teacherId)->exists();
+                    if (!$hasSubject) {
+                        return forbiddenResponse("Accès refusé");
+                    }
+                }
+            }
             return successResponse($specialty);
         } catch (Exception $e) {
             return errorResponse($e->getMessage());

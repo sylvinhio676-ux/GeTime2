@@ -5,6 +5,7 @@ namespace App\Http\Requests\Stores;
 use App\Enum\RuleEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
@@ -29,7 +30,11 @@ class UserRequest extends FormRequest
             'email' => ['required', 'email', 'unique:users,email' . ($id ? ',' . $id : '')],
             'phone' => ['required', 'string', 'unique:users,phone' . ($id ? ',' . $id : '')],
             'password' => [$this->isMethod('post') ? 'required' : 'nullable', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', new Enum(RuleEnum::class)],
+            'role' => [
+                'required',
+                new Enum(RuleEnum::class),
+                Rule::exists('roles', 'name')->where('guard_name', 'sanctum'),
+            ],
         ];
     }
 }

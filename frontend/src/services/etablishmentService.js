@@ -40,7 +40,7 @@ export const etablishmentService = {
             const response = await api.put(`${ENDPOINT}/${id}`, data);
             return response.data.data;
         } catch (error) {
-            throw error.response?.data || data;
+            throw error.response?.data || error;
         }
     },
 
@@ -50,7 +50,7 @@ export const etablishmentService = {
             await api.delete(`${ENDPOINT}/${id}`);
             return true;
         } catch (error) {
-            throw error.response?.data || data;
+            throw error.response?.data || error;
         }
     }
 }

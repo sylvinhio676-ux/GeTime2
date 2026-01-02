@@ -39,7 +39,7 @@ export const disponibilityService = {
             const response = await api.put(`${ENDPOINT}/${id}`, data);
             return response.data.data;
         } catch (error) {
-            throw error.response?.data || data;
+            throw error.response?.data || error;
         }
     },
 

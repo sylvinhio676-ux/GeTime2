@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Pagination from '@/components/Pagination';
 
 export default function LevelList() {
   const [levels, setLevels] = useState([]);
@@ -23,6 +24,13 @@ export default function LevelList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
+
+  const getErrorMessage = (error, fallback) => {
+    if (!error) return fallback;
+    if (typeof error === 'string') return error;
+    return error.message || error.error || fallback;
+  };
 
   useEffect(() => {
     fetchLevels();
@@ -34,7 +42,7 @@ export default function LevelList() {
       const data = await levelService.getAll();
       setLevels(data || []);
     } catch (error) {
-      showNotify('Erreur de chargement des niveaux', error);
+      showNotify(getErrorMessage(error, 'Erreur de chargement des niveaux'), 'error');
     } finally {
       setLoading(false);
     }
@@ -58,7 +66,7 @@ export default function LevelList() {
       setEditingData(null);
       fetchLevels();
     } catch (error) {
-      showNotify('Erreur lors de l\'enregistrement', error);
+      showNotify(getErrorMessage(error, 'Erreur lors de l\'enregistrement'), 'error');
     }
   };
 
@@ -69,7 +77,7 @@ export default function LevelList() {
         showNotify('Niveau supprimé');
         setLevels(levels.filter(l => l.id !== id));
       } catch (error) {
-        showNotify('Erreur de suppression', error);
+        showNotify(getErrorMessage(error, 'Erreur de suppression'), 'error');
       }
     }
   };
@@ -79,6 +87,15 @@ export default function LevelList() {
       l.name_level?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [levels, searchTerm]);
+  const PAGE_SIZE = 5;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, levels.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredLevels.length / PAGE_SIZE));
+  const pagedLevels = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredLevels.slice(start, start + PAGE_SIZE);
+  }, [filteredLevels, page]);
 
   if (loading && levels.length === 0) {
     return <div className="p-8"><Progress value={30} className="h-1" /></div>;
@@ -154,7 +171,7 @@ export default function LevelList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredLevels.map((level) => (
+                {pagedLevels.map((level) => (
                   <tr key={level.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5 font-mono text-xs text-slate-400">
                       #{level.id}
@@ -191,6 +208,7 @@ export default function LevelList() {
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL FORMULAIRE --- */}

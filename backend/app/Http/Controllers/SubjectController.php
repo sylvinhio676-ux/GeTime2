@@ -16,7 +16,15 @@ class SubjectController extends Controller
     public function index()
     {
         try {
-            $subjects = Subject::with(['specialty','teacher'])->get();
+            $query = Subject::with(['specialty', 'teacher.user']);
+            $user = request()->user();
+            if ($user && $user->hasRole('teacher')) {
+                $teacherId = $user->teacher?->id;
+                $query->when($teacherId, function ($q) use ($teacherId) {
+                    $q->where('teacher_id', $teacherId);
+                });
+            }
+            $subjects = $query->get();
             if (!$subjects) throw new Exception("Aucune matière trouvée");
             return successResponse($subjects);
         } catch (Exception $e) {
@@ -44,6 +52,13 @@ class SubjectController extends Controller
     {
         try {
             if (!$subject) return notFoundResponse("Matière non trouvée");
+            $user = request()->user();
+            if ($user && $user->hasRole('teacher')) {
+                $teacherId = $user->teacher?->id;
+                if ($teacherId && $subject->teacher_id !== $teacherId) {
+                    return forbiddenResponse("Accès refusé");
+                }
+            }
             return successResponse($subject);
         } catch (Exception $e) {
             return errorResponse($e->getMessage());

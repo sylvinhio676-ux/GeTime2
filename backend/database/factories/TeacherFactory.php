@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enum\RuleEnum;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,9 +20,7 @@ class TeacherFactory extends Factory
     {
         return [
             'registration_number' => Teacher::RegistrationNumber(),
-            'user_id' => User::factory()->state([
-                'role' => RuleEnum::TEACHER,
-            ]),
+            'user_id' => User::factory(),
         ];
     }
 }

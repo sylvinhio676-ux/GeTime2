@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Pagination from '@/components/Pagination';
 
 export default function YearList() {
   const [years, setYears] = useState([]);
@@ -24,6 +25,7 @@ export default function YearList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchYears();
@@ -80,6 +82,15 @@ export default function YearList() {
       y.date_star?.includes(searchTerm) || y.date_end?.includes(searchTerm)
     );
   }, [years, searchTerm]);
+  const PAGE_SIZE = 5;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, years.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredYears.length / PAGE_SIZE));
+  const pagedYears = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredYears.slice(start, start + PAGE_SIZE);
+  }, [filteredYears, page]);
 
   if (loading && years.length === 0) {
     return <div className="p-6 max-w-6xl mx-auto"><Progress value={30} className="h-1" /></div>;
@@ -142,7 +153,7 @@ export default function YearList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredYears.map((year) => (
+                {pagedYears.map((year) => (
                   <tr key={year.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-4 text-xs font-mono text-slate-400">#{year.id}</td>
                     <td className="px-8 py-4">
@@ -176,6 +187,7 @@ export default function YearList() {
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL --- */}

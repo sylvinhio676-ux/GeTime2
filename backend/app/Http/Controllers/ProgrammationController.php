@@ -65,6 +65,16 @@ class ProgrammationController extends Controller
                 'specialties',
             ]);
 
+            $user = request()->user();
+            if ($user && $user->hasRole('teacher')) {
+                $teacherId = $user->teacher?->id;
+                $query->when($teacherId, function ($q) use ($teacherId) {
+                    $q->whereHas('subject', function ($subjectQuery) use ($teacherId) {
+                        $subjectQuery->where('teacher_id', $teacherId);
+                    });
+                });
+            }
+
             if (request('specialty_id')) {
                 $query->whereHas('specialties', function ($q) {
                     $q->where('specialty_id', request('specialty_id'));

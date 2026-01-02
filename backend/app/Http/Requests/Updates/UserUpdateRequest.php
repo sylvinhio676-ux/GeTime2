@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Updates;
 
+use App\Enum\RuleEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Rule;
 
 class UserUpdateRequest extends FormRequest
 {
@@ -26,7 +29,11 @@ class UserUpdateRequest extends FormRequest
             'email' => ['nullable', 'email'],
             'password' => ['nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'rule_enum' => ['nullable', 'in:ADMIN,TEACHER,STUDENT,PROGRAMMER'],
+            'role' => [
+                'nullable',
+                new Enum(RuleEnum::class),
+                Rule::exists('roles', 'name')->where('guard_name', 'sanctum'),
+            ],
         ];
     }
 }

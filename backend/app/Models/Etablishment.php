@@ -10,7 +10,7 @@ class Etablishment extends Model
 {
     use HasFactory,Notifiable;
     protected $fillable = [
-        'etablisment_name',
+        'etablishment_name',
         'description',
         'city',
     ];

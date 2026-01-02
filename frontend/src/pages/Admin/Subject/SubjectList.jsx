@@ -18,6 +18,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/context/AuthContext';
+import Pagination from '@/components/Pagination';
 
 export default function SubjectList() {
   const [subjects, setSubjects] = useState([]);
@@ -28,6 +30,9 @@ export default function SubjectList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('admin') || hasRole('super_admin');
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchInitialData();
@@ -36,14 +41,17 @@ export default function SubjectList() {
   const fetchInitialData = async () => {
     try {
       setLoading(true);
-      const [subjectsData, teachersData, specialtiesData] = await Promise.all([
-        subjectService.getAll(),
-        teacherService.getAll(),
-        specialtyService.getAll()
-      ]);
+      const subjectsData = await subjectService.getAll();
       setSubjects(subjectsData || []);
-      setTeachers(teachersData || []);
-      setSpecialties(specialtiesData || []);
+
+      if (isAdmin) {
+        const [teachersData, specialtiesData] = await Promise.all([
+          teacherService.getAll(),
+          specialtyService.getAll()
+        ]);
+        setTeachers(teachersData || []);
+        setSpecialties(specialtiesData || []);
+      }
     } catch (err) {
       showNotify('Erreur de chargement', 'error');
     } finally {
@@ -90,6 +98,15 @@ export default function SubjectList() {
       s.subject_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [subjects, searchTerm]);
+  const PAGE_SIZE = 5;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, subjects.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredSubjects.length / PAGE_SIZE));
+  const pagedSubjects = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredSubjects.slice(start, start + PAGE_SIZE);
+  }, [filteredSubjects, page]);
 
   if (loading && subjects.length === 0) {
     return <div className="p-6 max-w-6xl mx-auto"><Progress value={40} className="h-1" /></div>;
@@ -109,12 +126,14 @@ export default function SubjectList() {
             <p className="text-slate-500 text-xs md:text-sm font-medium">Programmes et volumes horaires</p>
           </div>
         </div>
-        <Button 
-          onClick={() => { setEditingData(null); setShowForm(true); }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold"
-        >
-          <Plus className="w-5 h-5" /> Ajouter une matière
-        </Button>
+        {isAdmin && (
+          <Button 
+            onClick={() => { setEditingData(null); setShowForm(true); }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold"
+          >
+            <Plus className="w-5 h-5" /> Ajouter une matière
+          </Button>
+        )}
       </div>
 
       {/* --- NOTIFICATIONS --- */}
@@ -152,11 +171,11 @@ export default function SubjectList() {
                 <th className="px-6 py-4">Libellé</th>
                 <th className="px-6 py-4">V. Horaire</th>
                 <th className="px-6 py-4">Enseignant</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                {isAdmin && <th className="px-6 py-4 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {filteredSubjects.map((subject) => (
+              {pagedSubjects.map((subject) => (
                 <tr key={subject.id} className="group hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -181,20 +200,23 @@ export default function SubjectList() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => { setEditingData(subject); setShowForm(true); }} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(subject.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                    </div>
+                    {isAdmin && (
+                      <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => { setEditingData(subject); setShowForm(true); }} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(subject.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL --- */}
-      {showForm && (
+      {showForm && isAdmin && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowForm(false)} />
           <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">

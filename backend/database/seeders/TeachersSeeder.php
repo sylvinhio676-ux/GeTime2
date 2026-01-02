@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Teacher;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class TeachersSeeder extends Seeder
@@ -13,6 +13,14 @@ class TeachersSeeder extends Seeder
      */
     public function run(): void
     {
-        Teacher::factory()->count(5)->create();
+        $userIds = User::query()->pluck('id')->all();
+        $year = date('Y');
+
+        for ($i = 1; $i <= 30; $i++) {
+            Teacher::create([
+                'registration_number' => sprintf('T%s%04d', $year, $i),
+                'user_id' => $userIds[($i - 1) % count($userIds)] ?? null,
+            ]);
+        }
     }
 }

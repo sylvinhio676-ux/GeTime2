@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Etablishment;
 use App\Models\Programmer;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class ProgrammersSeeder extends Seeder
 {
@@ -14,8 +14,16 @@ class ProgrammersSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::transaction(function () {
-            Programmer::factory()->count(5)->create();
-        });
+        $userIds = User::query()->pluck('id')->all();
+        $etablishmentIds = Etablishment::query()->pluck('id')->all();
+        $year = date('Y');
+
+        for ($i = 1; $i <= 30; $i++) {
+            Programmer::create([
+                'registration_number' => sprintf('P%s%04d', $year, $i),
+                'user_id' => $userIds[($i - 1) % count($userIds)] ?? null,
+                'etablishment_id' => $etablishmentIds[($i - 1) % count($etablishmentIds)] ?? null,
+            ]);
+        }
     }
 }

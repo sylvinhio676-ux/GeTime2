@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Pagination from '@/components/Pagination';
 
 export default function ProgrammationList() {
   const [programmations, setProgrammations] = useState([]);
@@ -38,6 +39,13 @@ export default function ProgrammationList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [page, setPage] = useState(1);
+
+  const getErrorMessage = (error, fallback) => {
+    if (!error) return fallback;
+    if (typeof error === 'string') return error;
+    return error.message || error.error || fallback;
+  };
 
   useEffect(() => {
     fetchInitialData();
@@ -64,7 +72,7 @@ export default function ProgrammationList() {
       setCampuses(campusData || []);
       setRooms(roomData || []);
     } catch (error) {
-      showNotify('Erreur de chargement des données', error);
+      showNotify(getErrorMessage(error, 'Erreur de chargement des données'), 'error');
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,7 @@ export default function ProgrammationList() {
       setEditingData(null);
       fetchInitialData();
     } catch (error) {
-      showNotify("Erreur lors de l'enregistrement", error);
+      showNotify(getErrorMessage(error, "Erreur lors de l'enregistrement"), 'error');
     }
   };
 
@@ -99,7 +107,7 @@ export default function ProgrammationList() {
         showNotify('Créneau supprimé');
         setProgrammations(programmations.filter(p => p.id !== id));
       } catch (error) {
-        showNotify('Erreur de suppression', error);
+        showNotify(getErrorMessage(error, 'Erreur de suppression'), 'error');
       }
     }
   }
@@ -111,6 +119,15 @@ export default function ProgrammationList() {
       p.day?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [programmations, searchTerm]);
+  const PAGE_SIZE = 10;
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, programmations.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredProgrammations.length / PAGE_SIZE));
+  const pagedProgrammations = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredProgrammations.slice(start, start + PAGE_SIZE);
+  }, [filteredProgrammations, page]);
 
   if (loading && programmations.length === 0) {
     return <div className="p-6 max-w-6xl mx-auto"><Progress value={45} className="h-1" /></div>;
@@ -174,7 +191,7 @@ export default function ProgrammationList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredProgrammations.map((prog) => (
+                {pagedProgrammations.map((prog) => (
                   <tr key={prog.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-2">
@@ -227,6 +244,7 @@ export default function ProgrammationList() {
             </table>
           )}
         </div>
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* --- MODAL --- */}

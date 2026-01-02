@@ -15,7 +15,7 @@ function timeToMinutes(time) {
   return h * 60 + m;
 }
 
-export default function TimetableGrid({ programmations = [], onCreate, onEdit, onDelete }) {
+export default function TimetableGrid({ programmations = [], onCreate, onEdit, onDelete, readOnly = false }) {
   const timeSlots = useMemo(() => {
     const slots = programmations.map((p) => ({ start: p.hour_star, end: p.hour_end }));
     const unique = new Map();
@@ -65,7 +65,7 @@ export default function TimetableGrid({ programmations = [], onCreate, onEdit, o
                       className="relative group min-h-[90px] rounded-xl border border-slate-100 shadow-sm"
                       style={{ backgroundColor: item ? bg : '#f8fafc' }}
                     >
-                      {!item && (
+                      {!item && !readOnly && (
                         <button
                           onClick={() => onCreate?.({ day, hour_star: slot.start, hour_end: slot.end })}
                           className="absolute inset-0 flex items-center justify-center text-slate-400 hover:text-indigo-600"
@@ -75,7 +75,7 @@ export default function TimetableGrid({ programmations = [], onCreate, onEdit, o
                         </button>
                       )}
 
-                      {item && (
+                      {item && !readOnly && (
                         <button
                           onClick={() => onEdit?.(item)}
                           type="button"
@@ -95,7 +95,23 @@ export default function TimetableGrid({ programmations = [], onCreate, onEdit, o
                         </button>
                       )}
 
-                      {item && (
+                      {item && readOnly && (
+                        <div className="absolute inset-0 flex flex-col justify-between p-3 text-left">
+                          <div className="flex items-start justify-between">
+                            <div className="text-[11px] font-extrabold text-slate-900">
+                              {item.subject?.subject_name || 'Matiere'}
+                            </div>
+                            <span className="text-[9px] font-black text-slate-700/70">
+                              {item.room?.code || 'Salle'}
+                            </span>
+                          </div>
+                          <div className="text-[10px] font-semibold text-slate-700/80">
+                            {item.subject?.teacher?.user?.name || 'Enseignant'}
+                          </div>
+                        </div>
+                      )}
+
+                      {item && !readOnly && (
                         <button
                           onClick={() => onDelete?.(item)}
                           type="button"

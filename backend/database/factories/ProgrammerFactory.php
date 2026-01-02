@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enum\RuleEnum;
 use App\Models\Etablishment;
 use App\Models\Programmer;
 use App\Models\User;
@@ -24,9 +23,7 @@ class ProgrammerFactory extends Factory
     {
         return [
             'registration_number' => $this->generateRegistrationNumber(),
-            'user_id' => User::factory()->state([
-                'role' => RuleEnum::PROGRAMMER
-            ]),
+            'user_id' => User::factory(),
             'etablishment_id' => Etablishment::factory(),
         ];
     }

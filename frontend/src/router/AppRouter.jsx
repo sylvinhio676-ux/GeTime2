@@ -5,10 +5,10 @@ import Login from "@/pages/Auth/Login";
 import CampusList from "@/pages/Admin/campus/CampusList";
 import TeacherList from "@/pages/Admin/teacher/TeacherList";
 import ProgrammerList from "@/pages/Admin/programmer/ProgrammerList";
+import UserList from "@/pages/Admin/user/UserList";
 
 import DashboardLayouts from "@/layouts/DashboadLayouts";
 import Dashboard from "@/pages/dashbaord/Dashboard";
-import ProgrammationList from "@/pages/Admin/programmation/ProgrammationList";
 import TableGris from "@/pages/Admin/programmation/TableGris";
 import YearList from "@/pages/Admin/year/YearList";
 import LevelList from "@/pages/Admin/level/LevelList";
@@ -19,6 +19,9 @@ import RoomList from "@/pages/Admin/room/RoomList";
 import SchoolList from "@/pages/Admin/school/SchoolList";
 import DisponibilityList from "@/pages/Admin/disponibility/DisponibilityList";
 import Settings from "@/pages/Admin/Settings/Settings";
+import RequireAuth from "@/router/RequireAuth";
+import RequireGuest from "@/router/RequireGuest";
+import RequirePermission from "@/router/RequirePermission";
 
 export default function AppRouter() {
   return (
@@ -26,10 +29,18 @@ export default function AppRouter() {
       <Routes>
 
         {/* Public route */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={
+          <RequireGuest>
+            <Login />
+          </RequireGuest>
+        } />
 
         {/* Dashboard layout */}
-        <Route path="/dashboard" element={<DashboardLayouts />}>
+        <Route path="/dashboard" element={
+          <RequireAuth>
+            <DashboardLayouts />
+          </RequireAuth>
+        }>
 
           {/* page dashboard */}
           <Route index element={<Dashboard />} />
@@ -37,9 +48,17 @@ export default function AppRouter() {
           {/* admin pages */}
           <Route path="campuses" element={<CampusList />} />
           <Route path="teachers" element={<TeacherList />} />
+          <Route path="users" element={<UserList />} />
           <Route path="programmers" element={<ProgrammerList />} />
-          <Route path="programmations" element={<ProgrammationList />} />
-          <Route path="timetable" element={<TableGris />} />
+          <Route
+            path="programmations"
+            element={
+              <RequirePermission permission="view-programmation" denyRoles={["teacher"]}>
+                <TableGris />
+              </RequirePermission>
+            }
+          />
+          <Route path="timetable" element={<TableGris readOnly />} />
           <Route path="years" element={<YearList />} />
           <Route path="levels" element={<LevelList />} />
           <Route path="sectors" element={<SectorList />} />
