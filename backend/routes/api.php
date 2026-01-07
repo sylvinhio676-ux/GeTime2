@@ -11,18 +11,21 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\YearController;
+use App\Http\Controllers\Api\EmailController;
 use App\Http\Controllers\ProgrammerController;
 use App\Http\Controllers\ProgrammationController;
 use App\Http\Controllers\DisponibilityController;
 use App\Http\Controllers\SpecialtyProgrammationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
- Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
 Route::get('/login', function(){
 	return redirect("http://localhost:5173/login");
 });
+Route::post('/emails/webhook/mailtrap', [EmailController::class, 'receiveMailtrap']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 	Route::get('/user', function (Request $request) {
@@ -37,6 +40,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread', [NotificationController::class, 'unread']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
     // API Resource Routes
     Route::apiResource('campuses', CampusController::class)
@@ -45,12 +52,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::apiResource('etablishments', EtablishmentController::class)
         ->middleware('role_or_permission:super_admin|admin,sanctum');
-    Route::apiResource('programmers', ProgrammerController::class)
+    Route::get('programmers', [ProgrammerController::class, 'index'])
+        ->middleware('role_or_permission:super_admin|admin|programmer,sanctum');
+    Route::get('programmers/{programmer}', [ProgrammerController::class, 'show'])
+        ->middleware('role_or_permission:super_admin|admin|programmer,sanctum');
+    Route::post('programmers', [ProgrammerController::class, 'store'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::put('programmers/{programmer}', [ProgrammerController::class, 'update'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::delete('programmers/{programmer}', [ProgrammerController::class, 'destroy'])
         ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::apiResource('specialty-programmations', SpecialtyProgrammationController::class)
         ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::apiResource('users', UserController::class)
         ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::get('emails', [EmailController::class, 'index']);
+    Route::get('emails/sync', [EmailController::class, 'syncMailtrap']);
+    Route::post('emails', [EmailController::class, 'send']);
+    Route::patch('emails/{email}/read', [EmailController::class, 'markRead']);
 
     // Sectors
     Route::get('sectors', [SectorController::class, 'index'])

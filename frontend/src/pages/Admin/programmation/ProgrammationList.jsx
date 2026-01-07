@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { programmationService } from '../../../services/programmationService';
 import { subjectService } from '../../../services/subjectService';
-import { programmersService } from '../../../services/programmerService';
-import { yearService } from '../../../services/yearService';
 import { levelService } from '../../../services/levelService'; // Ajouté
 import { campusService } from '../../../services/campusService';
 import { roomService } from '../../../services/roomService';
@@ -29,8 +27,6 @@ import Pagination from '@/components/Pagination';
 export default function ProgrammationList() {
   const [programmations, setProgrammations] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [programmers, setProgrammers] = useState([]);
-  const [years, setYears] = useState([]);
   const [levels, setLevels] = useState([]); // Ajouté
   const [campuses, setCampuses] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -55,19 +51,15 @@ export default function ProgrammationList() {
     try {
       setLoading(true);
       // Récupération de toutes les dépendances en parallèle
-      const [progData, subData, profData, yearData, levelData, campusData, roomData] = await Promise.all([
+      const [progData, subData, levelData, campusData, roomData] = await Promise.all([
         programmationService.getAll(),
         subjectService.getAll(),
-        programmersService.getAll(),
-        yearService.getAll(),
         levelService.getAll(), // Ajouté
         campusService.getAll(),
         roomService.getAll(),
       ]);
       setProgrammations(progData || []);
       setSubjects(subData || []);
-      setProgrammers(profData || []);
-      setYears(yearData || []);
       setLevels(levelData || []); // Ajouté
       setCampuses(campusData || []);
       setRooms(roomData || []);
@@ -130,16 +122,16 @@ export default function ProgrammationList() {
   }, [filteredProgrammations, page]);
 
   if (loading && programmations.length === 0) {
-    return <div className="p-6 max-w-6xl mx-auto"><Progress value={45} className="h-1" /></div>;
+    return <div className="p-4 md:p-8 max-w-[1600px] mx-auto"><Progress value={45} className="h-1" /></div>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
       
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+          <div className="w-12 h-12 bg-gradient-to-br from-slate-600 via-slate-500 to-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
             <CalendarRange className="w-6 h-6" />
           </div>
           <div>
@@ -149,7 +141,7 @@ export default function ProgrammationList() {
         </div>
         <Button 
           onClick={() => { setEditingData(null); setShowForm(true); }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
+          className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
         >
           <Plus className="w-5 h-5" /> Programmer un cours
         </Button>
@@ -163,7 +155,7 @@ export default function ProgrammationList() {
             <input 
               type="text"
               placeholder="Rechercher matière, groupe ou jour..."
-              className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+              className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-slate-50 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -195,23 +187,23 @@ export default function ProgrammationList() {
                   <tr key={prog.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-2">
-                        <Badge className="w-fit bg-indigo-50 text-indigo-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-lg uppercase">
+                        <Badge className="w-fit bg-slate-50 text-slate-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-lg uppercase">
                           {prog.day}
                         </Badge>
                         <div className="flex items-center gap-2 font-mono text-[11px] font-bold text-slate-500 italic">
-                          <Clock className="w-3 h-3 text-indigo-400" />
+                          <Clock className="w-3 h-3 text-slate-400" />
                           {prog.hour_star} — {prog.hour_end}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-sm">
+                        <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-slate-500 group-hover:text-white transition-all shadow-sm">
                           <BookOpen className="w-4 h-4" />
                         </div>
                         <div>
                           <p className="font-bold text-slate-900 text-sm tracking-tight">{prog.subject?.subject_name}</p>
-                          <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-[10px] uppercase mt-0.5">
+                          <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px] uppercase mt-0.5">
                             <GraduationCap className="w-3 h-3" />
                             {prog.subject?.specialty?.level?.name_level || 'Groupe non défini'}
                           </div>
@@ -234,7 +226,7 @@ export default function ProgrammationList() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => {setEditingData(prog); setShowForm(true);}} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => {setEditingData(prog); setShowForm(true);}} className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg"><Pencil className="w-4 h-4" /></button>
                         <button onClick={() => handleDelete(prog.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
@@ -253,7 +245,7 @@ export default function ProgrammationList() {
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowForm(false)} />
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="font-black text-slate-900 tracking-tight flex items-center gap-3 text-lg text-indigo-600">
+              <h3 className="font-black text-slate-900 tracking-tight flex items-center gap-3 text-lg text-slate-600">
                  {editingData ? 'Modifier la séance' : 'Nouvelle programmation'}
               </h3>
               <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600 p-2"><X className="w-6 h-6" /></button>
@@ -262,8 +254,6 @@ export default function ProgrammationList() {
               <ProgrammationForm
                 initialData={editingData}
                 subjects={subjects}
-                programmers={programmers}
-                years={years}
                 levels={levels} // Passage des niveaux au formulaire
                 campuses={campuses}
                 rooms={rooms}

@@ -164,7 +164,7 @@ function AdminDashboard({ data }) {
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-indigo-600 border-indigo-200 bg-indigo-50">
+              <Badge variant="outline" className="text-slate-600 border-slate-200 bg-slate-50">
                 <Calendar className="w-3 h-3 mr-1" /> Année Académique: {analytics.activeYear}
               </Badge>
             </div>
@@ -175,7 +175,7 @@ function AdminDashboard({ data }) {
                 <p className="text-xs text-slate-500 font-bold uppercase">Établissement</p>
                 <p className="text-sm font-bold text-slate-900">{data.etablishments[0]?.name || "Université Centrale"}</p>
              </div>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 shadow-lg">
+            <Button className="bg-blue-700 hover:bg-blue-800 text-white shadow-slate-200 shadow-lg">
               <Plus className="w-4 h-4 mr-2" /> Nouvelle Programmation
             </Button>
           </div>
@@ -218,7 +218,7 @@ function AdminDashboard({ data }) {
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                 <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <CalendarCheck className="w-5 h-5 text-indigo-500" /> Programmations Récentes
+                  <CalendarCheck className="w-5 h-5 text-slate-500" /> Programmations Récentes
                 </h3>
                 <Button variant="ghost" size="sm">Voir tout le planning</Button>
               </div>
@@ -262,7 +262,7 @@ function AdminDashboard({ data }) {
             {/* Actions Rapides Système */}
             <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-2xl">
               <h3 className="font-bold flex items-center gap-2 mb-6">
-                <Activity className="w-5 h-5 text-indigo-400" /> Gestion Rapide
+                <Activity className="w-5 h-5 text-slate-400" /> Gestion Rapide
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <QuickAction icon={Clock} label="Dispos" count={2} />
@@ -270,7 +270,7 @@ function AdminDashboard({ data }) {
                 <QuickAction icon={School} label="Salles" count={1} />
                 <QuickAction icon={BookOpen} label="Syllabus" />
               </div>
-              <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 border-none h-12">
+              <Button className="w-full mt-6 bg-blue-700 hover:bg-slate-500 border-none h-12">
                  Générer Emploi du Temps
               </Button>
             </div>
@@ -280,7 +280,7 @@ function AdminDashboard({ data }) {
               <h3 className="font-bold text-slate-800 mb-4">Progression par Secteur</h3>
               <div className="space-y-5">
                 {[
-                  { label: 'Informatique', val: 75, col: 'bg-indigo-500' },
+                  { label: 'Informatique', val: 75, col: 'bg-slate-500' },
                   { label: 'Génie Civil', val: 40, col: 'bg-orange-500' },
                   { label: 'Management', val: 90, col: 'bg-emerald-500' }
                 ].map((item, i) => (
@@ -544,7 +544,7 @@ function TeacherDashboard({ data }) {
 
 function StatWidget({ title, value, icon: Icon, trend, color, up }) {
   const colorStyles = {
-    indigo: "bg-indigo-50 text-indigo-600 ring-indigo-100",
+    indigo: "bg-slate-50 text-slate-600 ring-slate-100",
     emerald: "bg-emerald-50 text-emerald-600 ring-emerald-100",
     blue: "bg-blue-50 text-blue-600 ring-blue-100",
     orange: "bg-orange-50 text-orange-600 ring-orange-100"
@@ -574,11 +574,11 @@ function QuickAction({ icon: Icon, label, count }) {
   return (
     <button className="relative flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all gap-2 group">
       {count && (
-        <span className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-500 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg">
+        <span className="absolute -top-1 -right-1 w-5 h-5 bg-slate-500 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg">
           {count}
         </span>
       )}
-      <Icon className="w-5 h-5 text-indigo-300 group-hover:scale-110 transition-transform" />
+      <Icon className="w-5 h-5 text-slate-300 group-hover:scale-110 transition-transform" />
       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{label}</span>
     </button>
   );

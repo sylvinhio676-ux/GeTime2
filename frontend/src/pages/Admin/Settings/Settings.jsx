@@ -66,11 +66,11 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-6 md:py-8 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+            <div className="w-12 h-12 bg-gradient-to-br from-slate-600 via-slate-500 to-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
               <SettingsIcon className="w-6 h-6" />
             </div>
             <div>
@@ -83,7 +83,7 @@ export default function Settings() {
             {isDirty && (
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition font-bold shadow-md shadow-indigo-100"
+                className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-xl hover:bg-blue-800 transition font-bold shadow-md shadow-blue-100"
               >
                 <Save className="w-4 h-4" />
                 Enregistrer

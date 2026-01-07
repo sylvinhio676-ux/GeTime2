@@ -1,3 +1,12 @@
+Token=39beca801973830b0792b35067e8da04
+
+echo 'Looking to send emails in production? Check out our Email API/SMTP product!'
+curl --location --request POST \
+'https://sandbox.api.mailtrap.io/api/send/4288765' \
+--header 'Authorization: Bearer <YOUR_API_TOKEN>' \
+--header 'Content-Type: application/json' \
+--data-raw '{"from":{"email":"hello@example.com","name":"Mailtrap Test"},"to":[{"email":"sylvinhio676@gmail.com"}],"subject":"You are awesome!","text":"Congrats for sending test email with Mailtrap!","category":"Integration Test"}'
+
 1️⃣ Ouvrir un fichier (fopen)
 FILE *f = fopen("data.txt", "r");
 
@@ -150,7 +159,69 @@ Internationalisation (FR/EN), configuration globale par établissement.
 Monitoring & logs applicatifs (erreurs, latences, disponibilité).
 Tests automatisés + CI/CD (unitaires, intégration, e2e).
 Sauvegarde/restore DB et gestion des migrations en prod.
-Si tu veux, je peux te proposer une roadmap par priorité (MVP → Pro → Enterprise) et chiffrer l’effort estimé pour chaque bloc.
+Si tu veux, je peux teParfait. Avant d’implémenter, j’ai besoin de 3 précisions pour le système complet (backend + frontend) :
+
+Événements à notifier
+
+Création de programmation
+Modification
+Suppression
+Conflit détecté
+Dis‑moi lesquels tu veux.
+Canal
+
+Dans l’app seulement (notification interne)
+Email en plus
+Les deux
+Qui reçoit
+
+L’enseignant concerné
+Le programmeur
+L’admin
+Tous les utilisateurs concernés (salle + enseignant + admin)
+Dès que tu me réponds, je le mets en place et je t’explique pas à pas (fichiers + comment ça marche).
+
+1, 2-les deux, 3-l'enseignant concerne-le programmeur-l'admin
+
+
+J’ai mis en place le système complet de notifications (backend + frontend) et je t’explique clairement comment ça fonctionne.
+
+Ce que j’ai fait (résumé rapide)
+
+Notifications DB + email via Laravel (table notifications, classe ProgrammationNotification).
+Envoi automatique pour : création, modification, suppression, conflit.
+Réception par : enseignant concerné, programmeur, admin/super_admin.
+Écran Notifications côté frontend + routes API.
+Fichiers backend (Laravel)
+
+Table DB : 2026_01_06_000000_create_notifications_table.php
+Classe notification : ProgrammationNotification.php
+API notifications : NotificationController.php
+Routes API : api.php
+Envois ajoutés dans : ProgrammationController.php
+Fichiers frontend
+
+Service API : notificationService.js
+Page notifications : NotificationList.jsx
+Route : AppRouter.jsx
+Menu sidebar : Sidebar.jsx
+Comment ça marche (simple)
+
+Quand tu crées/modifies/supprimes une programmation, le backend envoie une notification.
+Si conflit, le backend envoie aussi une notification avec le message exact.
+Les notifications sont enregistrées en base + envoyées par mail.
+Chaque utilisateur voit ses notifications dans /dashboard/notifications.
+Étapes à faire maintenant
+
+Exécuter la migration :
+cd /home/sylvinhio/GeTime2/backend
+php artisan migrate
+Redémarre Laravel.
+Ouvre /dashboard/notifications pour voir les alertes.
+Important (logique d’attribution)
+
+Programmer : pris automatiquement depuis la spécialité ou l’utilisateur connecté.
+Année académique : prise automatiquement via la date courante (date_star/date_end). proposer une roadmap par priorité (MVP → Pro → Enterprise) et chiffrer l’effort estimé pour chaque bloc.
 
 oui
 
@@ -186,3 +257,477 @@ ta priorite (MVP/Pro/Enterprise)
 ton delai
 ton equipe (solo/2 pers/3+)
 Et je te propose un plan detaille avec taches techniques et dependances.
+
+============NOTIFICATION===============
+Parfait. Avant d’implémenter, j’ai besoin de 3 précisions pour le système complet (backend + frontend) :
+
+Événements à notifier
+
+Création de programmation
+Modification
+Suppression
+Conflit détecté
+Dis‑moi lesquels tu veux.
+Canal
+
+Dans l’app seulement (notification interne)
+Email en plus
+Les deux
+Qui reçoit
+
+L’enseignant concerné
+Le programmeur
+L’admin
+Tous les utilisateurs concernés (salle + enseignant + admin)
+Dès que tu me réponds, je le mets en place et je t’explique pas à pas (fichiers + comment ça marche).
+
+1, 2-les deux, 3-l'enseignant concerne-le programmeur-l'admin
+
+
+J’ai mis en place le système complet de notifications (backend + frontend) et je t’explique clairement comment ça fonctionne.
+
+Ce que j’ai fait (résumé rapide)
+
+Notifications DB + email via Laravel (table notifications, classe ProgrammationNotification).
+Envoi automatique pour : création, modification, suppression, conflit.
+Réception par : enseignant concerné, programmeur, admin/super_admin.
+Écran Notifications côté frontend + routes API.
+Fichiers backend (Laravel)
+
+Table DB : 2026_01_06_000000_create_notifications_table.php
+Classe notification : ProgrammationNotification.php
+API notifications : NotificationController.php
+Routes API : api.php
+Envois ajoutés dans : ProgrammationController.php
+Fichiers frontend
+
+Service API : notificationService.js
+Page notifications : NotificationList.jsx
+Route : AppRouter.jsx
+Menu sidebar : Sidebar.jsx
+Comment ça marche (simple)
+
+Quand tu crées/modifies/supprimes une programmation, le backend envoie une notification.
+Si conflit, le backend envoie aussi une notification avec le message exact.
+Les notifications sont enregistrées en base + envoyées par mail.
+Chaque utilisateur voit ses notifications dans /dashboard/notifications.
+Étapes à faire maintenant
+
+Exécuter la migration :
+cd /home/sylvinhio/GeTime2/backend
+php artisan migrate
+Redémarre Laravel.
+Ouvre /dashboard/notifications pour voir les alertes.
+Important (logique d’attribution)
+
+Programmer : pris automatiquement depuis la spécialité ou l’utilisateur connecté.
+Année académique : prise automatiquement via la date courante (date_star/date_end).
+
+
+=============UML===============
++-----------Class--------------+
+@startuml
+title Diagramme de classes détaillé - GeTime
+skinparam classAttributeIconSize 0
+
+class Ecole {
+  +nom_ecole
+  +description
+  +responsable_utilisateur_id
+  --
+  +secteurs(): Filiere[*]
+  +responsable(): Utilisateur
+}
+
+class Filiere {
+  +nom_filiere
+  +code
+  +ecole_id
+  --
+  +specialites(): Specialite[*]
+  +ecole(): Ecole
+}
+
+class Niveau {
+  +nom_niveau
+  --
+  +specialites(): Specialite[*]
+}
+
+class Specialite {
+  +nom_specialite
+  +code
+  +description
+  +nombre_etudiants
+  +secteur_id
+  +programmeur_id
+  +niveau_id
+  --
+  +matieres(): Matiere[*]
+  +secteur(): Filiere
+  +niveau(): Niveau
+  +programmeur(): Programmeur
+  +programmations(): Programmation[*]
+}
+
+class Utilisateur {
+  +nom
+  +email
+  +telephone
+  +mot_de_passe
+  --
+  +enseignant(): Enseignant
+  +programmeur(): Programmeur
+  +casts(): tableau
+}
+
+class Enseignant {
+  +matricule
+  +utilisateur_id
+  --
+  +genererMatricule(): chaine
+  +utilisateur(): Utilisateur
+  +matieres(): Matiere[*]
+}
+
+class Programmeur {
+  +matricule
+  +utilisateur_id
+  +etablissement_id
+  --
+  +genererMatricule(): chaine
+  +utilisateur(): Utilisateur
+  +programmations(): Programmation[*]
+  +specialites(): Specialite[*]
+  +etablissement(): Etablissement
+}
+
+class Etablissement {
+  +nom_etablissement
+  +description
+  +ville
+  --
+  +programmeurs(): Programmeur[*]
+  +campus(): Campus[*]
+  +disponibilites(): Disponibilite[*]
+}
+
+class Campus {
+  +nom_campus
+  +localisation
+  +etablissement_id
+  --
+  +salles(): Salle[*]
+  +etablissement(): Etablissement
+}
+
+class Salle {
+  +code
+  +capacite
+  +disponible
+  +type_salle
+  +campus_id
+  --
+  +programmations(): Programmation[*]
+  +campus(): Campus
+}
+
+class Matiere {
+  +nom_matiere
+  +heures_par_semaine
+  +heures_totales
+  +type_matiere
+  +couleur
+  +enseignant_id
+  +specialite_id
+  --
+  +enseignant(): Enseignant
+  +disponibilites(): Disponibilite[*]
+  +programmations(): Programmation[*]
+  +specialite(): Specialite
+}
+
+class Annee {
+  +date_debut
+  +date_fin
+  --
+  +programmations(): Programmation[*]
+}
+
+class Programmation {
+  +jour
+  +heure_debut
+  +heure_fin
+  +matiere_id
+  +programmeur_id
+  +annee_id
+  +salle_id
+  --
+  +matiere(): Matiere
+  +salle(): Salle
+  +annee(): Annee
+  +programmeur(): Programmeur
+  +specialites(): Specialite[*]
+}
+
+class Disponibilite {
+  +jour
+  +heure_debut
+  +heure_fin
+  +matiere_id
+  +etablissement_id
+  --
+  +matiere(): Matiere
+  +etablissement(): Etablissement
+}
+
+class EnseignantEtablissement{
+  +enseignant_id
+  +Etablissement_id
+  --
+  +enseignant() : Enseignant
+  +etablissement() : Etablissement
+}
+
+' --- Héritage
+Utilisateur <|-- Enseignant
+Utilisateur <|-- Programmeur
+
+' --- Relations principales
+Ecole "1" -- "*" Filiere : regroupe
+Filiere "1" -- "*" Specialite : possede
+Niveau "1" -- "*" Specialite : regroupe
+Specialite "1" -- "*" Matiere : comprend
+Enseignant "1" -- "*" Matiere : dispense
+
+Etablissement "1" -- "*" Programmeur : possede
+Etablissement "1" -- "*" Campus : possede
+Campus "1" -- "*" Salle : contient
+
+Annee "1" -- "*" Programmation : concerne
+Salle "1" -- "*" Programmation : concerne
+Matiere "1" -- "*" Programmation : concerne
+Programmeur "1" -- "*" Programmation : etabli
+
+Matiere "1" -- "*" Disponibilite : peut avoir
+Etablissement "1" -- "*" Disponibilite : possede
+
+'---Relation ManyToMany
+Enseignant "*" -- "*" Etablissement : EnseignantEtablissement
+(Enseignant, Etablissement) .. EnseignantEtablissement
+
+@enduml
+
+
++-------------sequence---------------+
+|.............Disponibilite..........|
+@startuml
+title Gérer disponibilités personnelles
+actor Enseignant
+participant "Frontend" as FE
+participant "API Disponibilité" as API
+database "DB" as DB
+
+Enseignant -> FE: Soumettre disponibilité
+activate FE
+FE -> API: POST/PUT /disponibilities
+activate API
+API -> DB: Vérifier chevauchement
+activate DB
+DB --> API: Conflit ? oui/non
+deactivate DB
+
+alt Pas de conflit
+  API -> DB: Enregistrer disponibilité
+  activate DB
+  DB --> API: OK
+  deactivate DB
+  API --> FE: 200 OK
+  FE --> Enseignant: Confirmation
+else Conflit détecté
+  API --> FE: 409 Conflict
+  FE --> Enseignant: Message d'erreur
+end
+
+deactivate API
+deactivate FE
+@enduml
+
+|...............Auth.................|
+@startuml
+title Authentification
+actor Utilisateur
+participant "Frontend" as FE
+participant "API Auth" as API
+database "DB" as DB
+
+Utilisateur -> FE: Saisir identifiants
+activate FE
+FE -> API: POST /login
+activate API
+API -> DB: Chercher utilisateur
+activate DB
+DB --> API: Utilisateur + hash
+deactivate DB
+
+API -> API: Vérifier mot de passe
+alt Valide
+  API --> FE: Token + profil + rôles + permissions
+  FE --> Utilisateur: Session ouverte
+else Invalide
+  API --> FE: 401 Unauthorized
+  FE --> Utilisateur: Message d'erreur
+end
+
+deactivate API
+deactivate FE
+@enduml
+
+|..............Programmation................|
+@startuml
+title Gérer programmations (détaillé)
+actor Programmeur
+participant "Frontend" as FE
+participant "API Programmation" as API
+database "DB" as DB
+
+Programmeur -> FE: Soumettre programmation
+activate FE
+FE -> API: POST/PUT /programmations
+activate API
+API -> DB: Vérifier conflits (salle/enseignant/spécialité)
+activate DB
+DB --> API: Conflit ? oui/non
+deactivate DB
+
+alt Pas de conflit
+  API -> DB: Enregistrer programmation
+  activate DB
+  DB --> API: OK
+  deactivate DB
+  API --> FE: 200 OK
+  FE --> Programmeur: Confirmation
+else Conflit détecté
+  API --> FE: 409 Conflict
+  FE --> Programmeur: Message d'erreur
+end
+
+deactivate API
+deactivate FE
+@enduml
+
++------------------use case------------------+
+@startuml
+left to right direction
+actor "Administrateur" as Admin
+actor "Programmeur" as Prog
+actor "Enseignant" as Teach
+
+rectangle "GeTime2" {
+  (S'authentifier) as UC_auth
+
+  (Gérer utilisateurs) as UC_users
+  (Attribuer rôles) as UC_roles
+  (Gérer campus) as UC_campus
+  (Gérer établissements) as UC_etab
+  (Gérer écoles) as UC_school
+  (Gérer secteurs) as UC_sector
+  (Gérer niveaux) as UC_level
+  (Gérer spécialités) as UC_spec
+  (Gérer matières) as UC_subject
+  (Gérer enseignants) as UC_teacher
+  (Gérer salles) as UC_room
+  (Gérer années) as UC_year
+  (Gérer programmeurs) as UC_programmer
+  (Gérer programmations) as UC_programmation
+  (Consulter emploi du temps) as UC_timetable
+
+  (Consulter campus) as UC_view_campus
+  (Consulter établissements) as UC_view_etab
+  (Consulter écoles) as UC_view_school
+  (Consulter secteurs) as UC_view_sector
+  (Consulter niveaux) as UC_view_level
+  (Consulter spécialités) as UC_view_spec
+  (Consulter matières) as UC_view_subject
+  (Consulter enseignants) as UC_view_teacher
+  (Consulter salles) as UC_view_room
+  (Consulter années) as UC_view_year
+
+  (Gérer disponibilités personnelles) as UC_dispo_self
+  (Consulter disponibilités) as UC_view_dispo
+}
+
+Admin --> UC_users
+Admin --> UC_roles
+Admin --> UC_campus
+Admin --> UC_etab
+Admin --> UC_school
+Admin --> UC_sector
+Admin --> UC_level
+Admin --> UC_spec
+Admin --> UC_subject
+Admin --> UC_teacher
+Admin --> UC_room
+Admin --> UC_year
+Admin --> UC_programmer
+Admin --> UC_programmation
+Admin --> UC_timetable
+
+Prog --> UC_view_campus
+Prog --> UC_view_etab
+Prog --> UC_view_school
+Prog --> UC_view_sector
+Prog --> UC_view_level
+Prog --> UC_view_spec
+Prog --> UC_view_subject
+Prog --> UC_view_teacher
+Prog --> UC_view_room
+Prog --> UC_view_year
+Prog --> UC_programmation
+Prog --> UC_timetable
+
+Teach --> UC_view_campus
+Teach --> UC_view_etab
+Teach --> UC_view_school
+Teach --> UC_view_sector
+Teach --> UC_view_level
+Teach --> UC_view_spec
+Teach --> UC_view_subject
+Teach --> UC_view_teacher
+Teach --> UC_view_room
+Teach --> UC_view_year
+Teach --> UC_dispo_self
+Teach --> UC_view_dispo
+Teach --> UC_timetable
+
+' Auth obligatoire pour toutes les actions
+UC_users ..> UC_auth : <<include>>
+UC_roles ..> UC_auth : <<include>>
+UC_campus ..> UC_auth : <<include>>
+UC_etab ..> UC_auth : <<include>>
+UC_school ..> UC_auth : <<include>>
+UC_sector ..> UC_auth : <<include>>
+UC_level ..> UC_auth : <<include>>
+UC_spec ..> UC_auth : <<include>>
+UC_subject ..> UC_auth : <<include>>
+UC_teacher ..> UC_auth : <<include>>
+UC_room ..> UC_auth : <<include>>
+UC_year ..> UC_auth : <<include>>
+UC_programmer ..> UC_auth : <<include>>
+UC_programmation ..> UC_auth : <<include>>
+UC_timetable ..> UC_auth : <<include>>
+
+UC_view_campus ..> UC_auth : <<include>>
+UC_view_etab ..> UC_auth : <<include>>
+UC_view_school ..> UC_auth : <<include>>
+UC_view_sector ..> UC_auth : <<include>>
+UC_view_level ..> UC_auth : <<include>>
+UC_view_spec ..> UC_auth : <<include>>
+UC_view_subject ..> UC_auth : <<include>>
+UC_view_teacher ..> UC_auth : <<include>>
+UC_view_room ..> UC_auth : <<include>>
+UC_view_year ..> UC_auth : <<include>>
+UC_dispo_self ..> UC_auth : <<include>>
+UC_view_dispo ..> UC_auth : <<include>>
+
+@enduml

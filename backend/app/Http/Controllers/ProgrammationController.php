@@ -5,9 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Stores\ProgrammationRequest;
 use App\Http\Requests\Updates\ProgrammationUpdateRequest;
 use App\Models\Programmation;
+use App\Models\Programmer;
 use App\Models\Room;
 use App\Models\Subject;
+use App\Models\Year;
+use App\Models\User;
+use App\Notifications\ProgrammationNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Exception;
 
 class ProgrammationController extends Controller
@@ -47,6 +52,47 @@ class ProgrammationController extends Controller
                 $q->where('id', '!=', $excludeId);
             }
         })->orderBy('capacity')->first();
+    }
+
+    private function resolveProgrammerId(Request $request, Subject $subject, ?int $fallbackId = null): ?int
+    {
+        if ($fallbackId) {
+            return $fallbackId;
+        }
+
+        $specialtyProgrammerId = $subject->specialty?->programmer_id;
+        if ($specialtyProgrammerId) {
+            return $specialtyProgrammerId;
+        }
+
+        return $request->user()?->programmer?->id;
+    }
+
+    private function resolveCurrentYearId(): ?int
+    {
+        $today = Carbon::today();
+        $current = Year::whereDate('date_star', '<=', $today)
+            ->whereDate('date_end', '>=', $today)
+            ->orderByDesc('date_end')
+            ->first();
+
+        return $current?->id;
+    }
+
+    private function notifyUsers(?User $teacherUser, ?User $programmerUser, array $payload, ?int $actorId = null): void
+    {
+        $admins = User::role(['super_admin', 'admin'])->get();
+        $recipients = collect([$teacherUser, $programmerUser])
+            ->merge($admins)
+            ->filter()
+            ->unique('id');
+
+        foreach ($recipients as $user) {
+            if ($actorId && $user->id === $actorId) {
+                continue;
+            }
+            $user->notify(new ProgrammationNotification($payload));
+        }
     }
 
     /**
@@ -122,6 +168,17 @@ class ProgrammationController extends Controller
             $specialtyIds = $data['specialty_ids'] ?? [$subject->specialty_id];
 
             $campusId = $data['campus_id'] ?? null;
+            $data['programmer_id'] = $this->resolveProgrammerId($request, $subject, $data['programmer_id'] ?? null);
+            if (!$data['programmer_id']) {
+                return errorResponse("Aucun programmeur associé pour cette programmation");
+            }
+
+            if (empty($data['year_id'])) {
+                $data['year_id'] = $this->resolveCurrentYearId();
+            }
+            if (empty($data['year_id'])) {
+                return errorResponse("Aucune année académique courante trouvée");
+            }
 
             if (empty($data['room_id'])) {
                 if (!$campusId) {
@@ -142,6 +199,16 @@ class ProgrammationController extends Controller
             );
 
             if ($roomConflict) {
+                $teacherUser = $subject->teacher?->user;
+                $programmerUser = Programmer::find($data['programmer_id'])?->user;
+                $this->notifyUsers($teacherUser, $programmerUser, [
+                    'type' => 'programmation_conflict',
+                    'title' => 'Conflit de salle',
+                    'message' => "Conflit détecté: la salle est déjà occupée le {$data['day']} ({$data['hour_star']} - {$data['hour_end']}).",
+                    'meta' => ['room_id' => $data['room_id'], 'subject_id' => $subject->id],
+                    'action_url' => url('/dashboard/programmations'),
+                    'action_label' => 'Voir le planning',
+                ], $request->user()?->id);
                 return errorResponse("Conflit: la salle est déjà occupée sur ce créneau");
             }
 
@@ -155,6 +222,16 @@ class ProgrammationController extends Controller
             );
 
             if ($teacherConflict) {
+                $teacherUser = $subject->teacher?->user;
+                $programmerUser = Programmer::find($data['programmer_id'])?->user;
+                $this->notifyUsers($teacherUser, $programmerUser, [
+                    'type' => 'programmation_conflict',
+                    'title' => 'Conflit d\'enseignant',
+                    'message' => "Conflit détecté: l'enseignant est déjà programmé le {$data['day']} ({$data['hour_star']} - {$data['hour_end']}).",
+                    'meta' => ['subject_id' => $subject->id],
+                    'action_url' => url('/dashboard/programmations'),
+                    'action_label' => 'Voir le planning',
+                ], $request->user()?->id);
                 return errorResponse("Conflit: l'enseignant est déjà programmé sur ce créneau");
             }
 
@@ -169,6 +246,16 @@ class ProgrammationController extends Controller
                 );
 
                 if ($specialtyConflict) {
+                    $teacherUser = $subject->teacher?->user;
+                    $programmerUser = Programmer::find($data['programmer_id'])?->user;
+                    $this->notifyUsers($teacherUser, $programmerUser, [
+                        'type' => 'programmation_conflict',
+                        'title' => 'Conflit de spécialité',
+                        'message' => "Conflit détecté: spécialité déjà programmée le {$data['day']} ({$data['hour_star']} - {$data['hour_end']}).",
+                        'meta' => ['subject_id' => $subject->id],
+                        'action_url' => url('/dashboard/programmations'),
+                        'action_label' => 'Voir le planning',
+                    ], $request->user()?->id);
                     return errorResponse("Conflit: la spécialité est déjà programmée sur ce créneau");
                 }
             }
@@ -179,6 +266,16 @@ class ProgrammationController extends Controller
             if (!empty($specialtyIds)) {
                 $programmation->specialties()->sync($specialtyIds);
             }
+            $teacherUser = $subject->teacher?->user;
+            $programmerUser = Programmer::find($data['programmer_id'])?->user;
+            $this->notifyUsers($teacherUser, $programmerUser, [
+                'type' => 'programmation_created',
+                'title' => 'Nouvelle programmation',
+                'message' => "Une nouvelle séance a été ajoutée le {$data['day']} ({$data['hour_star']} - {$data['hour_end']}).",
+                'meta' => ['programmation_id' => $programmation->id, 'subject_id' => $subject->id],
+                'action_url' => url('/dashboard/programmations'),
+                'action_label' => 'Voir le planning',
+            ], $request->user()?->id);
             return successResponse($programmation, "Programmation créée avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -213,6 +310,14 @@ class ProgrammationController extends Controller
             $start = $data['hour_star'] ?? $programmation->hour_star;
             $end = $data['hour_end'] ?? $programmation->hour_end;
             $campusId = $data['campus_id'] ?? $programmation->room?->campus_id;
+            $data['programmer_id'] = $this->resolveProgrammerId($request, $subject, $data['programmer_id'] ?? $programmation->programmer_id);
+            if (!$data['programmer_id']) {
+                return errorResponse("Aucun programmeur associé pour cette programmation");
+            }
+
+            if (empty($data['year_id'])) {
+                $data['year_id'] = $this->resolveCurrentYearId() ?? $programmation->year_id;
+            }
 
             if (empty($data['room_id'])) {
                 if (!$campusId) {
@@ -234,6 +339,16 @@ class ProgrammationController extends Controller
             );
 
             if ($roomConflict) {
+                $teacherUser = $subject->teacher?->user;
+                $programmerUser = Programmer::find($data['programmer_id'])?->user;
+                $this->notifyUsers($teacherUser, $programmerUser, [
+                    'type' => 'programmation_conflict',
+                    'title' => 'Conflit de salle',
+                    'message' => "Conflit détecté: la salle est déjà occupée le {$day} ({$start} - {$end}).",
+                    'meta' => ['room_id' => $data['room_id'] ?? $programmation->room_id, 'subject_id' => $subject->id],
+                    'action_url' => url('/dashboard/programmations'),
+                    'action_label' => 'Voir le planning',
+                ], $request->user()?->id);
                 return errorResponse("Conflit: la salle est déjà occupée sur ce créneau");
             }
 
@@ -248,6 +363,16 @@ class ProgrammationController extends Controller
             );
 
             if ($teacherConflict) {
+                $teacherUser = $subject->teacher?->user;
+                $programmerUser = Programmer::find($data['programmer_id'])?->user;
+                $this->notifyUsers($teacherUser, $programmerUser, [
+                    'type' => 'programmation_conflict',
+                    'title' => 'Conflit d\'enseignant',
+                    'message' => "Conflit détecté: l'enseignant est déjà programmé le {$day} ({$start} - {$end}).",
+                    'meta' => ['subject_id' => $subject->id],
+                    'action_url' => url('/dashboard/programmations'),
+                    'action_label' => 'Voir le planning',
+                ], $request->user()?->id);
                 return errorResponse("Conflit: l'enseignant est déjà programmé sur ce créneau");
             }
 
@@ -263,6 +388,16 @@ class ProgrammationController extends Controller
                 );
 
                 if ($specialtyConflict) {
+                    $teacherUser = $subject->teacher?->user;
+                    $programmerUser = Programmer::find($data['programmer_id'])?->user;
+                    $this->notifyUsers($teacherUser, $programmerUser, [
+                        'type' => 'programmation_conflict',
+                        'title' => 'Conflit de spécialité',
+                        'message' => "Conflit détecté: spécialité déjà programmée le {$day} ({$start} - {$end}).",
+                        'meta' => ['subject_id' => $subject->id],
+                        'action_url' => url('/dashboard/programmations'),
+                        'action_label' => 'Voir le planning',
+                    ], $request->user()?->id);
                     return errorResponse("Conflit: la spécialité est déjà programmée sur ce créneau");
                 }
             }
@@ -273,6 +408,16 @@ class ProgrammationController extends Controller
             if (!empty($specialtyIds)) {
                 $programmation->specialties()->sync($specialtyIds);
             }
+            $teacherUser = $subject->teacher?->user;
+            $programmerUser = Programmer::find($data['programmer_id'])?->user;
+            $this->notifyUsers($teacherUser, $programmerUser, [
+                'type' => 'programmation_updated',
+                'title' => 'Programmation modifiée',
+                'message' => "Une séance a été modifiée le {$day} ({$start} - {$end}).",
+                'meta' => ['programmation_id' => $programmation->id, 'subject_id' => $subject->id],
+                'action_url' => url('/dashboard/programmations'),
+                'action_label' => 'Voir le planning',
+            ], $request->user()?->id);
             return successResponse($programmation, "Programmation modifiée avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -285,7 +430,19 @@ class ProgrammationController extends Controller
     public function destroy(Programmation $programmation)
     {
         try {
+            $subject = $programmation->subject;
+            $teacherUser = $subject?->teacher?->user;
+            $programmerUser = $programmation->programmer?->user;
+            $payload = [
+                'type' => 'programmation_deleted',
+                'title' => 'Programmation supprimée',
+                'message' => "Une séance du {$programmation->day} ({$programmation->hour_star} - {$programmation->hour_end}) a été supprimée.",
+                'meta' => ['programmation_id' => $programmation->id, 'subject_id' => $subject?->id],
+                'action_url' => url('/dashboard/programmations'),
+                'action_label' => 'Voir le planning',
+            ];
             $programmation->delete();
+            $this->notifyUsers($teacherUser, $programmerUser, $payload, request()->user()?->id);
             return successResponse(null, "Programmation supprimée avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());

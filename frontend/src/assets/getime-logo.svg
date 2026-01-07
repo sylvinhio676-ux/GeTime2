@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gt-core" x1="96" y1="64" x2="416" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="gt-accent" x1="160" y1="128" x2="352" y2="384" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="256" cy="256" r="208" fill="url(#gt-core)"/>
+  <circle cx="256" cy="256" r="168" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="132" fill="none" stroke="url(#gt-accent)" stroke-width="18"/>
+
+  <!-- Stylized G -->
+  <path d="M256 156a100 100 0 1 0 0 200c34 0 64-14 84-36" stroke="#1E293B" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="256" y1="256" x2="334" y2="256" stroke="#1E293B" stroke-width="22" stroke-linecap="round"/>
+
+  <!-- Clock hands -->
+  <line x1="256" y1="256" x2="256" y2="196" stroke="#1E293B" stroke-width="18" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="304" y2="282" stroke="#1E293B" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="10" fill="#1E293B"/>
+</svg>

@@ -28,7 +28,7 @@ export default function KPICard({ title, value, delta, icon: Icon, color = 'prim
         <svg className="w-full h-10" viewBox="0 0 100 20" preserveAspectRatio="none">
           <polyline
             fill="none"
-            stroke="#0B1F4B"
+            stroke="#1F2A44"
             strokeWidth="2"
             points="0,15 20,10 40,12 60,6 80,9 100,4"
             strokeOpacity="0.15"

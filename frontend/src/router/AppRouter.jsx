@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "@/pages/Auth/Login";
+import Landing from "@/pages/Public/Landing";
 // import Dashboard from "@/pages/dashboard/Dashboard";
 import CampusList from "@/pages/Admin/campus/CampusList";
 import TeacherList from "@/pages/Admin/teacher/TeacherList";
@@ -19,6 +20,8 @@ import RoomList from "@/pages/Admin/room/RoomList";
 import SchoolList from "@/pages/Admin/school/SchoolList";
 import DisponibilityList from "@/pages/Admin/disponibility/DisponibilityList";
 import Settings from "@/pages/Admin/Settings/Settings";
+import EmailSend from "@/pages/Admin/email/EmailSend";
+import NotificationList from "@/pages/Admin/notifications/NotificationList";
 import RequireAuth from "@/router/RequireAuth";
 import RequireGuest from "@/router/RequireGuest";
 import RequirePermission from "@/router/RequirePermission";
@@ -28,8 +31,9 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
 
-        {/* Public route */}
-        <Route path="/" element={
+        {/* Public routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={
           <RequireGuest>
             <Login />
           </RequireGuest>
@@ -67,6 +71,8 @@ export default function AppRouter() {
           <Route path="rooms" element={<RoomList />} />
           <Route path="schools" element={<SchoolList />} />
           <Route path="disponibilities" element={<DisponibilityList />}/>
+          <Route path="email" element={<EmailSend />} />
+          <Route path="notifications" element={<NotificationList />} />
           <Route path="settings" element={<Settings/>} />
 
         </Route>

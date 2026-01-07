@@ -121,7 +121,7 @@ export default function SectorList() {
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+          <div className="w-12 h-12 bg-blue-700 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
             <Layers className="w-6 h-6" />
           </div>
           <div>
@@ -131,7 +131,7 @@ export default function SectorList() {
         </div>
         <Button 
           onClick={() => { setEditingData(null); setShowForm(true); }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
+          className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
         >
           <Plus className="w-5 h-5" /> Ajouter une filière
         </Button>
@@ -157,12 +157,12 @@ export default function SectorList() {
             <input 
               type="text"
               placeholder="Rechercher une filière ou un code..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-slate-50 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-none font-bold px-4 py-1">
+          <Badge variant="secondary" className="bg-slate-50 text-slate-700 border-none font-bold px-4 py-1">
             {filteredSectors.length} Secteurs enregistrés
           </Badge>
         </div>
@@ -188,14 +188,14 @@ export default function SectorList() {
                   <tr key={sector.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-blue-700 group-hover:text-white transition-all">
                           {sector.sector_name?.substring(0, 2)}
                         </div>
                         <p className="font-bold text-slate-900 tracking-tight">{sector.sector_name}</p>
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <Badge variant="outline" className="font-mono text-indigo-600 border-indigo-100 bg-indigo-50/30">
+                      <Badge variant="outline" className="font-mono text-slate-600 border-slate-100 bg-slate-50/30">
                         {sector.code || 'N/A'}
                       </Badge>
                     </td>
@@ -209,7 +209,7 @@ export default function SectorList() {
                       <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => { setEditingData(sector); setShowForm(true); }}
-                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>

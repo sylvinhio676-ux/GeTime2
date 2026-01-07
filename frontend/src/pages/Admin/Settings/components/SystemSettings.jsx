@@ -99,8 +99,8 @@ export default function SystemSettings({ onDataChange }) {
           />
         </div>
 
-        <div className="mt-4 bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-          <p className="text-sm text-indigo-800">
+        <div className="mt-4 bg-slate-50 border border-slate-100 rounded-2xl p-4">
+          <p className="text-sm text-slate-800">
             📦 Dernière sauvegarde: <strong>25 Décembre 2025 à 02:00 AM</strong>
           </p>
         </div>
@@ -146,7 +146,7 @@ export default function SystemSettings({ onDataChange }) {
             <select
               value={systemSettings.timezone}
               onChange={(e) => handleSelectChange('timezone', e.target.value)}
-              className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
             >
               <option value="Europe/Paris">Europe/Paris (UTC+1)</option>
               <option value="Europe/London">Europe/London (UTC+0)</option>
@@ -163,7 +163,7 @@ export default function SystemSettings({ onDataChange }) {
             <select
               value={systemSettings.dateFormat}
               onChange={(e) => handleSelectChange('dateFormat', e.target.value)}
-              className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
             >
               <option value="DD/MM/YYYY">Jour/Mois/Année (DD/MM/YYYY)</option>
               <option value="MM/DD/YYYY">Mois/Jour/Année (MM/DD/YYYY)</option>

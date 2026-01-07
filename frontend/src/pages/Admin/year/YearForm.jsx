@@ -55,7 +55,7 @@ export default function YearForm({
   const inputClasses = (name) => `
     w-full px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all 
     focus:bg-white focus:outline-none focus:ring-4 
-    ${errors[name] ? 'border-rose-300 focus:ring-rose-100 text-rose-900' : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'}
+    ${errors[name] ? 'border-rose-300 focus:ring-rose-100 text-rose-900' : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'}
   `;
 
   const labelClasses = "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2";
@@ -75,7 +75,7 @@ export default function YearForm({
         {/* --- DATE DE DÉBUT --- */}
         <div className="space-y-1">
           <label className={labelClasses}>
-            <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Date de Début *
+            <Calendar className="w-3.5 h-3.5 text-slate-500" /> Date de Début *
           </label>
           <input
             type="date"
@@ -123,7 +123,7 @@ export default function YearForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-2xl py-7 h-auto shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+          className="flex-[2] bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-700 hover:to-slate-600 text-white rounded-2xl py-7 h-auto shadow-xl shadow-blue-100 transition-all active:scale-[0.98]"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />

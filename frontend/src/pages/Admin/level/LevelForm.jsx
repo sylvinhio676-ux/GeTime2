@@ -69,7 +69,7 @@ export default function LevelForm({
       {/* --- CHAMP NOM DU NIVEAU --- */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-          <Layers className="w-3.5 h-3.5 text-indigo-500" />
+          <Layers className="w-3.5 h-3.5 text-slate-500" />
           Libellé du Niveau *
         </label>
         
@@ -83,7 +83,7 @@ export default function LevelForm({
             className={`w-full px-4 py-4 rounded-2xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 ${
               errors.name_level 
                 ? 'border-rose-300 focus:ring-rose-100 text-rose-900' 
-                : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+                : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
             }`}
             required
           />
@@ -107,7 +107,7 @@ export default function LevelForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-7 h-auto shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-70"
+          className="flex-[2] bg-blue-700 hover:bg-blue-800 text-white rounded-2xl py-7 h-auto shadow-xl shadow-blue-100 transition-all active:scale-[0.98] disabled:opacity-70"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">

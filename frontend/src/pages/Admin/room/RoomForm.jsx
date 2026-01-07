@@ -65,7 +65,7 @@ export default function RoomForm({
   const inputClasses = (name) => `
     w-full px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all 
     focus:bg-white focus:outline-none focus:ring-4 
-    ${errors[name] ? 'border-rose-300 focus:ring-rose-100' : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'}
+    ${errors[name] ? 'border-rose-300 focus:ring-rose-100' : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'}
   `;
 
   const labelClasses = "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2";
@@ -76,7 +76,7 @@ export default function RoomForm({
       {/* --- CODE DE LA SALLE --- */}
       <div className="space-y-1">
         <label className={labelClasses}>
-          <DoorOpen className="w-3.5 h-3.5 text-indigo-500" /> Code de la Salle *
+          <DoorOpen className="w-3.5 h-3.5 text-slate-500" /> Code de la Salle *
         </label>
         <input
           type="text"
@@ -94,7 +94,7 @@ export default function RoomForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className={labelClasses}>
-            <Users className="w-3.5 h-3.5 text-indigo-500" /> Capacité (places) *
+            <Users className="w-3.5 h-3.5 text-slate-500" /> Capacité (places) *
           </label>
           <input
             type="number"
@@ -126,7 +126,7 @@ export default function RoomForm({
       {/* --- TYPE DE SALLE --- */}
       <div className="space-y-1 relative group">
         <label className={labelClasses}>
-          <AlertCircle className="w-3.5 h-3.5 text-indigo-500" /> Type de Salle *
+          <AlertCircle className="w-3.5 h-3.5 text-slate-500" /> Type de Salle *
         </label>
         <select 
           name="type_room" 
@@ -146,7 +146,7 @@ export default function RoomForm({
       {/* --- SÉLECTION CAMPUS --- */}
       <div className="space-y-1 relative group">
         <label className={labelClasses}>
-          <MapPin className="w-3.5 h-3.5 text-indigo-500" /> Campus de rattachement *
+          <MapPin className="w-3.5 h-3.5 text-slate-500" /> Campus de rattachement *
         </label>
         <select 
           name="campus_id" 
@@ -170,7 +170,7 @@ export default function RoomForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-2xl py-7 h-auto shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+          className="flex-[2] bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-700 hover:to-slate-600 text-white rounded-2xl py-7 h-auto shadow-xl shadow-blue-100 transition-all active:scale-[0.98]"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />

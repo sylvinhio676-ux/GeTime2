@@ -76,7 +76,7 @@ export default function SectorForm({
       {/* --- NOM DU SECTEUR --- */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-          <Layers className="w-3.5 h-3.5 text-indigo-500" />
+          <Layers className="w-3.5 h-3.5 text-slate-500" />
           Nom de la Filière / Secteur *
         </label>
         <input
@@ -88,7 +88,7 @@ export default function SectorForm({
           className={`w-full px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 ${
             errors.sector_name 
               ? 'border-rose-300 focus:ring-rose-100 text-rose-900' 
-              : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+              : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
           }`}
           required
         />
@@ -100,7 +100,7 @@ export default function SectorForm({
       {/* --- CODE DE LA FILIÈRE --- */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-          <Hash className="w-3.5 h-3.5 text-indigo-500" />
+          <Hash className="w-3.5 h-3.5 text-slate-500" />
           Code Identifiant *
         </label>
         <input
@@ -112,7 +112,7 @@ export default function SectorForm({
           className={`w-full px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm font-mono transition-all focus:bg-white focus:outline-none focus:ring-4 ${
             errors.code 
               ? 'border-rose-300 focus:ring-rose-100' 
-              : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+              : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
           }`}
           required
         />
@@ -124,7 +124,7 @@ export default function SectorForm({
       {/* --- SÉLECTION DE L'ÉCOLE --- */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-          <University className="w-3.5 h-3.5 text-indigo-500" />
+          <University className="w-3.5 h-3.5 text-slate-500" />
           École de rattachement *
         </label>
         <div className="relative">
@@ -135,7 +135,7 @@ export default function SectorForm({
             className={`w-full appearance-none px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 cursor-pointer ${
               errors.school_id 
                 ? 'border-rose-300 focus:ring-rose-100' 
-                : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+                : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
             }`}
             required
           >
@@ -158,7 +158,7 @@ export default function SectorForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-7 h-auto shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+          className="flex-[2] bg-blue-700 hover:bg-blue-800 text-white rounded-2xl py-7 h-auto shadow-xl shadow-blue-100 transition-all active:scale-[0.98]"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">

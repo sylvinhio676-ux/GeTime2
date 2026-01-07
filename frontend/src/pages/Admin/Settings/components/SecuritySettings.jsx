@@ -101,7 +101,7 @@ export default function SecuritySettings({ onDataChange }) {
                 name="currentPassword"
                 value={passwordForm.currentPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition pr-10"
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition pr-10"
               />
               <button
                 onClick={() => handleToggleVisibility('current')}
@@ -127,7 +127,7 @@ export default function SecuritySettings({ onDataChange }) {
                 name="newPassword"
                 value={passwordForm.newPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition pr-10"
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition pr-10"
               />
               <button
                 onClick={() => handleToggleVisibility('new')}
@@ -179,7 +179,7 @@ export default function SecuritySettings({ onDataChange }) {
                 name="confirmPassword"
                 value={passwordForm.confirmPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition pr-10"
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition pr-10"
               />
               <button
                 onClick={() => handleToggleVisibility('confirm')}
@@ -196,7 +196,7 @@ export default function SecuritySettings({ onDataChange }) {
 
           <Button
             onClick={handleUpdatePassword}
-            className="bg-indigo-600 text-white hover:bg-indigo-700 transition rounded-xl"
+            className="bg-blue-700 text-white hover:bg-blue-800 transition rounded-xl"
           >
             Mettre à jour le mot de passe
           </Button>
@@ -207,7 +207,7 @@ export default function SecuritySettings({ onDataChange }) {
       <div className="border-t border-slate-200 pt-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-indigo-600" />
+            <Shield className="w-5 h-5 text-slate-600" />
             <h3 className="text-lg font-semibold text-slate-900">
               Authentification à deux facteurs
             </h3>

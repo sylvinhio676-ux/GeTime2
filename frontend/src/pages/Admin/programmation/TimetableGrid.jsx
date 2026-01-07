@@ -19,11 +19,13 @@ export default function TimetableGrid({ programmations = [], onCreate, onEdit, o
   const timeSlots = useMemo(() => {
     const slots = programmations.map((p) => ({ start: p.hour_star, end: p.hour_end }));
     const unique = new Map();
+    DEFAULT_SLOTS.forEach((s) => {
+      unique.set(`${s.start}-${s.end}`, s);
+    });
     slots.forEach((s) => {
       if (s.start && s.end) unique.set(`${s.start}-${s.end}`, s);
     });
-    const list = unique.size ? Array.from(unique.values()) : DEFAULT_SLOTS;
-    return list.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+    return Array.from(unique.values()).sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
   }, [programmations]);
 
   const grouped = useMemo(() => {
@@ -68,7 +70,7 @@ export default function TimetableGrid({ programmations = [], onCreate, onEdit, o
                       {!item && !readOnly && (
                         <button
                           onClick={() => onCreate?.({ day, hour_star: slot.start, hour_end: slot.end })}
-                          className="absolute inset-0 flex items-center justify-center text-slate-400 hover:text-indigo-600"
+                          className="absolute inset-0 flex items-center justify-center text-slate-400 hover:text-slate-600"
                           type="button"
                         >
                           <Plus className="w-5 h-5" />

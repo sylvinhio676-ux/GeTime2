@@ -66,7 +66,7 @@ export default function SchoolForm({ initialData = null, onSubmit, onCancel, isL
             className={`w-full px-4 py-3 rounded-xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 ${
               errors.school_name 
                 ? 'border-rose-300 focus:ring-rose-100 text-rose-900' 
-                : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+                : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
             }`}
             required
           />
@@ -92,7 +92,7 @@ export default function SchoolForm({ initialData = null, onSubmit, onCancel, isL
           className={`w-full px-4 py-3 rounded-xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 min-h-[120px] resize-none ${
             errors.description 
               ? 'border-rose-300 focus:ring-rose-100' 
-              : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+              : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
           }`}
           rows="4"
         />
@@ -108,7 +108,7 @@ export default function SchoolForm({ initialData = null, onSubmit, onCancel, isL
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-6 h-auto shadow-lg shadow-indigo-100 transition-all active:scale-95"
+          className="flex-[2] bg-blue-700 hover:bg-blue-800 text-white rounded-xl py-6 h-auto shadow-lg shadow-blue-100 transition-all active:scale-95"
         >
           {isLoading ? (
             <>

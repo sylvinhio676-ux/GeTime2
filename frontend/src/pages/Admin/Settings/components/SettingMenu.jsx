@@ -18,8 +18,8 @@ export default function SettingMenu({ items, activeTab, onTabChange }) {
                 transition-all duration-200
                 ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 font-bold'
-                    : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-600'
+                    ? 'bg-blue-700 text-white shadow-md shadow-blue-100 font-bold'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-600'
                 }
               `}
             >

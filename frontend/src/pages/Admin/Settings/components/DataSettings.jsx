@@ -33,8 +33,8 @@ export default function DataSettings() {
   const DataCard = ({ icon: Icon, title, description, action, actionLabel, variant = 'primary' }) => (
     <div className="border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
       <div className="flex items-start gap-4">
-        <div className="bg-indigo-50 p-3 rounded-2xl">
-          <Icon className="w-6 h-6 text-indigo-600" />
+        <div className="bg-slate-50 p-3 rounded-2xl">
+          <Icon className="w-6 h-6 text-slate-600" />
         </div>
         <div className="flex-1">
           <h3 className="font-semibold text-slate-900 mb-1">{title}</h3>
@@ -44,7 +44,7 @@ export default function DataSettings() {
             className={`text-sm ${
               variant === 'danger'
                 ? 'bg-rose-600 text-white hover:bg-rose-700'
-                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-blue-700 text-white hover:bg-blue-800'
             } transition rounded-xl`}
           >
             {actionLabel}
@@ -104,7 +104,7 @@ export default function DataSettings() {
                 <span className="text-sm font-semibold text-slate-900">2.4 GB / 10 GB</span>
               </div>
               <div className="w-full bg-slate-200 rounded-full h-2">
-                <div className="bg-indigo-600 h-2 rounded-full" style={{ width: '24%' }}></div>
+                <div className="bg-blue-700 h-2 rounded-full" style={{ width: '24%' }}></div>
               </div>
             </div>
 

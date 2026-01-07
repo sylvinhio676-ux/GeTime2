@@ -157,11 +157,11 @@ export default function NotificationSettings({ onDataChange }) {
       </div>
 
       {/* Info Box */}
-      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-3">
-        <AlertCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3">
+        <AlertCircle className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="font-semibold text-indigo-900">Note importante</p>
-          <p className="text-sm text-indigo-800 mt-1">
+          <p className="font-semibold text-slate-900">Note importante</p>
+          <p className="text-sm text-slate-800 mt-1">
             Les notifications de sécurité sont toujours activées pour votre protection.
           </p>
         </div>

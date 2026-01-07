@@ -82,7 +82,7 @@ export default function YearList() {
       y.date_star?.includes(searchTerm) || y.date_end?.includes(searchTerm)
     );
   }, [years, searchTerm]);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 10;
   useEffect(() => {
     setPage(1);
   }, [searchTerm, years.length]);
@@ -93,16 +93,16 @@ export default function YearList() {
   }, [filteredYears, page]);
 
   if (loading && years.length === 0) {
-    return <div className="p-6 max-w-6xl mx-auto"><Progress value={30} className="h-1" /></div>;
+    return <div className="p-4 md:p-8 max-w-[1600px] mx-auto"><Progress value={30} className="h-1" /></div>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
       
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+          <div className="w-12 h-12 bg-gradient-to-br from-slate-600 via-slate-500 to-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
             <CalendarDays className="w-6 h-6" />
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function YearList() {
         </div>
         <Button 
           onClick={() => { setEditingData(null); setShowForm(true); }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
+          className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
         >
           <Plus className="w-5 h-5" /> Nouvelle Année
         </Button>
@@ -126,7 +126,7 @@ export default function YearList() {
             <input 
               type="text"
               placeholder="Rechercher une date..."
-              className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+              className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-slate-50 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -158,9 +158,9 @@ export default function YearList() {
                     <td className="px-8 py-4 text-xs font-mono text-slate-400">#{year.id}</td>
                     <td className="px-8 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-3 bg-slate-100/50 group-hover:bg-white px-4 py-2 rounded-xl border border-transparent group-hover:border-indigo-100 transition-all">
+                        <div className="flex items-center gap-3 bg-slate-100/50 group-hover:bg-white px-4 py-2 rounded-xl border border-transparent group-hover:border-slate-100 transition-all">
                           <span className="text-sm font-bold text-slate-700">{year.date_star}</span>
-                          <ArrowRight className="w-4 h-4 text-indigo-400" />
+                          <ArrowRight className="w-4 h-4 text-slate-400" />
                           <span className="text-sm font-bold text-slate-700">{year.date_end}</span>
                         </div>
                       </div>
@@ -169,7 +169,7 @@ export default function YearList() {
                       <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => { setEditingData(year); setShowForm(true); }}
-                          className="p-2.5 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                          className="p-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
                         >
                           <Pencil className="w-4.5 h-4.5" />
                         </button>
@@ -197,7 +197,7 @@ export default function YearList() {
           <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="font-black text-slate-900 tracking-tight flex items-center gap-3">
-                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white">
+                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-500 to-purple-500 flex items-center justify-center text-white">
                    <Plus className="w-4 h-4" />
                  </div>
                  {editingData ? 'Modifier l\'année' : 'Nouvelle année'}

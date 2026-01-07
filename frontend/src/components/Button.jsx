@@ -1,19 +1,19 @@
 const VARIANTS = {
   primary: {
-    base: "bg-[#0B1F4B] text-white",
-    hover: "hover:bg-[#4FC3F7]",
+    base: "bg-[#1E3A8A] text-white",
+    hover: "hover:bg-[#2B4AA0]",
   },
   danger: {
-    base: "bg-[#D50032] text-white",
-    hover: "hover:bg-[#0B1F4B]",
+    base: "bg-[#B4232B] text-white",
+    hover: "hover:bg-[#8F1F2D]",
   },
   secondary: {
-    base: "bg-[#B0B0B0] text-[#0B1F4B]",
-    hover: "hover:bg-[#4FC3F7] hover:text-white",
+    base: "bg-[#CBD5E1] text-[#1F2A44]",
+    hover: "hover:bg-[#94A3B8] hover:text-white",
   },
   outline: {
-    base: "border border-[#0B1F4B] text-[#0B1F4B]",
-    hover: "hover:bg-[#0B1F4B] hover:text-white",
+    base: "border border-[#1F2A44] text-[#1F2A44]",
+    hover: "hover:bg-[#1F2A44] hover:text-white",
   },
 };
 

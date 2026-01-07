@@ -60,7 +60,7 @@ export default function AppearanceSettings({ onDataChange }) {
           <label
             className={`p-6 border-2 rounded-2xl cursor-pointer transition ${
               appearance.theme === 'light'
-                ? 'border-indigo-500 bg-indigo-50'
+                ? 'border-slate-500 bg-slate-50'
                 : 'border-slate-200 hover:border-slate-300'
             }`}
           >
@@ -83,7 +83,7 @@ export default function AppearanceSettings({ onDataChange }) {
           <label
             className={`p-6 border-2 rounded-2xl cursor-pointer transition ${
               appearance.theme === 'dark'
-                ? 'border-indigo-500 bg-indigo-50'
+                ? 'border-slate-500 bg-slate-50'
                 : 'border-slate-200 hover:border-slate-300'
             }`}
           >
@@ -106,7 +106,7 @@ export default function AppearanceSettings({ onDataChange }) {
           <label
             className={`p-6 border-2 rounded-2xl cursor-pointer transition ${
               appearance.theme === 'auto'
-                ? 'border-indigo-500 bg-indigo-50'
+                ? 'border-slate-500 bg-slate-50'
                 : 'border-slate-200 hover:border-slate-300'
             }`}
           >

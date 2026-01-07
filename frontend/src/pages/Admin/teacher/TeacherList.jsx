@@ -7,7 +7,6 @@ import {
   Search, 
   Mail, 
   Phone, 
-  IdCard, 
   Pencil, 
   Trash2, 
   X, 
@@ -88,7 +87,7 @@ export default function TeacherList() {
       t.registration_number?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [teachers, searchTerm]);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 10;
   useEffect(() => {
     setPage(1);
   }, [searchTerm, teachers.length]);
@@ -108,7 +107,7 @@ export default function TeacherList() {
       {/* --- HEADER (Style School/Campus) --- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+          <div className="w-12 h-12 bg-blue-700 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
             <UserCheck className="w-6 h-6" />
           </div>
           <div>
@@ -119,7 +118,7 @@ export default function TeacherList() {
         {isAdmin && (
           <Button 
             onClick={() => { setEditingData(null); setShowForm(true); }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold"
+            className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold"
           >
             <Plus className="w-5 h-5" /> Nouveau Teacher
           </Button>
@@ -146,7 +145,7 @@ export default function TeacherList() {
             <input 
               type="text"
               placeholder="Rechercher un enseignant..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-slate-50 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -177,7 +176,7 @@ export default function TeacherList() {
                   <tr key={teacher.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <div className="w-9 h-9 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center font-bold text-xs uppercase group-hover:bg-blue-700 group-hover:text-white transition-all">
                           {teacher.user?.name?.substring(0, 2)}
                         </div>
                         <p className="font-bold text-slate-900 tracking-tight">{teacher.user?.name}</p>
@@ -191,7 +190,7 @@ export default function TeacherList() {
                     <td className="px-8 py-5">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-                          <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                          <Mail className="w-3.5 h-3.5 text-slate-400" />
                           {teacher.user?.email}
                         </div>
                         {teacher.user?.phone && (
@@ -202,12 +201,12 @@ export default function TeacherList() {
                         )}
                       </div>
                     </td>
-                    {isAdmin && (
-                      <td className="px-8 py-5 text-right">
-                        <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                    <td className="px-8 py-5 text-right">
+                      {isAdmin && (
+                        <div className="flex justify-end gap-2 transition-opacity">
                           <button 
                             onClick={() => { setEditingData(teacher); setShowForm(true); }}
-                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
@@ -218,19 +217,8 @@ export default function TeacherList() {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                      </td>
-                    )}
-                    {/* button pour appeler un enseignant ou l'envoyer un email */}
-                    <div className='flex justify-center gap-2 transition-opacity'>
-                      <a href={`mailto:${teacher.user?.email}`} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                        <Mail className="w-4 h-4" />
-                      </a>
-                      {teacher.user?.phone && (
-                        <a href={`tel:${teacher.user?.phone}`} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                          <Phone className="w-4 h-4" />
-                        </a>
                       )}
-                    </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -247,7 +235,7 @@ export default function TeacherList() {
           <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-600">
                   <Plus className="w-4 h-4" />
                 </div>
                 {editingData ? 'Modifier Enseignant' : 'Nouvel Enseignant'}

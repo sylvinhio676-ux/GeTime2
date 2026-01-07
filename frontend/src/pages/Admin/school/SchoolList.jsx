@@ -75,7 +75,7 @@ export default function SchoolList() {
       s.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [schools, searchTerm]);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 10;
   useEffect(() => {
     setPage(1);
   }, [searchTerm, schools.length]);
@@ -95,7 +95,7 @@ export default function SchoolList() {
       {/* --- HEADER RESPONSIVE --- */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100 shrink-0">
+          <div className="w-12 h-12 bg-blue-700 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-100 shrink-0">
             <University className="w-6 h-6" />
           </div>
           <div>
@@ -105,7 +105,7 @@ export default function SchoolList() {
         </div>
         <Button 
           onClick={() => { setEditingData(null); setShowForm(true); }}
-          className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-6 h-auto shadow-lg shadow-indigo-100 gap-2"
+          className="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white rounded-xl py-6 h-auto shadow-lg shadow-blue-100 gap-2"
         >
           <Plus className="w-5 h-5" /> Ajouter
         </Button>
@@ -132,7 +132,7 @@ export default function SchoolList() {
             <input 
               type="text"
               placeholder="Rechercher..."
-              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-500 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -161,7 +161,7 @@ export default function SchoolList() {
                   <tr key={school.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
-                         <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                         <div className="w-9 h-9 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center font-bold text-xs">
                             {school.school_name?.substring(0, 2).toUpperCase()}
                          </div>
                          <p className="font-bold text-slate-900 tracking-tight">{school.school_name}</p>
@@ -176,7 +176,7 @@ export default function SchoolList() {
                       <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => { setEditingData(school); setShowForm(true); }}
-                          className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                          className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>

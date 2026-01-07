@@ -45,14 +45,14 @@ export default function ProfileSettings({ onDataChange }) {
       {/* Avatar Section */}
       <div className="flex flex-col md:flex-row md:items-end gap-6 pb-6 border-b border-slate-200">
         <div className="flex-shrink-0">
-          <div className="w-24 h-24 bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+          <div className="w-24 h-24 bg-gradient-to-br from-slate-600 via-slate-500 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg">
             {profile.firstName[0]}
             {profile.lastName[0]}
           </div>
         </div>
 
         <div>
-          <label className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition cursor-pointer font-bold">
+          <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition cursor-pointer font-bold">
             <Camera className="w-4 h-4" />
             Changer la photo
             <input
@@ -78,7 +78,7 @@ export default function ProfileSettings({ onDataChange }) {
             name="firstName"
             value={profile.firstName}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
           />
         </div>
 
@@ -92,7 +92,7 @@ export default function ProfileSettings({ onDataChange }) {
             name="lastName"
             value={profile.lastName}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
           />
         </div>
 
@@ -107,7 +107,7 @@ export default function ProfileSettings({ onDataChange }) {
             name="email"
             value={profile.email}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
           />
         </div>
 
@@ -122,7 +122,7 @@ export default function ProfileSettings({ onDataChange }) {
             name="phone"
             value={profile.phone}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
           />
         </div>
 
@@ -137,7 +137,7 @@ export default function ProfileSettings({ onDataChange }) {
             name="position"
             value={profile.position}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
           />
         </div>
 
@@ -151,7 +151,7 @@ export default function ProfileSettings({ onDataChange }) {
             name="department"
             value={profile.department}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
           />
         </div>
 
@@ -166,7 +166,7 @@ export default function ProfileSettings({ onDataChange }) {
             name="location"
             value={profile.location}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
+            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition"
           />
         </div>
       </div>
@@ -181,14 +181,14 @@ export default function ProfileSettings({ onDataChange }) {
           value={profile.bio}
           onChange={handleChange}
           rows="4"
-          className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-100 transition resize-none"
+          className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition resize-none"
           placeholder="Parlez-nous un peu de vous..."
         />
       </div>
 
       {/* Info Box */}
-      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-        <p className="text-sm text-indigo-800">
+      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+        <p className="text-sm text-slate-800">
           💡 Vos informations de profil sont visibles par les autres utilisateurs du système.
         </p>
       </div>

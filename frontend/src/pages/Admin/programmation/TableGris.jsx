@@ -9,7 +9,6 @@ import { subjectService } from '@/services/subjectService';
 import { teacherService } from '@/services/teacherService';
 import { levelService } from '@/services/levelService';
 import { yearService } from '@/services/yearService';
-import { programmersService } from '@/services/programmerService';
 import { campusService } from '@/services/campusService';
 import { roomService } from '@/services/roomService';
 import ProgrammationForm from './ProgrammationForm';
@@ -21,7 +20,6 @@ export default function TimetableDashboard({ readOnly = false }) {
   const [subjects, setSubjects] = useState([]);
   const [levels, setLevels] = useState([]);
   const [years, setYears] = useState([]);
-  const [programmers, setProgrammers] = useState([]);
   const [campuses, setCampuses] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +31,8 @@ export default function TimetableDashboard({ readOnly = false }) {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [formSeed, setFormSeed] = useState(null);
+  const [formError, setFormError] = useState('');
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
   const componentRef = useRef();
 
@@ -52,13 +52,12 @@ export default function TimetableDashboard({ readOnly = false }) {
     const load = async () => {
       setLoading(true);
       try {
-        const [specData, subjectData, teacherData, levelData, yearData, programmerData, campusData, roomData] = await Promise.all([
+        const [specData, subjectData, teacherData, levelData, yearData, campusData, roomData] = await Promise.all([
           specialtyService.getAll(),
           subjectService.getAll(),
           teacherService.getAll(),
           levelService.getAll(),
           yearService.getAll(),
-          programmersService.getAll(),
           campusService.getAll(),
           roomService.getAll(),
         ]);
@@ -67,7 +66,6 @@ export default function TimetableDashboard({ readOnly = false }) {
         setTeachers(teacherData || []);
         setLevels(levelData || []);
         setYears(yearData || []);
-        setProgrammers(programmerData || []);
         setCampuses(campusData || []);
         setRooms(roomData || []);
       } finally {
@@ -106,6 +104,7 @@ export default function TimetableDashboard({ readOnly = false }) {
 
   const handleCreate = (seed) => {
     if (readOnly) return;
+    setFormError('');
     setFormSeed({ ...seed, year_id: selectedYear || '' });
     setEditingData(null);
     setShowForm(true);
@@ -113,6 +112,7 @@ export default function TimetableDashboard({ readOnly = false }) {
 
   const handleEdit = (prog) => {
     if (readOnly) return;
+    setFormError('');
     setFormSeed(null);
     setEditingData(prog);
     setShowForm(true);
@@ -121,36 +121,71 @@ export default function TimetableDashboard({ readOnly = false }) {
   const handleDelete = async (prog) => {
     if (readOnly) return;
     if (!window.confirm('Supprimer ce créneau ?')) return;
-    await programmationService.delete(prog.id);
-    const params = {};
-    if (viewMode === 'specialty' && selectedSpecialty) params.specialty_id = selectedSpecialty;
-    if (viewMode === 'teacher' && selectedTeacher) params.teacher_id = selectedTeacher;
-    if (selectedLevel) params.level_id = selectedLevel;
-    if (selectedYear) params.year_id = selectedYear;
-    const data = await programmationService.getAll(params);
-    setProgrammations(data || []);
+    try {
+      await programmationService.delete(prog.id);
+      const params = {};
+      if (viewMode === 'specialty' && selectedSpecialty) params.specialty_id = selectedSpecialty;
+      if (viewMode === 'teacher' && selectedTeacher) params.teacher_id = selectedTeacher;
+      if (selectedLevel) params.level_id = selectedLevel;
+      if (selectedYear) params.year_id = selectedYear;
+      const data = await programmationService.getAll(params);
+      setProgrammations(data || []);
+      showNotify('Créneau supprimé', 'success');
+    } catch (error) {
+      showNotify(getErrorMessage(error, 'Erreur de suppression'), 'error');
+    }
+  };
+
+  const getErrorMessage = (error, fallback) => {
+    if (!error) return fallback;
+    if (typeof error === 'string') return error;
+    return error.message || error.error || fallback;
+  };
+
+  const showNotify = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000);
   };
 
   const handleSubmit = async (data) => {
-    if (editingData) {
-      await programmationService.update(editingData.id, data);
-    } else {
-      await programmationService.create(data);
+    try {
+      if (editingData) {
+        await programmationService.update(editingData.id, data);
+        showNotify('Programmation mise à jour', 'success');
+      } else {
+        await programmationService.create(data);
+        showNotify('Programmation créée', 'success');
+      }
+      setShowForm(false);
+      setEditingData(null);
+      setFormSeed(null);
+      setFormError('');
+      const params = {};
+      if (viewMode === 'specialty' && selectedSpecialty) params.specialty_id = selectedSpecialty;
+      if (viewMode === 'teacher' && selectedTeacher) params.teacher_id = selectedTeacher;
+      if (selectedLevel) params.level_id = selectedLevel;
+      if (selectedYear) params.year_id = selectedYear;
+      const fresh = await programmationService.getAll(params);
+      setProgrammations(fresh || []);
+    } catch (error) {
+      const message = getErrorMessage(error, "Conflit détecté sur ce créneau.");
+      setFormError(message);
+      showNotify(message, 'error');
     }
-    setShowForm(false);
-    setEditingData(null);
-    setFormSeed(null);
-    const params = {};
-    if (viewMode === 'specialty' && selectedSpecialty) params.specialty_id = selectedSpecialty;
-    if (viewMode === 'teacher' && selectedTeacher) params.teacher_id = selectedTeacher;
-    if (selectedLevel) params.level_id = selectedLevel;
-    if (selectedYear) params.year_id = selectedYear;
-    const fresh = await programmationService.getAll(params);
-    setProgrammations(fresh || []);
   };
 
   return (
     <div className="space-y-6">
+      {notification.show && (
+        <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 p-4 rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-10 ${
+          notification.type === 'error' ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'
+        }`}>
+          <span className="text-sm font-bold">{notification.message}</span>
+          <button onClick={() => setNotification({ show: false, message: '', type: '' })} className="ml-4 opacity-50">
+            ✕
+          </button>
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200">
         <div>
           <h2 className="text-xl font-black text-slate-900">
@@ -164,7 +199,7 @@ export default function TimetableDashboard({ readOnly = false }) {
         <div className="flex gap-3">
           <Button
             onClick={handlePrint}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl gap-2 font-bold shadow-lg shadow-indigo-100"
+            className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl gap-2 font-bold shadow-lg shadow-blue-100"
           >
             <Printer className="w-4 h-4" />
             Imprimer / PDF
@@ -178,7 +213,7 @@ export default function TimetableDashboard({ readOnly = false }) {
             type="button"
             onClick={() => setViewMode('specialty')}
             className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${
-              viewMode === 'specialty' ? 'bg-indigo-600 text-white border-indigo-600' : 'text-slate-500 border-slate-200'
+              viewMode === 'specialty' ? 'bg-blue-700 text-white border-blue-700' : 'text-slate-500 border-slate-200'
             }`}
           >
             Par spécialité
@@ -187,7 +222,7 @@ export default function TimetableDashboard({ readOnly = false }) {
             type="button"
             onClick={() => setViewMode('teacher')}
             className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${
-              viewMode === 'teacher' ? 'bg-indigo-600 text-white border-indigo-600' : 'text-slate-500 border-slate-200'
+              viewMode === 'teacher' ? 'bg-blue-700 text-white border-blue-700' : 'text-slate-500 border-slate-200'
             }`}
           >
             Par enseignant
@@ -297,7 +332,7 @@ export default function TimetableDashboard({ readOnly = false }) {
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowForm(false)} />
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="font-black text-slate-900 tracking-tight text-lg text-indigo-600">
+              <h3 className="font-black text-slate-900 tracking-tight text-lg text-slate-600">
                 {editingData ? 'Modifier la séance' : 'Nouvelle programmation'}
               </h3>
               <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600 p-2">×</button>
@@ -306,13 +341,12 @@ export default function TimetableDashboard({ readOnly = false }) {
               <ProgrammationForm
                 initialData={editingData || formSeed}
                 subjects={subjects}
-                programmers={programmers}
-                years={years}
                 campuses={campuses}
                 rooms={rooms}
                 onSubmit={handleSubmit}
                 onCancel={() => setShowForm(false)}
                 isLoading={false}
+                formError={formError}
               />
             </div>
           </div>

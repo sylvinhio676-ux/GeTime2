@@ -13,7 +13,7 @@ export default function ChartPlaceholder({ title = 'Graphique', subtitle = '' })
 
       <div className="w-full h-48 bg-gradient-to-b from-white to-gray-50 rounded-md flex items-center justify-center">
         <svg className="w-full h-full p-4" viewBox="0 0 200 80" preserveAspectRatio="none">
-          <polyline fill="none" stroke="#0B1F4B" strokeWidth="3" points="0,60 30,45 60,50 90,30 120,35 150,20 180,25 200,10" strokeOpacity="0.9" />
+          <polyline fill="none" stroke="#1F2A44" strokeWidth="3" points="0,60 30,45 60,50 90,30 120,35 150,20 180,25 200,10" strokeOpacity="0.9" />
         </svg>
       </div>
 

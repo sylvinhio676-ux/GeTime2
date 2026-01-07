@@ -77,7 +77,7 @@ export default function CampusForm({
       {/* --- NOM DU CAMPUS --- */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-          <Building2 className="w-3.5 h-3.5 text-indigo-500" />
+          <Building2 className="w-3.5 h-3.5 text-slate-500" />
           Dénomination du Campus *
         </label>
         <input
@@ -89,7 +89,7 @@ export default function CampusForm({
           className={`w-full px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 ${
             errors.campus_name 
               ? 'border-rose-300 focus:ring-rose-100 text-rose-900' 
-              : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+              : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
           }`}
           required
         />
@@ -101,7 +101,7 @@ export default function CampusForm({
       {/* --- LOCALISATION --- */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-          <MapPin className="w-3.5 h-3.5 text-indigo-500" />
+          <MapPin className="w-3.5 h-3.5 text-slate-500" />
           Ville / Localisation *
         </label>
         <input
@@ -113,7 +113,7 @@ export default function CampusForm({
           className={`w-full px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 ${
             errors.localisation 
               ? 'border-rose-300 focus:ring-rose-100 text-rose-900' 
-              : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+              : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
           }`}
           required
         />
@@ -125,7 +125,7 @@ export default function CampusForm({
       {/* --- ÉTABLISSEMENT PARENT (SELECT CUSTOM) --- */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-          <School className="w-3.5 h-3.5 text-indigo-500" />
+          <School className="w-3.5 h-3.5 text-slate-500" />
           Rattachement à l'établissement *
         </label>
         <div className="relative">
@@ -136,7 +136,7 @@ export default function CampusForm({
             className={`w-full appearance-none px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all focus:bg-white focus:outline-none focus:ring-4 cursor-pointer ${
               errors.etablishment_id 
                 ? 'border-rose-300 focus:ring-rose-100' 
-                : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'
+                : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'
             }`}
             required
           >
@@ -159,7 +159,7 @@ export default function CampusForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl py-7 h-auto shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+          className="flex-[2] bg-blue-700 hover:bg-blue-800 text-white rounded-2xl py-7 h-auto shadow-xl shadow-blue-100 transition-all active:scale-[0.98]"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">

@@ -140,7 +140,7 @@ export default function SpecialtyList() {
       s.programmer?.registration_number?.toLowerCase().includes(term)
     );
   }, [specialties, searchTerm]);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 10;
   useEffect(() => {
     setPage(1);
   }, [searchTerm, specialties.length]);
@@ -151,14 +151,14 @@ export default function SpecialtyList() {
   }, [filteredSpecialties, page]);
 
   if (loading && specialties.length === 0) {
-    return <div className="p-6 max-w-6xl mx-auto"><Progress value={30} className="h-1" /></div>;
+    return <div className="p-4 md:p-8 max-w-[1600px] mx-auto"><Progress value={30} className="h-1" /></div>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+          <div className="w-12 h-12 bg-blue-700 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
@@ -166,17 +166,18 @@ export default function SpecialtyList() {
             <p className="text-slate-500 text-xs md:text-sm font-medium">Gestion des filières spécialisées</p>
           </div>
         </div>
-        <Button
-          onClick={() => {
-            setEditingId(null);
-            setEditingData(null);
-            setShowForm(true);
-          }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
-          disabled={!isAdmin}
-        >
-          Ajouter une spécialité
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => {
+              setEditingId(null);
+              setEditingData(null);
+              setShowForm(true);
+            }}
+            className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
+          >
+            Ajouter une spécialité
+          </Button>
+        )}
       </div>
 
       {notification.show && (
@@ -196,12 +197,12 @@ export default function SpecialtyList() {
             <input
               type="text"
               placeholder="Rechercher une spécialité..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-slate-50 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-none font-bold px-4 py-1">
+          <Badge variant="secondary" className="bg-slate-50 text-slate-700 border-none font-bold px-4 py-1">
             {filteredSpecialties.length} Spécialités
           </Badge>
         </div>
@@ -251,7 +252,7 @@ export default function SpecialtyList() {
                       <div className="text-xs text-slate-500">{specialty.description || ''}</div>
                     </td>
                     <td className="px-8 py-5">
-                      <Badge variant="outline" className="font-mono text-indigo-600 border-indigo-100 bg-indigo-50/30">
+                      <Badge variant="outline" className="font-mono text-slate-600 border-slate-100 bg-slate-50/30">
                         {specialty.code || '—'}
                       </Badge>
                     </td>
@@ -265,7 +266,7 @@ export default function SpecialtyList() {
                         <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => startEdit(specialty)}
-                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
                           >
                             <EditIcon className="w-4 h-4" />
                           </button>

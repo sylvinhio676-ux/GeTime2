@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -151,5 +153,104 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer base {
+  .landing-root {
+    font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  }
+  .landing-display {
+    font-family: "Fraunces", "Space Grotesk", ui-serif, Georgia, serif;
+  }
+  .landing-rise {
+    animation: landing-rise 700ms ease both;
+  }
+  .landing-rise-delay {
+    animation: landing-rise 800ms ease 120ms both;
+  }
+  .landing-fade {
+    animation: landing-fade 900ms ease both;
+  }
+  .landing-stagger > * {
+    animation: landing-rise 700ms ease both;
+  }
+  .landing-stagger > *:nth-child(2) { animation-delay: 80ms; }
+  .landing-stagger > *:nth-child(3) { animation-delay: 160ms; }
+  .landing-stagger > *:nth-child(4) { animation-delay: 240ms; }
+}
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Soften bright whites across the UI */
+:root {
+  --surface: #f7f7f5;
+  --surface-strong: #fbfbf9;
+}
+
+body {
+  background-color: var(--surface);
+}
+
+.bg-white {
+  background-color: var(--surface-strong) !important;
+}
+
+@keyframes landing-float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes landing-sheen {
+  0% { opacity: 0; transform: translateX(-12px); }
+  50% { opacity: 0.6; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(12px); }
+}
+
+@layer utilities {
+  .landing-grain {
+    position: relative;
+  }
+  .landing-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(0, 0, 0, 0.15) 0.6px, transparent 0.6px),
+      radial-gradient(circle at 80% 30%, rgba(0, 0, 0, 0.1) 0.6px, transparent 0.6px),
+      radial-gradient(circle at 40% 70%, rgba(0, 0, 0, 0.1) 0.6px, transparent 0.6px);
+    background-size: 6px 6px;
+    mix-blend-mode: multiply;
+  }
+  .landing-float {
+    animation: landing-float 6s ease-in-out infinite;
+  }
+  .landing-sheen {
+    position: relative;
+  }
+  .landing-sheen::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    background: linear-gradient(120deg, transparent, rgba(30, 58, 138, 0.12), transparent);
+    opacity: 0;
+    animation: landing-sheen 6s ease-in-out infinite;
   }
 }

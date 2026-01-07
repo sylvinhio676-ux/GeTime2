@@ -4,11 +4,10 @@ import {
   Calendar, 
   Clock, 
   BookOpen, 
-  UserCheck, 
-  CalendarDays, 
   ChevronDown, 
   Loader2, 
   CheckCircle2,
+  AlertCircle,
   GraduationCap,
   DoorOpen
 } from 'lucide-react';
@@ -16,21 +15,18 @@ import {
 export default function ProgrammationForm({ 
   initialData = null, 
   subjects = [], 
-  programmers = [], 
-  years = [], 
   campuses = [],
   rooms = [],
   onSubmit, 
   onCancel, 
-  isLoading = false 
+  isLoading = false,
+  formError = ''
 }) {
   const [formData, setFormData] = useState({
     day: '',
     hour_star: '',
     hour_end: '',
     subject_id: '',
-    programmer_id: '',
-    year_id: '',
     campus_id: '',
     room_id: '',
   });
@@ -45,8 +41,6 @@ export default function ProgrammationForm({
         hour_star: initialData.hour_star || '',
         hour_end: initialData.hour_end || '',
         subject_id: initialData.subject_id || '',
-        programmer_id: initialData.programmer_id || '',
-        year_id: initialData.year_id || '',
         campus_id: campusId,
         room_id: initialData.room_id || '',
       });
@@ -78,18 +72,24 @@ export default function ProgrammationForm({
 
   const inputClasses = (name) => `
     w-full px-4 py-3 border bg-slate-50/50 rounded-2xl text-sm transition-all focus:bg-white focus:outline-none focus:ring-4
-    ${errors[name] ? 'border-rose-300 focus:ring-rose-100' : 'border-slate-200 focus:ring-indigo-100 focus:border-indigo-400'}
+    ${errors[name] ? 'border-rose-300 focus:ring-rose-100' : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'}
   `;
 
   const labelClasses = "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {formError && (
+        <div className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700">
+          <AlertCircle className="w-4 h-4 mt-0.5" />
+          <span>{formError}</span>
+        </div>
+      )}
       
       {/* --- JOUR ET MATIÈRE --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1 relative group">
-          <label className={labelClasses}><Calendar className="w-3.5 h-3.5 text-indigo-500" /> Jour de la semaine *</label>
+          <label className={labelClasses}><Calendar className="w-3.5 h-3.5 text-slate-500" /> Jour de la semaine *</label>
           <select 
             name="day" 
             value={formData.day}
@@ -107,7 +107,7 @@ export default function ProgrammationForm({
         </div>
 
         <div className="space-y-1 relative group">
-          <label className={labelClasses}><BookOpen className="w-3.5 h-3.5 text-indigo-500" /> Matière *</label>
+          <label className={labelClasses}><BookOpen className="w-3.5 h-3.5 text-slate-500" /> Matière *</label>
           <select 
             name="subject_id" 
             value={formData.subject_id}
@@ -126,7 +126,7 @@ export default function ProgrammationForm({
 
       {/* --- CRÉNEAU HORAIRE --- */}
       <div className="bg-slate-50/50 p-4 rounded-[2rem] border border-slate-100">
-        <label className={labelClasses}><Clock className="w-3.5 h-3.5 text-indigo-500" /> Plage Horaire</label>
+        <label className={labelClasses}><Clock className="w-3.5 h-3.5 text-slate-500" /> Plage Horaire</label>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <input
@@ -151,46 +151,10 @@ export default function ProgrammationForm({
         </div>
       </div>
 
-      {/* --- PROGRAMMATEUR ET ANNÉE --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-1 relative group">
-          <label className={labelClasses}><UserCheck className="w-3.5 h-3.5 text-indigo-500" /> Responsable</label>
-          <select 
-            name="programmer_id" 
-            value={formData.programmer_id}
-            onChange={handleChange}
-            className={`${inputClasses('programmer_id')} appearance-none cursor-pointer`}
-          >
-            <option value="">-- Optionnel --</option>
-            {programmers.map((p) => (
-              <option key={p.id} value={p.id}>{p.registration_number}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-4 bottom-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
-        </div>
-
-        <div className="space-y-1 relative group">
-          <label className={labelClasses}><CalendarDays className="w-3.5 h-3.5 text-indigo-500" /> Année Académique *</label>
-          <select 
-            name="year_id" 
-            value={formData.year_id}
-            onChange={handleChange}
-            className={`${inputClasses('year_id')} appearance-none cursor-pointer`}
-            required
-          >
-            <option value="">-- Sélectionner --</option>
-            {years.map((y) => (
-              <option key={y.id} value={y.id}>{y.date_star} - {y.date_end}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-4 bottom-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
-        </div>
-      </div>
-
       {/* --- CAMPUS & SALLE --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1 relative group">
-          <label className={labelClasses}><GraduationCap className="w-3.5 h-3.5 text-indigo-500" /> Campus *</label>
+          <label className={labelClasses}><GraduationCap className="w-3.5 h-3.5 text-slate-500" /> Campus *</label>
           <select 
             name="campus_id" 
             value={formData.campus_id}
@@ -207,7 +171,7 @@ export default function ProgrammationForm({
         </div>
 
         <div className="space-y-1 relative group">
-          <label className={labelClasses}><DoorOpen className="w-3.5 h-3.5 text-indigo-500" /> Salle (auto si vide)</label>
+          <label className={labelClasses}><DoorOpen className="w-3.5 h-3.5 text-slate-500" /> Salle (auto si vide)</label>
           <select 
             name="room_id" 
             value={formData.room_id}
@@ -228,7 +192,7 @@ export default function ProgrammationForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white rounded-2xl py-7 h-auto shadow-xl shadow-indigo-100 transition-all active:scale-[0.98]"
+          className="flex-[2] bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-700 hover:to-slate-600 text-white rounded-2xl py-7 h-auto shadow-xl shadow-blue-100 transition-all active:scale-[0.98]"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
