@@ -35,10 +35,10 @@ export default function NotificationSettings({ onDataChange }) {
   };
 
   const NotificationToggle = ({ label, description, value, onChange }) => (
-    <div className="flex items-start justify-between p-4 border border-slate-200 rounded-2xl hover:bg-slate-50 transition">
+    <div className="flex items-start justify-between p-4 border border-border rounded-2xl hover:bg-muted transition">
       <div className="flex-1">
-        <p className="font-medium text-slate-900">{label}</p>
-        {description && <p className="text-sm text-slate-500 mt-1">{description}</p>}
+        <p className="font-medium text-foreground">{label}</p>
+        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
       </div>
       <label className="flex items-center cursor-pointer ml-4">
         <input
@@ -54,13 +54,13 @@ export default function NotificationSettings({ onDataChange }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Préférences de Notifications</h2>
-        <p className="text-slate-500">Contrôlez comment et quand vous recevez les notifications</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Préférences de Notifications</h2>
+        <p className="text-muted-foreground">Contrôlez comment et quand vous recevez les notifications</p>
       </div>
 
       {/* Email Notifications */}
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Mail className="w-5 h-5" />
           Notifications par Email
         </h3>
@@ -97,8 +97,8 @@ export default function NotificationSettings({ onDataChange }) {
       </div>
 
       {/* In-App Notifications */}
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+      <div className="border-t border-border pt-8">
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Bell className="w-5 h-5" />
           Notifications dans l'application
         </h3>
@@ -128,8 +128,8 @@ export default function NotificationSettings({ onDataChange }) {
       </div>
 
       {/* Notification Frequency */}
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Fréquence des Notifications</h3>
+      <div className="border-t border-border pt-8">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Fréquence des Notifications</h3>
 
         <div className="space-y-3">
           {[
@@ -138,7 +138,7 @@ export default function NotificationSettings({ onDataChange }) {
             { value: 'daily', label: 'Quotidien', description: 'Recevez un résumé une fois par jour' },
             { value: 'weekly', label: 'Hebdomadaire', description: 'Recevez un résumé une fois par semaine' },
           ].map((option) => (
-            <label key={option.value} className="flex items-start p-4 border border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 transition">
+            <label key={option.value} className="flex items-start p-4 border border-border rounded-2xl cursor-pointer hover:bg-muted transition">
               <input
                 type="radio"
                 name="frequency"
@@ -148,8 +148,8 @@ export default function NotificationSettings({ onDataChange }) {
                 className="w-4 h-4 mt-1"
               />
               <div className="ml-4 flex-1">
-                <p className="font-medium text-slate-900">{option.label}</p>
-                <p className="text-sm text-slate-500">{option.description}</p>
+                <p className="font-medium text-foreground">{option.label}</p>
+                <p className="text-sm text-muted-foreground">{option.description}</p>
               </div>
             </label>
           ))}
@@ -157,11 +157,11 @@ export default function NotificationSettings({ onDataChange }) {
       </div>
 
       {/* Info Box */}
-      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3">
-        <AlertCircle className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5" />
+      <div className="bg-muted border border-border/60 rounded-2xl p-4 flex gap-3">
+        <AlertCircle className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
         <div>
-          <p className="font-semibold text-slate-900">Note importante</p>
-          <p className="text-sm text-slate-800 mt-1">
+          <p className="font-semibold text-foreground">Note importante</p>
+          <p className="text-sm text-foreground mt-1">
             Les notifications de sécurité sont toujours activées pour votre protection.
           </p>
         </div>

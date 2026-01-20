@@ -19,8 +19,8 @@ export default function Pagination({ page, totalPages, onPageChange }) {
   const pages = getPageRange(page, totalPages);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/40">
-      <span className="text-xs font-semibold text-slate-500">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-border/60 bg-muted/40">
+      <span className="text-xs font-semibold text-muted-foreground">
         Page {page} / {totalPages}
       </span>
       <div className="flex items-center gap-2">
@@ -28,7 +28,7 @@ export default function Pagination({ page, totalPages, onPageChange }) {
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white"
+          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:bg-card"
         >
           Précédent
         </button>
@@ -39,8 +39,8 @@ export default function Pagination({ page, totalPages, onPageChange }) {
             onClick={() => onPageChange(p)}
             className={`w-8 h-8 rounded-lg text-xs font-bold border ${
               p === page
-                ? "bg-blue-700 text-white border-blue-700"
-                : "border-slate-200 text-slate-600 hover:bg-white"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border text-muted-foreground hover:bg-card"
             }`}
           >
             {p}
@@ -50,7 +50,7 @@ export default function Pagination({ page, totalPages, onPageChange }) {
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white"
+          className="px-3 py-1.5 rounded-lg text-xs font-bold border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:bg-card"
         >
           Suivant
         </button>

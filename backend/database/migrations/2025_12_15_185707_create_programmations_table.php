@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('day');
             $table->string('hour_star');
             $table->string('hour_end');
+            $table->string('status')->default('draft');
             $table->foreignId('subject_id')->constrained()->cascadeOnDelete();
             $table->foreignId('programmer_id')->constrained()->cascadeOnDelete();
             $table->foreignId('year_id')->constrained()->cascadeOnDelete();

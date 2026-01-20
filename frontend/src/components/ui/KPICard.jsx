@@ -9,7 +9,7 @@ export default function KPICard({ title, value, delta, icon: Icon, color = 'prim
   };
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition">
+    <div className="bg-card rounded-xl border shadow-sm p-4 hover:shadow-md transition">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-gray-500">{title}</p>
@@ -28,7 +28,7 @@ export default function KPICard({ title, value, delta, icon: Icon, color = 'prim
         <svg className="w-full h-10" viewBox="0 0 100 20" preserveAspectRatio="none">
           <polyline
             fill="none"
-            stroke="#1F2A44"
+            stroke="var(--foreground)"
             strokeWidth="2"
             points="0,15 20,10 40,12 60,6 80,9 100,4"
             strokeOpacity="0.15"

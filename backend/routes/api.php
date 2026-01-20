@@ -18,6 +18,8 @@ use App\Http\Controllers\DisponibilityController;
 use App\Http\Controllers\SpecialtyProgrammationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\DeviceTokenController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,7 +29,7 @@ Route::get('/login', function(){
 });
 Route::post('/emails/webhook/mailtrap', [EmailController::class, 'receiveMailtrap']);
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 	Route::get('/user', function (Request $request) {
         $user = $request->user();
         return [
@@ -44,6 +46,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/notifications/unread', [NotificationController::class, 'unread']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
 
     // API Resource Routes
     Route::apiResource('campuses', CampusController::class)
@@ -162,6 +166,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('role_or_permission:super_admin|admin|view-programmation,sanctum');
     Route::post('programmations', [ProgrammationController::class, 'store'])
         ->middleware('role_or_permission:super_admin|admin|create-programmation,sanctum');
+    Route::post('programmations/suggest', [ProgrammationController::class, 'suggest'])
+        ->middleware('role_or_permission:super_admin|admin|view-programmation,sanctum');
+    Route::post('programmations/publish', [ProgrammationController::class, 'publishValidated'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::put('programmations/{programmation}', [ProgrammationController::class, 'update'])
         ->middleware('role_or_permission:super_admin|admin|edit-programmation,sanctum');
     Route::delete('programmations/{programmation}', [ProgrammationController::class, 'destroy'])
@@ -178,4 +186,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->middleware('role_or_permission:super_admin|admin|edit-disponibility,sanctum');
     Route::delete('disponibilities/{disponibility}', [DisponibilityController::class, 'destroy'])
         ->middleware('role_or_permission:super_admin|admin|delete-disponibility,sanctum');
+
+    // ======device token
+    Route::apiResource('/device-token', DeviceTokenController::class);
+
+    //=======Event
+    Route::post('/programmations/publish-week', [ProgrammationController::class, 'publishWeek']);
+
 });

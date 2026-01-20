@@ -5,11 +5,28 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Stores\DisponibilityRequest;
 use App\Http\Requests\Updates\DisponibilityUpdateRequest;
 use App\Models\Disponibility;
+use App\Models\User;
+use App\Notifications\ProgrammationNotification;
 use Illuminate\Http\Request;
 use Exception;
 
 class DisponibilityController extends Controller
 {
+    private function notifyAdminsAndProgrammer(?User $programmerUser, array $payload, ?int $actorId = null): void
+    {
+        $admins = User::role(['super_admin', 'admin'])->get();
+        $recipients = collect([$programmerUser])
+            ->merge($admins)
+            ->filter()
+            ->unique('id');
+
+        foreach ($recipients as $user) {
+            if ($actorId && $user->id === $actorId) {
+                continue;
+            }
+            $user->notify(new ProgrammationNotification($payload));
+        }
+    }
     /**
      * Display a listing of the resource.
      */
@@ -29,7 +46,18 @@ class DisponibilityController extends Controller
     public function store(DisponibilityRequest $request)
     {
         try {
-            $disponibility = Disponibility::create($request->validated());
+            $data = $request->validated();
+            $disponibility = Disponibility::create($data);
+            $subject = $disponibility->subject;
+            $programmerUser = $subject?->specialty?->programmer?->user;
+            $this->notifyAdminsAndProgrammer($programmerUser, [
+                'type' => 'disponibility_created',
+                'title' => 'Nouvelle disponibilité',
+                'message' => "Disponibilité ajoutée pour {$data['day']} ({$data['hour_star']} - {$data['hour_end']}).",
+                'meta' => ['disponibility_id' => $disponibility->id, 'subject_id' => $data['subject_id']],
+                'action_url' => url('/dashboard/disponibilities'),
+                'action_label' => 'Voir les disponibilités',
+            ], $request->user()?->id);
             return successResponse($disponibility, "Disponibilité créée avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -55,7 +83,18 @@ class DisponibilityController extends Controller
     public function update(DisponibilityUpdateRequest $request, Disponibility $disponibility)
     {
         try {
-            $disponibility->update($request->validated());
+            $data = $request->validated();
+            $disponibility->update($data);
+            $subject = $disponibility->subject;
+            $programmerUser = $subject?->specialty?->programmer?->user;
+            $this->notifyAdminsAndProgrammer($programmerUser, [
+                'type' => 'disponibility_updated',
+                'title' => 'Disponibilité modifiée',
+                'message' => "Disponibilité modifiée pour {$disponibility->day} ({$disponibility->hour_star} - {$disponibility->hour_end}).",
+                'meta' => ['disponibility_id' => $disponibility->id, 'subject_id' => $disponibility->subject_id],
+                'action_url' => url('/dashboard/disponibilities'),
+                'action_label' => 'Voir les disponibilités',
+            ], $request->user()?->id);
             return successResponse($disponibility, "Disponibilité modifiée avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -68,7 +107,19 @@ class DisponibilityController extends Controller
     public function destroy(Disponibility $disponibility)
     {
         try {
+            $subject = $disponibility->subject;
+            $programmerUser = $subject?->specialty?->programmer?->user;
+            $dayLabel = $disponibility->day?->value ?? $disponibility->day;
+            $payload = [
+                'type' => 'disponibility_deleted',
+                'title' => 'Disponibilité supprimée',
+                'message' => "Disponibilité supprimée pour {$dayLabel} ({$disponibility->hour_star} - {$disponibility->hour_end}).",
+                'meta' => ['disponibility_id' => $disponibility->id, 'subject_id' => $disponibility->subject_id],
+                'action_url' => url('/dashboard/disponibilities'),
+                'action_label' => 'Voir les disponibilités',
+            ];
             $disponibility->delete();
+            $this->notifyAdminsAndProgrammer($programmerUser, $payload, request()->user()?->id);
             return successResponse(null, "Disponibilité supprimée avec succès");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());

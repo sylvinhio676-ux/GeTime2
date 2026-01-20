@@ -68,7 +68,7 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
 
   return (
     <div className='absolute bg-[rgba(0 0 0 0.1)] left-0 top-0 right-0 bottom-0 flex justify-center w-full'>
-      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded-lg shadow-md border border-gray-200">
         <div>
           <label className="block text-sm font-medium text-primary mb-1">Specialty Name *</label>
           <input
@@ -202,7 +202,7 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
         <div className="flex gap-3">
           <Button
             type='submit'
-            className="flex-1 bg-primary text-white hover:bg-primary/90 disabled:opacity-60 transition"
+            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition"
             disabled={isLoading}
           >
             {isLoading ? 'Saving...' : initialData ? 'Update Specialty' : 'Create Specialty'}

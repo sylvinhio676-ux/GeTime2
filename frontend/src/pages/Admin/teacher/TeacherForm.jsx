@@ -60,7 +60,7 @@ export default function TeacherForm({ initialData = null, onSubmit, isLoading = 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
+    <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded-lg shadow">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Registration Number *
@@ -70,7 +70,7 @@ export default function TeacherForm({ initialData = null, onSubmit, isLoading = 
           name="registration_number"
           value={formData.registration_number}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 ${
             errors.registration_number ? 'border-red-500' : 'border-gray-300'
           }`}
           required
@@ -91,7 +91,7 @@ export default function TeacherForm({ initialData = null, onSubmit, isLoading = 
             name="user_id"
             value={formData.user_id}
             onChange={handleChange}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 ${
               errors.user_id ? 'border-red-500' : 'border-gray-300'
             }`}
             required
@@ -112,7 +112,7 @@ export default function TeacherForm({ initialData = null, onSubmit, isLoading = 
       <button
         type="submit"
         disabled={isLoading || loadingUsers}
-        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400 font-medium"
+        className="w-full bg-primary text-primary-foreground py-2 rounded-md hover:bg-primary/90 disabled:bg-gray-400 font-medium"
       >
         {isLoading ? 'Saving...' : initialData ? 'Update Teacher' : 'Create Teacher'}
       </button>

@@ -105,19 +105,19 @@ export default function LevelList() {
     <div className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       
       {/* --- HEADER --- */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-[2rem] border border-border shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-700 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground shadow-lg shrink-0">
             <BarChart className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Niveaux d'études</h1>
-            <p className="text-slate-500 text-xs md:text-sm font-medium">Gestion des cycles académiques</p>
+            <h1 className="text-xl md:text-2xl font-black text-foreground tracking-tight">Niveaux d'études</h1>
+            <p className="text-muted-foreground text-xs md:text-sm font-medium">Gestion des cycles académiques</p>
           </div>
         </div>
         <Button 
           onClick={() => { setEditingData(null); setShowForm(true); }}
-          className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-6 py-6 h-auto shadow-md gap-2 font-bold transition-all active:scale-95"
         >
           <Plus className="w-5 h-5" /> Ajouter un niveau
         </Button>
@@ -126,7 +126,7 @@ export default function LevelList() {
       {/* --- NOTIFICATIONS --- */}
       {notification.show && (
         <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 p-4 rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-10 ${
-          notification.type === 'error' ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-emerald-50 border-emerald-100 text-emerald-700'
+          notification.type === 'error' ? 'bg-delta-negative/10 border-delta-negative/20 text-delta-negative' : 'bg-delta-positive/10 border-delta-positive/20 text-delta-positive'
         }`}>
           {notification.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
           <p className="text-sm font-bold">{notification.message}</p>
@@ -137,65 +137,65 @@ export default function LevelList() {
       )}
 
       {/* --- LISTE ET FILTRES --- */}
-      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-[2rem] border border-border shadow-sm overflow-hidden">
         
-        <div className="p-5 border-b border-slate-50 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/30">
+        <div className="p-5 border-b border-border/40 flex flex-col md:flex-row gap-4 items-center justify-between bg-muted/30">
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/80" />
             <input 
               type="text"
               placeholder="Rechercher un niveau..."
-              className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-slate-50 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:ring-4 focus:ring-muted/40 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Badge variant="outline" className="border-slate-200 text-slate-500 font-bold px-4 py-1.5 rounded-full uppercase text-[10px] tracking-widest">
+          <Badge variant="outline" className="border-border text-muted-foreground font-bold px-4 py-1.5 rounded-full uppercase text-[10px] tracking-widest">
             {filteredLevels.length} Niveaux actifs
           </Badge>
         </div>
 
         <div className="overflow-x-auto">
           {filteredLevels.length === 0 ? (
-            <div className="py-20 flex flex-col items-center text-slate-300">
+            <div className="py-20 flex flex-col items-center text-muted-foreground/60">
               <Layers className="w-12 h-12 mb-3 opacity-10" />
               <p className="text-sm font-bold">Aucun niveau répertorié</p>
             </div>
           ) : (
             <table className="w-full text-left">
-              <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-black tracking-widest border-b border-slate-100">
+              <thead className="bg-muted/50 text-muted-foreground/80 text-[10px] uppercase font-black tracking-widest border-b border-border/60">
                 <tr>
                   <th className="px-8 py-5">Identifiant</th>
                   <th className="px-8 py-5">Nom du niveau</th>
                   <th className="px-8 py-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-border/40">
                 {pagedLevels.map((level) => (
-                  <tr key={level.id} className="group hover:bg-slate-50/50 transition-colors">
-                    <td className="px-8 py-5 font-mono text-xs text-slate-400">
+                  <tr key={level.id} className="group hover:bg-muted/50 transition-colors">
+                    <td className="px-8 py-5 font-mono text-xs text-muted-foreground/80">
                       #{level.id}
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center font-black text-[10px]">
+                         <div className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center font-black text-[10px]">
                             {level.name_level?.match(/\d+/) || 'LV'}
                          </div>
-                         <p className="font-bold text-slate-900 tracking-tight">{level.name_level}</p>
+                         <p className="font-bold text-foreground tracking-tight">{level.name_level}</p>
                       </div>
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-200">
                         <button 
                           onClick={() => { setEditingData(level); setShowForm(true); }}
-                          className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                          className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
                           title="Modifier"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(level.id)}
-                          className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-2 text-delta-negative hover:bg-delta-negative/10 rounded-lg transition-colors"
                           title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -214,14 +214,14 @@ export default function LevelList() {
       {/* --- MODAL FORMULAIRE --- */}
       {showForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowForm(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <Layers className="w-5 h-5 text-slate-600" />
+          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm animate-in fade-in" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-md bg-card rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 overflow-hidden">
+            <div className="p-6 border-b border-border/60 flex justify-between items-center bg-muted/50">
+              <h3 className="font-black text-foreground tracking-tight flex items-center gap-2">
+                <Layers className="w-5 h-5 text-muted-foreground" />
                 {editingData ? 'Modifier le niveau' : 'Nouveau niveau'}
               </h3>
-              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X className="w-5 h-5 text-slate-400" /></button>
+              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-card rounded-full transition-colors"><X className="w-5 h-5 text-muted-foreground/80" /></button>
             </div>
             <div className="p-8">
               <LevelForm

@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 
 export default function SettingMenu({ items, activeTab, onTabChange }) {
   return (
-    <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-4 sticky top-24">
+    <div className="bg-card rounded-[2rem] shadow-sm border border-border p-4 sticky top-24">
       <nav className="space-y-2">
         {items.map((item) => {
           const Icon = item.icon;
@@ -18,8 +18,8 @@ export default function SettingMenu({ items, activeTab, onTabChange }) {
                 transition-all duration-200
                 ${
                   isActive
-                    ? 'bg-blue-700 text-white shadow-md shadow-blue-100 font-bold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-600'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
+                    : 'text-muted-foreground hover:bg-muted hover:text-muted-foreground'
                 }
               `}
             >

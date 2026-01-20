@@ -142,25 +142,78 @@ fgets / fgetc
 
 Toujours vérifier les erreurs
 
-Voici des fonctionnalités clés (pro, “production‑ready”) que tu peux ajouter pour rendre l’application plus complète et professionnelle :
+Voici une liste claire de fonctionnalités pour rendre GeTime vraiment pro (priorisées et adaptées à ton projet) :
 
-Gestion fine des rôles et permissions (admin, super‑admin, enseignant, programmeur) avec restrictions d’accès par page et action.
-Journal d’audit (qui a créé/modifié/supprimé quoi, et quand).
-Export/Import (CSV/Excel/PDF) pour listes, emplois du temps et rapports.
-Détection de conflits d’emplois du temps (salles, enseignants, horaires).
-Notifications (email/SMS/in‑app) pour changements d’horaires, validations, rappels.
-Rapports/Statistiques (taux d’occupation salles, charge enseignants, répartition filières).
-Gestion documentaire (pièces jointes : syllabus, fiches de cours, programmes).
-Workflow de validation (ex: programmation soumise → validée → publiée).
-Mode multi‑campus/établissement avancé (filtres, espaces isolés).
-Historique et versioning (rollback des programmations).
-Sécurité renforcée (2FA, policies Sanctum, rate‑limiting).
-Internationalisation (FR/EN), configuration globale par établissement.
-Monitoring & logs applicatifs (erreurs, latences, disponibilité).
-Tests automatisés + CI/CD (unitaires, intégration, e2e).
-Sauvegarde/restore DB et gestion des migrations en prod.
-Si tu veux, je peux teParfait. Avant d’implémenter, j’ai besoin de 3 précisions pour le système complet (backend + frontend) :
+Critiques (indispensables)
 
+Audit log (qui a créé/modifié/supprimé quoi)
+Historique des versions du planning
+Export PDF/Excel propres (emploi du temps par classe/enseignant/salle)
+Gestion des conflits avancée (suggestions de créneaux alternatifs)
+Permissions granulaires sur actions (create/update/delete par module)
+Très utiles
+
+Statuts de validation (brouillon → validé → publié)
+Notifications ciblées (email + in‑app) selon rôle
+Mode “simulation” avant publication
+Disponibilités automatiques (récupération par import)
+Recherche globale (enseignants, matières, salles, filières)
+Professionnel / premium
+
+Tableau de bord analytique (taux d’occupation, heures prof, charge)
+Gestion multi‑campus/établissements avec vues séparées
+Moteur de génération automatique d’emplois du temps
+Multi‑langue (FR/EN)
+SSO / LDAP (pour universités)
+Qualité & fiabilité
+
+Tests (unitaires + e2e)
+Sauvegarde + restauration
+Monitoring d’erreurs (Sentry)
+Journal d’activité pour chaque utilisateur
+Si tu veux, je peux te proposer un plan concret par étapes (MVP → pro → premium) et te dire exactement quoi implémenter en premier.
+
+oui
+
+
+Voici un plan par étapes (MVP → Pro → Premium) adapté à GeTime, avec actions concrètes.
+
+Étape 1 — MVP Pro (1–2 semaines)
+
+Audit log
+Log des actions CRUD (planning, utilisateurs, matières, salles)
+Vue admin “Historique”
+Statut des plannings
+Brouillon / Validé / Publié
+Seuls les “publiés” visibles aux enseignants
+Export propre
+PDF par classe + par enseignant + par salle
+Excel pour l’administration
+Notifications ciblées
+Ex: création/modif/suppression planning
+In‑app + email
+Étape 2 — Pro (2–4 semaines)
+
+Conflits avancés
+Suggestions de créneaux alternatifs
+Indicateurs en temps réel dans le tableau
+Workflow de validation
+Programmeur propose → Admin valide → Publication
+Historique des versions
+Recherche globale
+Recherche unique enseignants / matières / salles
+Dashboard analytique
+Taux d’occupation, heures prof, charge par filière
+Étape 3 — Premium (1–2 mois)
+
+Auto‑génération d’emploi du temps
+Optimisation par contraintes
+Multi‑campus & multi‑établissements avancé
+Filtrage par campus / établissement
+SSO / LDAP
+Connexion centralisée institutionnelle
+Multi‑langue
+FR/EN
 Événements à notifier
 
 Création de programmation
@@ -731,3 +784,942 @@ UC_dispo_self ..> UC_auth : <<include>>
 UC_view_dispo ..> UC_auth : <<include>>
 
 @enduml
+
+
+
+
+A) BACKEND (Laravel 12)
+0) Pré-requis (FCM côté Laravel)
+
+Tu as 2 choix :
+
+Recommandé : utiliser le SDK Firebase (Kreait) → fiable, simple.
+
+Sinon : appeler FCM HTTP v1 “à la main” (plus long).
+
+Ici je pars sur Kreait.
+
+Fichier à MODIFIER : .env
+
+Ajoute :
+
+FCM_ENABLED=true
+FIREBASE_CREDENTIALS=/absolute/path/storage/app/firebase/service-account.json
+FCM_DEFAULT_TTL=3600
+
+
+FIREBASE_CREDENTIALS pointe vers ton fichier JSON “service account” Firebase.
+
+1) Device tokens (pour stocker les tokens push des users)
+1.1 Fichier à CRÉER : database/migrations/2026_01_17_000001_create_device_tokens_table.php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('device_tokens', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+
+            $table->string('token', 512)->unique();
+            $table->string('platform')->default('web'); // web|android|ios
+            $table->timestamp('last_seen_at')->nullable();
+
+            $table->timestamps();
+
+            $table->index(['user_id', 'platform']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('device_tokens');
+    }
+};
+
+1.2 Fichier à CRÉER : app/Models/DeviceToken.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class DeviceToken extends Model
+{
+    protected $fillable = [
+        'user_id', 'token', 'platform', 'last_seen_at',
+    ];
+
+    protected $casts = [
+        'last_seen_at' => 'datetime',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+1.3 Fichier à MODIFIER : app/Models/User.php
+
+Ajoute la relation :
+
+use App\Models\DeviceToken;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+public function deviceTokens(): HasMany
+{
+    return $this->hasMany(DeviceToken::class);
+}
+
+2) API pour enregistrer le token FCM (appelé par React)
+2.1 Fichier à CRÉER : app/Http/Controllers/Api/DeviceTokenController.php
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\DeviceToken;
+use Illuminate\Http\Request;
+
+class DeviceTokenController extends Controller
+{
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'token' => ['required', 'string', 'max:512'],
+            'platform' => ['nullable', 'string', 'in:web,android,ios'],
+        ]);
+
+        $user = $request->user();
+
+        DeviceToken::updateOrCreate(
+            ['token' => $data['token']],
+            [
+                'user_id' => $user->id,
+                'platform' => $data['platform'] ?? 'web',
+                'last_seen_at' => now(),
+            ]
+        );
+
+        return response()->json(['message' => 'Device token saved.']);
+    }
+
+    public function destroy(Request $request)
+    {
+        $data = $request->validate([
+            'token' => ['required', 'string', 'max:512'],
+        ]);
+
+        DeviceToken::where('token', $data['token'])
+            ->where('user_id', $request->user()->id)
+            ->delete();
+
+        return response()->json(['message' => 'Device token removed.']);
+    }
+}
+
+2.2 Fichier à MODIFIER : routes/api.php
+
+Ajoute :
+
+use App\Http\Controllers\Api\DeviceTokenController;
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/device-tokens', [DeviceTokenController::class, 'store']);
+    Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy']);
+});
+
+3) Push Channel (FCM) + Service
+3.1 Fichier à CRÉER : app/Services/FcmService.php
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Collection;
+use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Messaging\CloudMessage;
+
+class FcmService
+{
+    public function __construct(private Messaging $messaging) {}
+
+    /**
+     * @param array<int,string> $tokens
+     * @param array<string,mixed> $data
+     */
+    public function sendToTokens(array $tokens, string $title, string $body, array $data = []): void
+    {
+        if (!(bool) config('services.fcm.enabled')) {
+            return;
+        }
+
+        $tokens = array_values(array_unique(array_filter($tokens)));
+        if (count($tokens) === 0) {
+            return;
+        }
+
+        // FCM data must be string values
+        $data = collect($data)->map(fn($v) => is_scalar($v) ? (string) $v : json_encode($v))->all();
+
+        $message = CloudMessage::new()
+            ->withNotification(['title' => $title, 'body' => $body])
+            ->withData($data);
+
+        // multicast
+        $this->messaging->sendMulticast($message, $tokens);
+    }
+}
+
+3.2 Fichier à MODIFIER : config/services.php
+
+Ajoute :
+
+'fcm' => [
+    'enabled' => env('FCM_ENABLED', false),
+],
+
+3.3 Fichier à CRÉER : app/Notifications/Channels/FcmChannel.php
+<?php
+
+namespace App\Notifications\Channels;
+
+use App\Services\FcmService;
+use Illuminate\Notifications\Notification;
+
+class FcmChannel
+{
+    public function __construct(private FcmService $fcm) {}
+
+    public function send($notifiable, Notification $notification): void
+    {
+        if (!method_exists($notification, 'toFcm')) {
+            return;
+        }
+
+        $payload = $notification->toFcm($notifiable);
+
+        $tokens = $notifiable->deviceTokens()->pluck('token')->toArray();
+
+        $this->fcm->sendToTokens(
+            $tokens,
+            $payload['title'] ?? '',
+            $payload['body'] ?? '',
+            $payload['data'] ?? []
+        );
+    }
+}
+
+3.4 Service Provider (binding Firebase Messaging)
+
+Fichier à MODIFIER : app/Providers/AppServiceProvider.php
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Contract\Messaging;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->app->singleton(Messaging::class, function () {
+            $credentials = env('FIREBASE_CREDENTIALS');
+
+            return (new Factory)
+                ->withServiceAccount($credentials)
+                ->createMessaging();
+        });
+    }
+
+    public function boot(): void {}
+}
+
+4) Notifications (DB + FCM)
+4.1 Notification : Disponibilité changée → programmeur
+
+Fichier à CRÉER : app/Notifications/TeacherDisponibilityChangedNotification.php
+
+<?php
+
+namespace App\Notifications;
+
+use App\Models\Disponibility;
+use App\Notifications\Channels\FcmChannel;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Notification;
+
+class TeacherDisponibilityChangedNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(
+        public Disponibility $disponibility,
+        public string $action // created|updated|deleted
+    ) {}
+
+    public function via($notifiable): array
+    {
+        return ['database', FcmChannel::class];
+    }
+
+    public function toDatabase($notifiable): array
+    {
+        $d = $this->disponibility;
+
+        return [
+            'type' => 'teacher_disponibility_changed',
+            'action' => $this->action,
+            'disponibility_id' => $d->id,
+            'subject_id' => $d->subject_id,
+            'day' => $d->day,
+            'hour_start' => $d->hour_star,
+            'hour_end' => $d->hour_end,
+        ];
+    }
+
+    public function toFcm($notifiable): array
+    {
+        $d = $this->disponibility;
+
+        $title = "Disponibilité enseignant";
+        $body = match ($this->action) {
+            'created' => "Nouvelle disponibilité : {$d->day} {$d->hour_star}-{$d->hour_end}",
+            'updated' => "Disponibilité modifiée : {$d->day} {$d->hour_star}-{$d->hour_end}",
+            'deleted' => "Disponibilité supprimée : {$d->day} {$d->hour_star}-{$d->hour_end}",
+            default => "Disponibilité mise à jour",
+        };
+
+        return [
+            'title' => $title,
+            'body' => $body,
+            'data' => [
+                'type' => 'teacher_disponibility_changed',
+                'action' => $this->action,
+                'disponibility_id' => $d->id,
+                'subject_id' => $d->subject_id,
+            ],
+        ];
+    }
+}
+
+4.2 Notification : EDT publié → enseignants concernés
+
+Fichier à CRÉER : app/Notifications/TimetablePublishedNotification.php
+
+<?php
+
+namespace App\Notifications;
+
+use App\Notifications\Channels\FcmChannel;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Notification;
+
+class TimetablePublishedNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(
+        public string $weekStart, // YYYY-MM-DD
+        public string $weekEnd,   // YYYY-MM-DD
+        public int $yearId
+    ) {}
+
+    public function via($notifiable): array
+    {
+        return ['database', FcmChannel::class];
+    }
+
+    public function toDatabase($notifiable): array
+    {
+        return [
+            'type' => 'timetable_published',
+            'week_start' => $this->weekStart,
+            'week_end' => $this->weekEnd,
+            'year_id' => $this->yearId,
+        ];
+    }
+
+    public function toFcm($notifiable): array
+    {
+        return [
+            'title' => "Emploi du temps publié",
+            'body' => "Votre emploi du temps ({$this->weekStart} → {$this->weekEnd}) est disponible.",
+            'data' => [
+                'type' => 'timetable_published',
+                'week_start' => $this->weekStart,
+                'week_end' => $this->weekEnd,
+                'year_id' => (string) $this->yearId,
+            ],
+        ];
+    }
+}
+
+5) Events + Listeners
+5.1 Events Disponibility
+
+Fichiers à CRÉER :
+
+app/Events/DisponibilityCreated.php
+
+app/Events/DisponibilityUpdated.php
+
+app/Events/DisponibilityDeleted.php
+
+Exemple (copie-colle et change juste le nom de la classe) :
+
+<?php
+
+namespace App\Events;
+
+use App\Models\Disponibility;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class DisponibilityCreated
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(public Disponibility $disponibility) {}
+}
+
+
+Fais pareil pour Updated / Deleted.
+
+5.2 Listener → notifier le programmeur via subject->specialty->programmer_id
+
+Fichier à CRÉER : app/Listeners/NotifyProgrammerOfDisponibilityChange.php
+
+<?php
+
+namespace App\Listeners;
+
+use App\Events\DisponibilityCreated;
+use App\Events\DisponibilityUpdated;
+use App\Events\DisponibilityDeleted;
+use App\Models\Subject;
+use App\Models\User;
+use App\Notifications\TeacherDisponibilityChangedNotification;
+
+class NotifyProgrammerOfDisponibilityChange
+{
+    public function handle($event): void
+    {
+        $d = $event->disponibility;
+
+        // subject -> specialty -> programmer_id
+        $subject = Subject::with('specialty.programmer.user')->find($d->subject_id);
+        if (!$subject || !$subject->specialty || !$subject->specialty->programmer) {
+            return;
+        }
+
+        // programmer is a model, we need the programmer's USER to notify (because tokens are on users)
+        $programmerUser = $subject->specialty->programmer->user;
+        if (!$programmerUser instanceof User) {
+            return;
+        }
+
+        $action = match (true) {
+            $event instanceof DisponibilityCreated => 'created',
+            $event instanceof DisponibilityUpdated => 'updated',
+            $event instanceof DisponibilityDeleted => 'deleted',
+            default => 'updated',
+        };
+
+        $programmerUser->notify(new TeacherDisponibilityChangedNotification($d, $action));
+    }
+}
+
+
+⚠️ Ce code suppose ces relations existent :
+
+Subject belongsTo Specialty
+
+Specialty belongsTo Programmer
+
+Programmer belongsTo User
+
+Si tes noms diffèrent, tu adaptes juste les relations.
+
+5.3 Event “publier emploi du temps”
+
+Fichier à CRÉER : app/Events/TimetablePublished.php
+
+<?php
+
+namespace App\Events;
+
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class TimetablePublished
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(
+        public string $weekStart,
+        public string $weekEnd,
+        public int $yearId,
+        public int $programmerId
+    ) {}
+}
+
+5.4 Listener : notifier tous les enseignants concernés
+
+Fichier à CRÉER : app/Listeners/NotifyTeachersOfPublishedTimetable.php
+
+<?php
+
+namespace App\Listeners;
+
+use App\Events\TimetablePublished;
+use App\Models\Programmation;
+use App\Models\Subject;
+use App\Models\User;
+use App\Notifications\TimetablePublishedNotification;
+
+class NotifyTeachersOfPublishedTimetable
+{
+    public function handle(TimetablePublished $event): void
+    {
+        // 1) séances publiées de la semaine
+        $programmations = Programmation::query()
+            ->where('year_id', $event->yearId)
+            ->where('status', 'published')
+            ->whereBetween('day', [$event->weekStart, $event->weekEnd]) // si day est DATE
+            ->get(['id', 'subject_id']);
+
+        if ($programmations->isEmpty()) return;
+
+        $subjectIds = $programmations->pluck('subject_id')->unique()->values();
+
+        // 2) subjects -> teacher_id -> teacher.user_id
+        $subjects = Subject::with('teacher.user')
+            ->whereIn('id', $subjectIds)
+            ->get();
+
+        $teacherUsers = $subjects
+            ->map(fn($s) => $s->teacher?->user)
+            ->filter(fn($u) => $u instanceof User)
+            ->unique('id')
+            ->values();
+
+        foreach ($teacherUsers as $user) {
+            $user->notify(new TimetablePublishedNotification(
+                $event->weekStart,
+                $event->weekEnd,
+                $event->yearId
+            ));
+        }
+    }
+}
+
+
+⚠️ Ici je suppose que Programmation.day est une DATE.
+Si day est un texte (“Monday”), alors il faut stocker la date ou ajouter un champ date/week_id. Mais comme tu veux “semaine”, le mieux est day=DATE.
+
+6) Enregistrer les listeners
+
+Fichier à MODIFIER : app/Providers/EventServiceProvider.php
+
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+
+use App\Events\DisponibilityCreated;
+use App\Events\DisponibilityUpdated;
+use App\Events\DisponibilityDeleted;
+use App\Events\TimetablePublished;
+
+use App\Listeners\NotifyProgrammerOfDisponibilityChange;
+use App\Listeners\NotifyTeachersOfPublishedTimetable;
+
+class EventServiceProvider extends ServiceProvider
+{
+    protected $listen = [
+        DisponibilityCreated::class => [
+            NotifyProgrammerOfDisponibilityChange::class,
+        ],
+        DisponibilityUpdated::class => [
+            NotifyProgrammerOfDisponibilityChange::class,
+        ],
+        DisponibilityDeleted::class => [
+            NotifyProgrammerOfDisponibilityChange::class,
+        ],
+        TimetablePublished::class => [
+            NotifyTeachersOfPublishedTimetable::class,
+        ],
+    ];
+}
+
+7) Dispatch automatique des events quand Disponibility change
+
+Le plus simple : dans le modèle Disponibility.
+
+Fichier à MODIFIER : app/Models/Disponibility.php
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Events\DisponibilityCreated;
+use App\Events\DisponibilityUpdated;
+use App\Events\DisponibilityDeleted;
+
+class Disponibility extends Model
+{
+    protected static function booted(): void
+    {
+        static::created(fn($d) => event(new DisponibilityCreated($d)));
+        static::updated(fn($d) => event(new DisponibilityUpdated($d)));
+        static::deleted(fn($d) => event(new DisponibilityDeleted($d)));
+    }
+}
+
+8) Endpoint “publier emploi du temps semaine”
+8.1 Fichier à CRÉER : app/Http/Controllers/Api/ProgrammationPublishController.php
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Events\TimetablePublished;
+use App\Http\Controllers\Controller;
+use App\Models\Programmation;
+use Illuminate\Http\Request;
+
+class ProgrammationPublishController extends Controller
+{
+    public function publishWeek(Request $request)
+    {
+        $data = $request->validate([
+            'year_id' => ['required', 'integer'],
+            'week_start' => ['required', 'date'], // YYYY-MM-DD
+            'week_end' => ['required', 'date', 'after_or_equal:week_start'],
+        ]);
+
+        // Ici tu peux vérifier que l'utilisateur connecté est un programmer, etc.
+
+        Programmation::query()
+            ->where('year_id', $data['year_id'])
+            ->whereBetween('day', [$data['week_start'], $data['week_end']])
+            ->update(['status' => 'published']);
+
+        event(new TimetablePublished(
+            $data['week_start'],
+            $data['week_end'],
+            (int) $data['year_id'],
+            (int) ($request->user()->id) // ou programmer_id si tu l'as
+        ));
+
+        return response()->json([
+            'message' => 'Timetable published and notifications sent.',
+        ]);
+    }
+}
+
+8.2 Fichier à MODIFIER : routes/api.php
+
+Ajoute :
+
+use App\Http\Controllers\Api\ProgrammationPublishController;
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/programmations/publish-week', [ProgrammationPublishController::class, 'publishWeek']);
+});
+
+9) Queue (obligatoire en prod)
+
+Tes notifications implémentent ShouldQueue, donc configure queue + worker.
+
+Tu as déjà tables jobs etc.
+Assure-toi que .env contient :
+
+QUEUE_CONNECTION=database
+
+
+Et que ton worker tourne (systemd/supervisor) en prod.
+
+B) FRONTEND (React 19 + Vite)
+1) Installer Firebase côté React
+
+Tu vas avoir 3 fichiers importants :
+
+1.1 Fichier à CRÉER : src/firebase/firebase.js
+import { initializeApp } from "firebase/app";
+import { getMessaging } from "firebase/messaging";
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+export const messaging = getMessaging(app);
+
+1.2 Fichier à CRÉER : src/firebase/push.js
+import { getToken, onMessage } from "firebase/messaging";
+import { messaging } from "./firebase";
+import api from "../services/api"; // ton axios instance
+
+export async function registerPushToken() {
+  if (!("Notification" in window)) return;
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") return;
+
+  const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+
+  const token = await getToken(messaging, { vapidKey });
+  if (!token) return;
+
+  // Envoi au backend
+  await api.post("/device-tokens", { token, platform: "web" });
+
+  // Listener quand l’app est ouverte
+  onMessage(messaging, (payload) => {
+    // Option: afficher toast
+    console.log("FCM foreground message:", payload);
+  });
+}
+
+1.3 Fichier à CRÉER : public/firebase-messaging-sw.js
+
+(important pour recevoir en background)
+
+/* eslint-disable no-undef */
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+
+firebase.initializeApp({
+  apiKey: self.VITE_FIREBASE_API_KEY,
+  authDomain: self.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: self.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: self.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: self.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: self.VITE_FIREBASE_APP_ID,
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  const title = payload?.notification?.title || "Notification";
+  const options = {
+    body: payload?.notification?.body || "",
+    data: payload?.data || {},
+  };
+
+  self.registration.showNotification(title, options);
+});
+
+
+Note : pour que le SW ait accès aux variables, tu peux aussi hardcoder la config Firebase dans ce fichier (le plus simple). Vite n’injecte pas automatiquement import.meta.env dans public/.
+
+2) Fichier à MODIFIER : .env (frontend)
+
+Ajoute :
+
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_VAPID_KEY=...
+
+3) Appeler l’enregistrement du token après login
+
+Dès que l’utilisateur est connecté (token Sanctum enregistré), appelle registerPushToken().
+
+Exemple : dans ton écran login success ou App.jsx.
+
+Fichier à MODIFIER (exemple) : src/pages/Login.jsx
+
+Après login réussi :
+
+import { registerPushToken } from "../firebase/push";
+
+...
+
+const onLoginSuccess = async () => {
+  // token auth déjà stocké
+  await registerPushToken();
+};
+
+C) Résultat final (ce que tu veux)
+
+✅ Quand un enseignant crée/modifie/supprime une disponibilité
+→ event déclenché automatiquement
+→ on calcule le programmeur via subject->specialty->programmer_id
+→ notification DB + Push envoyée au programmeur.
+
+✅ Quand l’emploi du temps est publié pour une semaine
+→ endpoint POST /programmations/publish-week
+→ statut = published
+→ on récupère tous les enseignants concernés
+→ notification DB + Push envoyée à chacun.
+
+Si tu veux, je peux te donner aussi :
+
+le code des relations Eloquent exactes (Subject/Specialty/Programmer/Teacher)
+
+un endpoint /notifications pour afficher la cloche côté React
+
+une version “multi-établissements” (si un programmeur gère plusieurs specialties)
+
+donne maintenant l'aborescence des du backend et frontent en tenant compte du faite que les push nofications sont integrer
+
+Voici une arborescence claire (backend + frontend) avec les push notifications intégrées (FCM + DB notifications), en gardant le style Laravel 12 + React/Vite.
+
+1) Backend (Laravel 12) — Arborescence
+backend/
+├─ app/
+│  ├─ Events/
+│  │  ├─ DisponibilityCreated.php
+│  │  ├─ DisponibilityUpdated.php
+│  │  ├─ DisponibilityDeleted.php
+│  │  └─ TimetablePublished.php
+│  │
+│  ├─ Http/
+│  │  └─ Controllers/
+│  │     └─ Api/
+│  │        ├─ DeviceTokenController.php
+│  │        └─ ProgrammationPublishController.php
+│  │
+│  ├─ Listeners/
+│  │  ├─ NotifyProgrammerOfDisponibilityChange.php
+│  │  └─ NotifyTeachersOfPublishedTimetable.php
+│  │
+│  ├─ Models/
+│  │  ├─ DeviceToken.php
+│  │  ├─ Disponibility.php              (modifié: dispatch events)
+│  │  ├─ Programmation.php
+│  │  ├─ Subject.php
+│  │  ├─ Specialty.php
+│  │  ├─ Programmer.php
+│  │  ├─ Teacher.php
+│  │  └─ User.php                       (modifié: relation deviceTokens)
+│  │
+│  ├─ Notifications/
+│  │  ├─ Channels/
+│  │  │  └─ FcmChannel.php
+│  │  ├─ TeacherDisponibilityChangedNotification.php
+│  │  └─ TimetablePublishedNotification.php
+│  │
+│  ├─ Providers/
+│  │  ├─ AppServiceProvider.php         (modifié: Firebase Messaging binding)
+│  │  └─ EventServiceProvider.php       (modifié: listeners register)
+│  │
+│  └─ Services/
+│     └─ FcmService.php
+│
+├─ config/
+│  └─ services.php                      (modifié: fcm enabled)
+│
+├─ database/
+│  └─ migrations/
+│     ├─ 2026_01_17_000001_create_device_tokens_table.php
+│     └─ ... (autres migrations déjà existantes)
+│
+├─ routes/
+│  └─ api.php                           (modifié: routes device-tokens + publish)
+│
+├─ storage/
+│  └─ app/
+│     └─ firebase/
+│        └─ service-account.json        (clé Firebase, à ne pas commiter)
+│
+├─ .env                                 (modifié: FCM_ENABLED + FIREBASE_CREDENTIALS)
+└─ ...
+
+
+✅ Ce que ça ajoute au backend
+
+Un stockage des tokens (device_tokens)
+
+Un canal de notif FcmChannel
+
+Un service FcmService
+
+Des events/listeners pour envoyer les notifs automatiquement
+
+Un endpoint “publish week” pour publier et notifier
+
+2) Frontend (React 19 + Vite) — Arborescence
+frontend/
+├─ public/
+│  └─ firebase-messaging-sw.js          (service worker push)
+│
+├─ src/
+│  ├─ firebase/
+│  │  ├─ firebase.js                    (init Firebase + messaging)
+│  │  └─ push.js                        (register token + foreground listener)
+│  │
+│  ├─ services/
+│  │  ├─ api.js                         (Axios instance + token)
+│  │  └─ authService.js                 (login/logout si tu as)
+│  │
+│  ├─ pages/
+│  │  ├─ Login.jsx                      (modifié: registerPushToken après login)
+│  │  ├─ Campuses/
+│  │  └─ Teachers/
+│  │
+│  ├─ components/
+│  │  ├─ Navbar.jsx
+│  │  └─ ... (tables/forms)
+│  │
+│  ├─ routes/
+│  │  └─ index.jsx
+│  │
+│  ├─ App.jsx                           (optionnel: hook global push)
+│  └─ main.jsx
+│
+├─ .env                                 (modifié: VITE_FIREBASE_* + VAPID key)
+├─ vite.config.js
+└─ ...
+
+
+✅ Ce que ça ajoute au frontend
+
+Firebase init
+
+Récupération du token FCM
+
+Envoi du token au backend (/device-tokens)
+
+Réception en foreground + background (SW)
+
+3) Vue globale du flux (simplifié)
+Teacher -> POST /disponibilities
+          -> (Model event) DisponibilityCreated
+          -> Listener NotifyProgrammerOfDisponibilityChange
+          -> Programmer(User) receives:
+              - DB notification
+              - FCM push
+
+Programmer -> POST /programmations/publish-week
+            -> status = published
+            -> Event TimetablePublished
+            -> Listener NotifyTeachersOfPublishedTimetable
+            -> Teachers(User) receive:
+                - DB notification
+                - FCM push
+
+
+Si tu veux, je peux aussi te donner une arborescence “clean architecture” (avec Domain/, Application/, Infrastructure/) plus “pro”, mais celle-ci reste parfaite et standard pour Laravel/React.

@@ -28,7 +28,7 @@ import ActivityList from '@/components/ui/ActivityList';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/useAuth";
 
 export default function Dashboard() {
   const { user, loading: authLoading, hasRole } = useAuth();
@@ -157,25 +157,25 @@ function AdminDashboard({ data }) {
   }, [data]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 lg:p-8">
+    <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-[1600px] mx-auto space-y-8">
         
         {/* ================= HEADER AVANCÉ ================= */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-slate-600 border-slate-200 bg-slate-50">
+              <Badge variant="outline" className="text-muted-foreground border-border bg-muted">
                 <Calendar className="w-3 h-3 mr-1" /> Année Académique: {analytics.activeYear}
               </Badge>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Vue d'Ensemble Académique</h1>
+            <h1 className="text-3xl font-black text-foreground tracking-tight">Vue d'Ensemble Académique</h1>
           </div>
           <div className="flex items-center gap-3">
              <div className="text-right hidden lg:block mr-4">
-                <p className="text-xs text-slate-500 font-bold uppercase">Établissement</p>
-                <p className="text-sm font-bold text-slate-900">{data.etablishments[0]?.name || "Université Centrale"}</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase">Établissement</p>
+                <p className="text-sm font-bold text-foreground">{data.etablishments[0]?.name || "Université Centrale"}</p>
              </div>
-            <Button className="bg-blue-700 hover:bg-blue-800 text-white shadow-slate-200 shadow-lg">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 shadow-lg">
               <Plus className="w-4 h-4 mr-2" /> Nouvelle Programmation
             </Button>
           </div>
@@ -195,36 +195,36 @@ function AdminDashboard({ data }) {
           <div className="lg:col-span-2 space-y-8">
             {/* Widget de Conflits / Alertes */}
             {analytics.conflictCount > 0 && (
-              <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl flex items-center justify-between">
+              <div className="bg-delta-negative/10 border border-delta-negative/20 p-4 rounded-2xl flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="bg-rose-500 p-2 rounded-lg text-white">
+                  <div className="bg-delta-negative/100 p-2 rounded-lg text-primary-foreground">
                     <AlertTriangle className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-rose-900 font-bold">Attention : {analytics.conflictCount} conflits de programmation</h4>
-                    <p className="text-rose-700 text-sm">Des enseignants sont programmés sur des plages d'indisponibilité.</p>
+                    <h4 className="text-delta-negative font-bold">Attention : {analytics.conflictCount} conflits de programmation</h4>
+                    <p className="text-delta-negative text-sm">Des enseignants sont programmés sur des plages d'indisponibilité.</p>
                   </div>
                 </div>
-                <Button size="sm" className="bg-rose-600 hover:bg-rose-700 text-white border-none">Résoudre</Button>
+                <Button size="sm" className="bg-delta-negative hover:bg-delta-negative/90 text-primary-foreground border-none">Résoudre</Button>
               </div>
             )}
 
             {/* Graphique d'activité */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <ChartPlaceholder title="Charge de Cours Hebdomadaire" subtitle="Analyse des heures programmées par jour" />
             </div>
 
             {/* Tableau des Programmations Récentes */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <CalendarCheck className="w-5 h-5 text-slate-500" /> Programmations Récentes
+            <section className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-border/40 flex justify-between items-center bg-muted/30">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
+                  <CalendarCheck className="w-5 h-5 text-muted-foreground" /> Programmations Récentes
                 </h3>
                 <Button variant="ghost" size="sm">Voir tout le planning</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                  <thead className="bg-muted/50 text-muted-foreground/80 text-[10px] uppercase font-bold tracking-widest">
                     <tr>
                       <th className="px-6 py-4">Matière / Niveau</th>
                       <th className="px-6 py-4">Enseignant</th>
@@ -232,22 +232,22 @@ function AdminDashboard({ data }) {
                       <th className="px-6 py-4">Statut</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50 text-sm">
+                  <tbody className="divide-y divide-border/40 text-sm">
                     {data.programmers.slice(0, 5).map((p, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50 transition-colors cursor-pointer">
-                        <td className="px-6 py-4 font-bold text-slate-800">
+                      <tr key={i} className="hover:bg-muted/50 transition-colors cursor-pointer">
+                        <td className="px-6 py-4 font-bold text-foreground">
                           {p.subject?.name || "Matière"}
-                          <div className="text-[10px] text-slate-400 font-medium">Niveau: Master 1 • {p.speciality?.name}</div>
+                          <div className="text-[10px] text-muted-foreground/80 font-medium">Niveau: Master 1 • {p.speciality?.name}</div>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">Dr. {p.user?.name}</td>
+                        <td className="px-6 py-4 text-muted-foreground">Dr. {p.user?.name}</td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
                             <span className="font-medium">{p.room?.name || "Salle 102"}</span>
-                            <span className="text-xs text-slate-400">Campus Principal</span>
+                            <span className="text-xs text-muted-foreground/80">Campus Principal</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-bold">Validé</Badge>
+                          <Badge className="bg-delta-positive/10 text-delta-positive border-delta-positive/20 font-bold">Validé</Badge>
                         </td>
                       </tr>
                     ))}
@@ -260,9 +260,9 @@ function AdminDashboard({ data }) {
           {/* Right Sidebar: Quick Actions & Status */}
           <div className="space-y-8">
             {/* Actions Rapides Système */}
-            <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-2xl">
+            <div className="bg-primary rounded-3xl p-6 text-primary-foreground shadow-2xl">
               <h3 className="font-bold flex items-center gap-2 mb-6">
-                <Activity className="w-5 h-5 text-slate-400" /> Gestion Rapide
+                <Activity className="w-5 h-5 text-primary-foreground/70" /> Gestion Rapide
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <QuickAction icon={Clock} label="Dispos" count={2} />
@@ -270,24 +270,24 @@ function AdminDashboard({ data }) {
                 <QuickAction icon={School} label="Salles" count={1} />
                 <QuickAction icon={BookOpen} label="Syllabus" />
               </div>
-              <Button className="w-full mt-6 bg-blue-700 hover:bg-slate-500 border-none h-12">
+              <Button className="w-full mt-6 bg-primary hover:bg-primary/80 border-none h-12">
                  Générer Emploi du Temps
               </Button>
             </div>
 
             {/* Statistiques par Secteur */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 mb-4">Progression par Secteur</h3>
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+              <h3 className="font-bold text-foreground mb-4">Progression par Secteur</h3>
               <div className="space-y-5">
                 {[
-                  { label: 'Informatique', val: 75, col: 'bg-slate-500' },
-                  { label: 'Génie Civil', val: 40, col: 'bg-orange-500' },
-                  { label: 'Management', val: 90, col: 'bg-emerald-500' }
+                  { label: 'Informatique', val: 75, col: 'bg-muted/60' },
+                  { label: 'Génie Civil', val: 40, col: 'bg-accent' },
+                  { label: 'Management', val: 90, col: 'bg-delta-positive' }
                 ].map((item, i) => (
                   <div key={i} className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-600 uppercase tracking-tighter">{item.label}</span>
-                      <span className="text-slate-900">{item.val}%</span>
+                      <span className="text-muted-foreground uppercase tracking-tighter">{item.label}</span>
+                      <span className="text-foreground">{item.val}%</span>
                     </div>
                     <Progress value={item.val} className={`h-1.5 ${item.col}`} />
                   </div>
@@ -312,20 +312,20 @@ function ProgrammerDashboard({ data, isProgrammer }) {
   const activeYear = data.years[data.years.length - 1];
 
   return (
-    <div className="min-h-screen bg-[#F7FAF8] p-4 lg:p-8">
+    <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-[1400px] mx-auto space-y-8">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-delta-positive/20 shadow-sm">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="text-emerald-700 border-emerald-200 bg-emerald-50">
+              <Badge variant="outline" className="text-delta-positive border-delta-positive/30 bg-delta-positive/10">
                 <CalendarClock className="w-3 h-3 mr-1" />
                 Année active: {activeYear ? `${activeYear.date_star} → ${activeYear.date_end}` : "—"}
               </Badge>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">{title}</h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">{subtitle}</p>
+            <h1 className="text-3xl font-dark text-foreground tracking-tight">{title}</h1>
+            <p className="text-muted-foreground text-sm font-medium mt-1">{subtitle}</p>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200 shadow-lg">
+          <Button className="bg-delta-positive hover:bg-delta-positive/90 text-primary-foreground shadow-primary/20 shadow-lg">
             <ClipboardList className="w-4 h-4 mr-2" /> Nouvelle Programmation
           </Button>
         </header>
@@ -339,16 +339,16 @@ function ProgrammerDashboard({ data, isProgrammer }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <CalendarCheck className="w-5 h-5 text-emerald-500" /> Séances à venir
+            <section className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-border/40 flex justify-between items-center bg-muted/30">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
+                  <CalendarCheck className="w-5 h-5 text-delta-positive" /> Séances à venir
                 </h3>
                 <Button variant="ghost" size="sm">Voir tout</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                  <thead className="bg-muted/50 text-muted-foreground/80 text-[10px] uppercase font-bold tracking-widest">
                     <tr>
                       <th className="px-6 py-4">Matière</th>
                       <th className="px-6 py-4">Jour & Horaire</th>
@@ -356,24 +356,24 @@ function ProgrammerDashboard({ data, isProgrammer }) {
                       <th className="px-6 py-4">Statut</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50 text-sm">
+                  <tbody className="divide-y divide-border/40 text-sm">
                     {data.programmations.slice(0, 6).map((prog) => (
-                      <tr key={prog.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">
+                      <tr key={prog.id} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-foreground">
                           {prog.subject?.subject_name || "Matière"}
-                          <div className="text-[10px] text-slate-400 font-medium">
+                          <div className="text-[10px] text-muted-foreground/80 font-medium">
                             {prog.subject?.specialty?.level?.name_level || "Niveau —"}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-muted-foreground">
                           <div className="font-bold">{prog.day}</div>
-                          <div className="text-xs text-slate-400">{prog.hour_star} — {prog.hour_end}</div>
+                          <div className="text-xs text-muted-foreground/80">{prog.hour_star} — {prog.hour_end}</div>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-muted-foreground">
                           {prog.room?.code || "Salle auto"}
                         </td>
                         <td className="px-6 py-4">
-                          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-bold">Planifié</Badge>
+                          <Badge className="bg-delta-positive/10 text-delta-positive border-delta-positive/20 font-bold">Planifié</Badge>
                         </td>
                       </tr>
                     ))}
@@ -382,15 +382,15 @@ function ProgrammerDashboard({ data, isProgrammer }) {
               </div>
             </section>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <ChartPlaceholder title="Répartition des séances" subtitle="Vue rapide par niveau et spécialité" />
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="bg-emerald-900 rounded-3xl p-6 text-white shadow-2xl">
+            <div className="bg-delta-positive rounded-3xl p-6 text-primary-foreground shadow-2xl">
               <h3 className="font-bold flex items-center gap-2 mb-6">
-                <Activity className="w-5 h-5 text-emerald-200" /> Raccourcis
+                <Activity className="w-5 h-5 text-primary-foreground/70" /> Raccourcis
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <QuickAction icon={UserCheck} label="Enseignants" count={isProgrammer ? data.teachers.length : undefined} />
@@ -398,21 +398,21 @@ function ProgrammerDashboard({ data, isProgrammer }) {
                 <QuickAction icon={BookOpen} label="Matières" count={data.subjects.length} />
                 <QuickAction icon={School} label="Salles" count={data.rooms.length} />
               </div>
-              <Button className="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 border-none h-12">
+              <Button className="w-full mt-6 bg-delta-positive hover:bg-delta-positive border-none h-12">
                 Générer Planning
               </Button>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 mb-4">Charge par niveau</h3>
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+              <h3 className="font-bold text-foreground mb-4">Charge par niveau</h3>
               <div className="space-y-5">
                 {data.levels.slice(0, 3).map((level) => (
                   <div key={level.id} className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-600 uppercase tracking-tighter">{level.name_level}</span>
-                      <span className="text-slate-900">—</span>
+                      <span className="text-muted-foreground uppercase tracking-tighter">{level.name_level}</span>
+                      <span className="text-foreground">—</span>
                     </div>
-                    <Progress value={40} className="h-1.5 bg-emerald-100" />
+                    <Progress value={40} className="h-1.5 bg-delta-positive/20" />
                   </div>
                 ))}
               </div>
@@ -430,20 +430,20 @@ function TeacherDashboard({ data }) {
   const activeYear = data.years[data.years.length - 1];
 
   return (
-    <div className="min-h-screen bg-[#F6F8FB] p-4 lg:p-8">
+    <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-[1400px] mx-auto space-y-8">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-blue-100 shadow-sm">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-primary/20 shadow-sm">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="text-blue-700 border-blue-200 bg-blue-50">
+              <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
                 <CalendarClock className="w-3 h-3 mr-1" />
                 Année active: {activeYear ? `${activeYear.date_star} → ${activeYear.date_end}` : "—"}
               </Badge>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tableau de bord Enseignant</h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">Vos cours, disponibilités et emploi du temps</p>
+            <h1 className="text-3xl font-black text-foreground tracking-tight">Tableau de bord Enseignant</h1>
+            <p className="text-muted-foreground text-sm font-medium mt-1">Vos cours, disponibilités et emploi du temps</p>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 shadow-lg">
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 shadow-lg">
             <CalendarClock className="w-4 h-4 mr-2" /> Voir l'emploi du temps
           </Button>
         </header>
@@ -457,36 +457,36 @@ function TeacherDashboard({ data }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5 text-blue-500" /> Séances planifiées
+            <section className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-border/40 flex justify-between items-center bg-muted/30">
+                <h3 className="font-bold text-foreground flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-primary/80" /> Séances planifiées
                 </h3>
                 <Button variant="ghost" size="sm">Tout voir</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                  <thead className="bg-muted/50 text-muted-foreground/80 text-[10px] uppercase font-bold tracking-widest">
                     <tr>
                       <th className="px-6 py-4">Matière</th>
                       <th className="px-6 py-4">Jour & Horaire</th>
                       <th className="px-6 py-4">Salle</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50 text-sm">
+                  <tbody className="divide-y divide-border/40 text-sm">
                     {data.programmations.slice(0, 6).map((prog) => (
-                      <tr key={prog.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-800">
+                      <tr key={prog.id} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-6 py-4 font-bold text-foreground">
                           {prog.subject?.subject_name || "Matière"}
-                          <div className="text-[10px] text-slate-400 font-medium">
+                          <div className="text-[10px] text-muted-foreground/80 font-medium">
                             {prog.subject?.specialty?.level?.name_level || "Niveau —"}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-muted-foreground">
                           <div className="font-bold">{prog.day}</div>
-                          <div className="text-xs text-slate-400">{prog.hour_star} — {prog.hour_end}</div>
+                          <div className="text-xs text-muted-foreground/80">{prog.hour_star} — {prog.hour_end}</div>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-muted-foreground">
                           {prog.room?.code || "Salle auto"}
                         </td>
                       </tr>
@@ -496,15 +496,15 @@ function TeacherDashboard({ data }) {
               </div>
             </section>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <ChartPlaceholder title="Charge hebdomadaire" subtitle="Résumé des heures par semaine" />
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="bg-blue-900 rounded-3xl p-6 text-white shadow-2xl">
+            <div className="bg-primary rounded-3xl p-6 text-primary-foreground shadow-2xl">
               <h3 className="font-bold flex items-center gap-2 mb-6">
-                <Activity className="w-5 h-5 text-blue-200" /> Raccourcis
+                <Activity className="w-5 h-5 text-primary-foreground/70" /> Raccourcis
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <QuickAction icon={CalendarCheck} label="Dispos" count={data.disponibilities.length} />
@@ -512,21 +512,21 @@ function TeacherDashboard({ data }) {
                 <QuickAction icon={GraduationCap} label="Spécialités" count={data.specialties.length} />
                 <QuickAction icon={CalendarClock} label="Emploi du temps" />
               </div>
-              <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-500 border-none h-12">
+              <Button className="w-full mt-6 bg-primary hover:bg-primary/90 border-none h-12">
                 Ajouter disponibilités
               </Button>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <h3 className="font-bold text-slate-800 mb-4">Progression par niveau</h3>
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
+              <h3 className="font-bold text-foreground mb-4">Progression par niveau</h3>
               <div className="space-y-5">
                 {data.levels.slice(0, 3).map((level) => (
                   <div key={level.id} className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-600 uppercase tracking-tighter">{level.name_level}</span>
-                      <span className="text-slate-900">—</span>
+                      <span className="text-muted-foreground uppercase tracking-tighter">{level.name_level}</span>
+                      <span className="text-foreground">—</span>
                     </div>
-                    <Progress value={50} className="h-1.5 bg-blue-100" />
+                    <Progress value={50} className="h-1.5 bg-primary/15" />
                   </div>
                 ))}
               </div>
@@ -544,27 +544,27 @@ function TeacherDashboard({ data }) {
 
 function StatWidget({ title, value, icon: Icon, trend, color, up }) {
   const colorStyles = {
-    indigo: "bg-slate-50 text-slate-600 ring-slate-100",
-    emerald: "bg-emerald-50 text-emerald-600 ring-emerald-100",
-    blue: "bg-blue-50 text-blue-600 ring-blue-100",
-    orange: "bg-orange-50 text-orange-600 ring-orange-100"
+    indigo: "bg-muted text-muted-foreground ring-border/40",
+    emerald: "bg-delta-positive/10 text-delta-positive ring-delta-positive/20",
+    blue: "bg-primary/10 text-primary ring-primary/20",
+    orange: "bg-accent/10 text-accent ring-accent/20"
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md group">
+    <div className="bg-card p-6 rounded-2xl border border-border shadow-sm transition-all hover:shadow-md group">
       <div className="flex justify-between items-start">
         <div className={`p-3 rounded-xl ring-4 ${colorStyles[color]} transition-transform group-hover:scale-110`}>
           <Icon className="w-6 h-6" />
         </div>
         {trend && (
-          <Badge variant="secondary" className={`${up ? 'text-emerald-600' : 'text-slate-500'} bg-slate-50 border-none font-bold`}>
+          <Badge variant="secondary" className={`${up ? 'text-delta-positive' : 'text-muted-foreground'} bg-muted border-none font-bold`}>
             {trend} <ArrowUpRight className="w-3 h-3 ml-1" />
           </Badge>
         )}
       </div>
       <div className="mt-5">
-        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{title}</p>
-        <h3 className="text-2xl font-black text-slate-900 mt-1">{value}</h3>
+        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">{title}</p>
+        <h3 className="text-2xl font-black text-foreground mt-1">{value}</h3>
       </div>
     </div>
   );
@@ -572,28 +572,28 @@ function StatWidget({ title, value, icon: Icon, trend, color, up }) {
 
 function QuickAction({ icon: Icon, label, count }) {
   return (
-    <button className="relative flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all gap-2 group">
+    <button className="relative flex flex-col items-center justify-center p-4 rounded-2xl bg-card/5 border border-primary-foreground/15 hover:bg-card/10 transition-all gap-2 group">
       {count && (
-        <span className="absolute -top-1 -right-1 w-5 h-5 bg-slate-500 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg">
+        <span className="absolute -top-1 -right-1 w-5 h-5 bg-muted/60 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg">
           {count}
         </span>
       )}
-      <Icon className="w-5 h-5 text-slate-300 group-hover:scale-110 transition-transform" />
-      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{label}</span>
+      <Icon className="w-5 h-5 text-primary-foreground/70 group-hover:scale-110 transition-transform" />
+      <span className="text-[10px] font-bold text-primary-foreground/80 uppercase tracking-tighter">{label}</span>
     </button>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="p-8 space-y-8 animate-pulse bg-slate-50 min-h-screen">
-      <div className="h-20 w-full bg-slate-200 rounded-2xl" />
+    <div className="p-8 space-y-8 animate-pulse bg-muted min-h-screen">
+      <div className="h-20 w-full bg-muted/80 rounded-2xl" />
       <div className="grid grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-slate-200 rounded-2xl" />)}
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-muted/80 rounded-2xl" />)}
       </div>
       <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2 h-[500px] bg-slate-200 rounded-2xl" />
-        <div className="h-[500px] bg-slate-200 rounded-2xl" />
+        <div className="col-span-2 h-[500px] bg-muted/80 rounded-2xl" />
+        <div className="h-[500px] bg-muted/80 rounded-2xl" />
       </div>
     </div>
   );

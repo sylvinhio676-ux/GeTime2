@@ -16,7 +16,7 @@ class SubjectController extends Controller
     public function index()
     {
         try {
-            $query = Subject::with(['specialty', 'teacher.user']);
+            $query = Subject::with(['specialty', 'teacher.user', 'specialty']);
             $user = request()->user();
             if ($user && $user->hasRole('teacher')) {
                 $teacherId = $user->teacher?->id;

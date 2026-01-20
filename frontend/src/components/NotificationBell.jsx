@@ -103,13 +103,19 @@ export default function NotificationBell() {
       try {
         const target = new URL(item.data.action_url, window.location.origin);
         const path = `${target.pathname}${target.search}${target.hash}`;
-        if (target.origin === window.location.origin) {
+        if (path.startsWith("/dashboard")) {
+          navigate(path);
+        } else if (target.origin === window.location.origin) {
           navigate(path);
         } else {
           window.location.href = target.href;
         }
       } catch {
-        navigate(item.data.action_url);
+        if (item.data.action_url.startsWith("/dashboard")) {
+          navigate(item.data.action_url);
+        } else {
+          window.location.href = item.data.action_url;
+        }
       }
       setOpen(false);
     }
@@ -127,13 +133,13 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 ${
-          pulse ? "ring-2 ring-blue-300" : ""
+        className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card shadow-sm hover:bg-muted ${
+          pulse ? "ring-2 ring-primary/30" : ""
         }`}
       >
-        <Bell className="h-5 w-5 text-slate-600" />
+        <Bell className="h-5 w-5 text-muted-foreground" />
         {unreadCount > 0 && (
-          <span className={`absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-700 text-[10px] font-black text-white shadow ${
+          <span className={`absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-black text-primary-foreground shadow ${
             pulse ? "animate-pulse" : ""
           }`}>
             {unreadCount}
@@ -142,55 +148,55 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-3 w-[360px] max-w-[90vw] rounded-2xl border border-slate-200 bg-white shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+        <div className="absolute right-0 mt-3 w-[360px] max-w-[90vw] rounded-2xl border border-border bg-card shadow-xl">
+          <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">
               Notifications
             </p>
             <button
               type="button"
               onClick={markAllRead}
-              className="flex items-center gap-1 text-[10px] font-bold text-blue-700"
+              className="flex items-center gap-1 text-[10px] font-bold text-primary"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               Tout lire
             </button>
           </div>
           {loading ? (
-            <div className="p-4 text-xs text-slate-400">Chargement...</div>
+            <div className="p-4 text-xs text-muted-foreground/80">Chargement...</div>
           ) : notifications.length === 0 ? (
-            <div className="p-4 text-xs text-slate-400">Aucune notification.</div>
+            <div className="p-4 text-xs text-muted-foreground/80">Aucune notification.</div>
           ) : (
-            <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+            <div className="max-h-80 overflow-y-auto divide-y divide-border/60">
               {notifications.map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => openNotification(item)}
-                  className="w-full text-left px-4 py-3 hover:bg-slate-50"
+                  className="w-full text-left px-4 py-3 hover:bg-muted"
                 >
-                  <p className={`text-sm font-bold ${item.read_at ? "text-slate-700" : "text-slate-900"}`}>
+                  <p className={`text-sm font-bold ${item.read_at ? "text-foreground/80" : "text-foreground"}`}>
                     {item.data?.title || "Notification"}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">{item.data?.message}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{item.data?.message}</p>
                 </button>
               ))}
             </div>
           )}
           {selected && (
-            <div className="border-t border-slate-100 px-4 py-3">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+            <div className="border-t border-border/60 px-4 py-3">
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">
                 Détail
               </p>
-              <p className="mt-2 text-sm font-bold text-slate-900">
+              <p className="mt-2 text-sm font-bold text-foreground">
                 {selected.data?.title}
               </p>
-              <p className="mt-1 text-xs text-slate-500">{selected.data?.message}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{selected.data?.message}</p>
               {selected.data?.action_url && (
                 <button
                   type="button"
                   onClick={() => openNotification(selected)}
-                  className="mt-3 inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50"
+                  className="mt-3 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[10px] font-bold text-muted-foreground hover:bg-muted"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   Ouvrir le planning

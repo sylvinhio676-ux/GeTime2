@@ -34,10 +34,11 @@ export default function TimetableDashboard({ readOnly = false }) {
   const [formError, setFormError] = useState('');
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
-  const componentRef = useRef();
+  const componentRef = useRef(null);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
+    contentRef: componentRef,
     documentTitle: `Emploi_du_temps_${selectedSpecialty || selectedTeacher || 'General'}`,
     pageStyle: `
       @page { size: landscape; margin: 10mm; }
@@ -76,13 +77,25 @@ export default function TimetableDashboard({ readOnly = false }) {
   }, []);
 
   useEffect(() => {
+    if (viewMode === 'specialty' && !selectedSpecialty) {
+      setProgrammations([]);
+      return;
+    }
+    if (viewMode === 'teacher' && !selectedTeacher) {
+      setProgrammations([]);
+      return;
+    }
+
     const params = {};
-    if (viewMode === 'specialty' && selectedSpecialty) params.specialty_id = selectedSpecialty;
-    if (viewMode === 'teacher' && selectedTeacher) params.teacher_id = selectedTeacher;
+    if (viewMode === 'specialty') params.specialty_id = selectedSpecialty;
+    if (viewMode === 'teacher') params.teacher_id = selectedTeacher;
     if (selectedLevel) params.level_id = selectedLevel;
     if (selectedYear) params.year_id = selectedYear;
 
-    programmationService.getAll(params).then(setProgrammations).catch(() => setProgrammations([]));
+    programmationService
+      .getAll(params)
+      .then(setProgrammations)
+      .catch(() => setProgrammations([]));
   }, [viewMode, selectedSpecialty, selectedTeacher, selectedLevel, selectedYear]);
 
   const selectedSpecialtyObj = useMemo(
@@ -92,15 +105,18 @@ export default function TimetableDashboard({ readOnly = false }) {
 
   const headerInfo = useMemo(() => {
     const first = programmations[0];
+    const teacherName = viewMode === 'teacher'
+      ? teachers.find((t) => String(t.id) === String(selectedTeacher))?.user?.name
+      : first?.subject?.teacher?.user?.name;
     return {
       schoolResponsible: selectedSpecialtyObj?.sector?.school?.responsible?.name || '---',
       programmer: selectedSpecialtyObj?.programmer?.user?.name || selectedSpecialtyObj?.programmer?.registration_number || '---',
       etablishment: first?.room?.campus?.etablishment?.etablishment_name || '---',
       campus: first?.room?.campus?.campus_name || '---',
       specialtyLabel: selectedSpecialtyObj ? `${selectedSpecialtyObj.specialty_name} (${selectedSpecialtyObj.code || '-'})` : '---',
-      teacherLabel: teachers.find((t) => String(t.id) === String(selectedTeacher))?.user?.name || '---',
+      teacherLabel: teacherName || '---',
     };
-  }, [programmations, selectedSpecialtyObj, teachers, selectedTeacher]);
+  }, [programmations, selectedSpecialtyObj, teachers, selectedTeacher, viewMode]);
 
   const handleCreate = (seed) => {
     if (readOnly) return;
@@ -186,12 +202,12 @@ export default function TimetableDashboard({ readOnly = false }) {
           </button>
         </div>
       )}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-slate-200">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card p-6 rounded-[2rem] border border-border">
         <div>
           <h2 className="text-xl font-black text-slate-900">
             {readOnly ? 'Emploi du Temps' : 'Planning'}
           </h2>
-          <p className="text-slate-500 text-xs font-medium">
+          <p className="text-muted-foreground text-xs font-medium">
             {readOnly ? 'Vue des séances déjà programmées' : 'Tableau gris interactif par spécialité ou enseignant'}
           </p>
         </div>
@@ -199,7 +215,7 @@ export default function TimetableDashboard({ readOnly = false }) {
         <div className="flex gap-3">
           <Button
             onClick={handlePrint}
-            className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl gap-2 font-bold shadow-lg shadow-blue-100"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl gap-2 font-bold shadow-lg shadow-primary/20"
           >
             <Printer className="w-4 h-4" />
             Imprimer / PDF
@@ -207,13 +223,13 @@ export default function TimetableDashboard({ readOnly = false }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-slate-200 p-5 space-y-4">
+      <div className="bg-card rounded-[2rem] border border-border p-5 space-y-4">
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setViewMode('specialty')}
             className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${
-              viewMode === 'specialty' ? 'bg-blue-700 text-white border-blue-700' : 'text-slate-500 border-slate-200'
+              viewMode === 'specialty' ? 'bg-primary text-primary-foreground border-primary' : 'text-muted-foreground border-border'
             }`}
           >
             Par spécialité
@@ -230,10 +246,10 @@ export default function TimetableDashboard({ readOnly = false }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <label className="space-y-1 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Spécialité
             <select
-              className="w-full px-3 py-2 border rounded-xl text-sm text-slate-700"
+              className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
               value={selectedSpecialty}
               onChange={(e) => setSelectedSpecialty(e.target.value)}
               disabled={viewMode !== 'specialty'}
@@ -247,10 +263,10 @@ export default function TimetableDashboard({ readOnly = false }) {
             </select>
           </label>
 
-          <label className="space-y-1 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Enseignant
             <select
-              className="w-full px-3 py-2 border rounded-xl text-sm text-slate-700"
+              className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
               value={selectedTeacher}
               onChange={(e) => setSelectedTeacher(e.target.value)}
               disabled={viewMode !== 'teacher'}
@@ -264,10 +280,10 @@ export default function TimetableDashboard({ readOnly = false }) {
             </select>
           </label>
 
-          <label className="space-y-1 text-xs font-bold text-slate-400 uppercase tracking-widest">
+          <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Niveau
             <select
-              className="w-full px-3 py-2 border rounded-xl text-sm text-slate-700"
+              className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
               value={selectedLevel}
               onChange={(e) => setSelectedLevel(e.target.value)}
             >
@@ -280,10 +296,10 @@ export default function TimetableDashboard({ readOnly = false }) {
             </select>
           </label>
 
-          <label className="space-y-1 text-xs font-bold text-slate-400 uppercase tracking-widest">
+          <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Année
             <select
-              className="w-full px-3 py-2 border rounded-xl text-sm text-slate-700"
+              className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
             >
@@ -298,9 +314,9 @@ export default function TimetableDashboard({ readOnly = false }) {
         </div>
       </div>
 
-      <div ref={componentRef} className="p-4 bg-white rounded-[2.5rem]">
-        <div className="mb-6 border-b-2 border-slate-200 pb-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold uppercase text-slate-500 tracking-widest">
+      <div ref={componentRef} className="p-4 bg-card rounded-[2.5rem] border border-border">
+        <div className="mb-6 border-b-2 border-border pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold uppercase text-muted-foreground tracking-widest">
             <div className="flex items-center gap-2"><User className="w-3.5 h-3.5" /> Responsable école: {headerInfo.schoolResponsible}</div>
             <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5" /> Responsable niveau: {headerInfo.programmer}</div>
             <div className="flex items-center gap-2"><GraduationCap className="w-3.5 h-3.5" /> Spécialité: {headerInfo.specialtyLabel}</div>
@@ -311,7 +327,7 @@ export default function TimetableDashboard({ readOnly = false }) {
         </div>
 
         {loading ? (
-          <div className="text-sm text-slate-400 p-6">Chargement...</div>
+          <div className="text-sm text-muted-foreground/80 p-6">Chargement...</div>
         ) : (
           <TimetableGrid
             programmations={programmations}
@@ -332,7 +348,7 @@ export default function TimetableDashboard({ readOnly = false }) {
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowForm(false)} />
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="font-black text-slate-900 tracking-tight text-lg text-slate-600">
+              <h3 className="font-black text-slate-900 tracking-tight text-lg">
                 {editingData ? 'Modifier la séance' : 'Nouvelle programmation'}
               </h3>
               <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600 p-2">×</button>

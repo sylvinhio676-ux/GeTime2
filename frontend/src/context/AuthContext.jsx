@@ -1,14 +1,13 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import api from "@/services/api";
-import { getToken } from "@/services/auth";
-
-const AuthContext = createContext(null);
+import { getToken, login as performLogin, logout as performLogout } from "@/services/auth";
+import { AuthContext } from "./authContext";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     const token = getToken();
     if (!token) {
       setUser(null);
@@ -24,22 +23,35 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadUser();
-  }, []);
+  }, [loadUser]);
 
-  const hasRole = (roleName) => {
+  const hasRole = useCallback((roleName) => {
     if (!roleName) return false;
     return user?.roles?.includes(roleName);
-  };
+  }, [user]);
 
-  const can = (permissionName) => {
+  const can = useCallback((permissionName) => {
     if (!permissionName) return false;
     if (hasRole("super_admin") || hasRole("admin")) return true;
     return user?.permissions?.includes(permissionName);
-  };
+  }, [user, hasRole]);
+
+  const login = useCallback(
+    async (email, password) => {
+      await performLogin(email, password);
+      await loadUser();
+    },
+    [loadUser]
+  );
+
+  const logout = useCallback(async () => {
+    await performLogout();
+    setUser(null);
+  }, []);
 
   const value = useMemo(() => ({
     user,
@@ -47,19 +59,13 @@ export function AuthProvider({ children }) {
     refreshUser: loadUser,
     hasRole,
     can,
-  }), [user, loading]);
+    login,
+    logout,
+  }), [user, loading, loadUser, hasRole, can, login, logout]);
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider.");
-  }
-  return context;
 }

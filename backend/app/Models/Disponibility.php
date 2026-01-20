@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Enum\JourEnum;
+use App\Events\DisponibilityCreated;
+use App\Events\DisponibilityDeleted;
+use App\Events\DisponibilityUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -22,13 +25,12 @@ class Disponibility extends Model
         'day' => JourEnum::class
     ];
 
-    // public function generateDaysOptions(){
-    //     return JourEnum::from($this->day);
-    // }
-
-    // public function setDayAttribute($value){
-    //     $this->attributes['day'] = $value->value;
-    // }
+    protected static function booted(): void
+    {
+        static::created(fn($d) => event(new DisponibilityCreated($d)));
+        static::updated(fn($d) => event(new DisponibilityUpdated($d)));
+        static::deleted(fn($d) => event(new DisponibilityDeleted($d)));
+    }
  
     public function subject(){
         return $this->belongsTo(Subject::class);

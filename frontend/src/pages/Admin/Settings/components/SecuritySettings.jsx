@@ -78,13 +78,13 @@ export default function SecuritySettings({ onDataChange }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Sécurité du Compte</h2>
-        <p className="text-slate-500">Gérez votre sécurité et vos sessions actives</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Sécurité du Compte</h2>
+        <p className="text-muted-foreground">Gérez votre sécurité et vos sessions actives</p>
       </div>
 
       {/* Change Password */}
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+      <div className="border-t border-border pt-8">
+        <h3 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
           <Lock className="w-5 h-5" />
           Changer le mot de passe
         </h3>
@@ -92,7 +92,7 @@ export default function SecuritySettings({ onDataChange }) {
         <div className="space-y-4">
           {/* Current Password */}
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Mot de passe actuel
             </label>
             <div className="relative">
@@ -101,11 +101,11 @@ export default function SecuritySettings({ onDataChange }) {
                 name="currentPassword"
                 value={passwordForm.currentPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition pr-10"
+                className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-muted/60 transition pr-10"
               />
               <button
                 onClick={() => handleToggleVisibility('current')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/80 hover:text-muted-foreground"
               >
                 {showPasswords.current ? (
                   <EyeOff className="w-5 h-5" />
@@ -118,7 +118,7 @@ export default function SecuritySettings({ onDataChange }) {
 
           {/* New Password */}
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Nouveau mot de passe
             </label>
             <div className="relative">
@@ -127,11 +127,11 @@ export default function SecuritySettings({ onDataChange }) {
                 name="newPassword"
                 value={passwordForm.newPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition pr-10"
+                className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-muted/60 transition pr-10"
               />
               <button
                 onClick={() => handleToggleVisibility('new')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/80 hover:text-muted-foreground"
               >
                 {showPasswords.new ? (
                   <EyeOff className="w-5 h-5" />
@@ -144,7 +144,7 @@ export default function SecuritySettings({ onDataChange }) {
               <div className="flex items-center gap-2 text-sm">
                 <div
                   className={`w-2 h-2 rounded-full ${
-                    passwordForm.newPassword.length >= 8 ? 'bg-emerald-500' : 'bg-slate-300'
+                    passwordForm.newPassword.length >= 8 ? 'bg-delta-positive' : 'bg-muted-foreground/30'
                   }`}
                 />
                 <span>Minimum 8 caractères</span>
@@ -152,7 +152,7 @@ export default function SecuritySettings({ onDataChange }) {
               <div className="flex items-center gap-2 text-sm">
                 <div
                   className={`w-2 h-2 rounded-full ${
-                    /[A-Z]/.test(passwordForm.newPassword) ? 'bg-emerald-500' : 'bg-slate-300'
+                    /[A-Z]/.test(passwordForm.newPassword) ? 'bg-delta-positive' : 'bg-muted-foreground/30'
                   }`}
                 />
                 <span>Contient une majuscule</span>
@@ -160,7 +160,7 @@ export default function SecuritySettings({ onDataChange }) {
               <div className="flex items-center gap-2 text-sm">
                 <div
                   className={`w-2 h-2 rounded-full ${
-                    /[0-9]/.test(passwordForm.newPassword) ? 'bg-emerald-500' : 'bg-slate-300'
+                    /[0-9]/.test(passwordForm.newPassword) ? 'bg-delta-positive' : 'bg-muted-foreground/30'
                   }`}
                 />
                 <span>Contient un chiffre</span>
@@ -170,7 +170,7 @@ export default function SecuritySettings({ onDataChange }) {
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Confirmer le mot de passe
             </label>
             <div className="relative">
@@ -179,11 +179,11 @@ export default function SecuritySettings({ onDataChange }) {
                 name="confirmPassword"
                 value={passwordForm.confirmPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-100 transition pr-10"
+                className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-muted/60 transition pr-10"
               />
               <button
                 onClick={() => handleToggleVisibility('confirm')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/80 hover:text-muted-foreground"
               >
                 {showPasswords.confirm ? (
                   <EyeOff className="w-5 h-5" />
@@ -196,7 +196,7 @@ export default function SecuritySettings({ onDataChange }) {
 
           <Button
             onClick={handleUpdatePassword}
-            className="bg-blue-700 text-white hover:bg-blue-800 transition rounded-xl"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition rounded-xl"
           >
             Mettre à jour le mot de passe
           </Button>
@@ -204,11 +204,11 @@ export default function SecuritySettings({ onDataChange }) {
       </div>
 
       {/* Two Factor Authentication */}
-      <div className="border-t border-slate-200 pt-8">
+      <div className="border-t border-border pt-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-slate-600" />
-            <h3 className="text-lg font-semibold text-slate-900">
+            <Shield className="w-5 h-5 text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-foreground">
               Authentification à deux facteurs
             </h3>
           </div>
@@ -219,36 +219,36 @@ export default function SecuritySettings({ onDataChange }) {
               onChange={handleToggle2FA}
               className="w-4 h-4"
             />
-            <span className="ml-2 text-sm font-medium text-slate-600">
+            <span className="ml-2 text-sm font-medium text-muted-foreground">
               {twoFactor ? 'Activée' : 'Désactivée'}
             </span>
           </label>
         </div>
-        <p className="text-slate-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           L'authentification à deux facteurs ajoute une couche de sécurité supplémentaire à votre compte.
         </p>
       </div>
 
       {/* Active Sessions */}
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-6">Sessions Actives</h3>
+      <div className="border-t border-border pt-8">
+        <h3 className="text-lg font-semibold text-foreground mb-6">Sessions Actives</h3>
 
         <div className="space-y-4">
           {sessions.map((session) => (
             <div
               key={session.id}
-              className="flex items-center justify-between p-4 border border-slate-200 rounded-2xl hover:bg-slate-50 transition"
+              className="flex items-center justify-between p-4 border border-border rounded-2xl hover:bg-muted transition"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-slate-900">{session.device}</p>
+                  <p className="font-semibold text-foreground">{session.device}</p>
                   {session.current && (
-                    <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded text-xs font-bold">
+                    <span className="bg-delta-positive/10 text-delta-positive px-2 py-1 rounded text-xs font-bold">
                       Session actuelle
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-slate-500">
+                <div className="text-sm text-muted-foreground">
                   <p>Dernière activité: {session.lastActive}</p>
                   <p>IP: {session.ip}</p>
                 </div>
@@ -257,7 +257,7 @@ export default function SecuritySettings({ onDataChange }) {
               {!session.current && (
                 <button
                   onClick={() => handleLogoutSession(session.id)}
-                  className="text-rose-600 hover:text-rose-700 font-bold text-sm transition"
+                  className="text-delta-negative hover:text-delta-negative font-bold text-sm transition"
                 >
                   Déconnecter
                 </button>

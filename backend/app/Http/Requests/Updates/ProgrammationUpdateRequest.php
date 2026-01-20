@@ -32,6 +32,7 @@ class ProgrammationUpdateRequest extends FormRequest
             'year_id' => ['nullable', 'exists:years,id'],
             'room_id' => ['nullable', 'exists:rooms,id'],
             'campus_id' => ['nullable', 'exists:campuses,id'],
+            'status' => ['nullable', 'in:draft,validated,published'],
             'specialty_ids' => ['nullable', 'array'],
             'specialty_ids.*' => ['integer', 'exists:specialties,id'],
         ];

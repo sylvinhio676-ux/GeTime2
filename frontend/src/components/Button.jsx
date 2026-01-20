@@ -1,19 +1,19 @@
 const VARIANTS = {
   primary: {
-    base: "bg-[#1E3A8A] text-white",
-    hover: "hover:bg-[#2B4AA0]",
+    base: "bg-primary text-primary-foreground",
+    hover: "hover:bg-primary/90",
   },
   danger: {
-    base: "bg-[#B4232B] text-white",
-    hover: "hover:bg-[#8F1F2D]",
+    base: "bg-destructive text-primary-foreground",
+    hover: "hover:bg-destructive/90",
   },
   secondary: {
-    base: "bg-[#CBD5E1] text-[#1F2A44]",
-    hover: "hover:bg-[#94A3B8] hover:text-white",
+    base: "bg-muted text-foreground",
+    hover: "hover:bg-muted-foreground/20 hover:text-foreground",
   },
   outline: {
-    base: "border border-[#1F2A44] text-[#1F2A44]",
-    hover: "hover:bg-[#1F2A44] hover:text-white",
+    base: "border border-foreground text-foreground",
+    hover: "hover:bg-muted hover:text-foreground",
   },
 };
 
@@ -43,7 +43,7 @@ const Button = ({
       {...props}
     >
       {loading && (
-        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
       )}
       {children}
     </button>

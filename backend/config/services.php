@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'fcm' => [
+        'enabled' => env('FCM_ENABLED', false),
+    ],
+
+
 ];

@@ -31,20 +31,20 @@ export default function DataSettings() {
   };
 
   const DataCard = ({ icon: Icon, title, description, action, actionLabel, variant = 'primary' }) => (
-    <div className="border border-slate-200 rounded-2xl p-6 hover:shadow-md transition">
+    <div className="border border-border rounded-2xl p-6 hover:shadow-md transition">
       <div className="flex items-start gap-4">
-        <div className="bg-slate-50 p-3 rounded-2xl">
-          <Icon className="w-6 h-6 text-slate-600" />
+        <div className="bg-muted p-3 rounded-2xl">
+          <Icon className="w-6 h-6 text-muted-foreground" />
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-slate-900 mb-1">{title}</h3>
-          <p className="text-slate-500 text-sm mb-4">{description}</p>
+          <h3 className="font-semibold text-foreground mb-1">{title}</h3>
+          <p className="text-muted-foreground text-sm mb-4">{description}</p>
           <Button
             onClick={action}
             className={`text-sm ${
               variant === 'danger'
-                ? 'bg-rose-600 text-white hover:bg-rose-700'
-                : 'bg-blue-700 text-white hover:bg-blue-800'
+                ? 'bg-delta-negative text-primary-foreground hover:bg-delta-negative/90'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90'
             } transition rounded-xl`}
           >
             {actionLabel}
@@ -57,8 +57,8 @@ export default function DataSettings() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Données</h2>
-        <p className="text-slate-500">Exportez, importez ou supprimez vos données</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Données</h2>
+        <p className="text-muted-foreground">Exportez, importez ou supprimez vos données</p>
       </div>
 
       {/* Data Management */}
@@ -90,36 +90,36 @@ export default function DataSettings() {
       </div>
 
       {/* Storage Usage */}
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+      <div className="border-t border-border pt-8">
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
           <Database className="w-5 h-5" />
           Utilisation du Stockage
         </h3>
 
-        <div className="bg-slate-50 rounded-2xl p-6">
+        <div className="bg-muted rounded-2xl p-6">
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Utilisé</span>
-                <span className="text-sm font-semibold text-slate-900">2.4 GB / 10 GB</span>
+                <span className="text-sm font-medium text-muted-foreground">Utilisé</span>
+                <span className="text-sm font-semibold text-foreground">2.4 GB / 10 GB</span>
               </div>
-              <div className="w-full bg-slate-200 rounded-full h-2">
-                <div className="bg-blue-700 h-2 rounded-full" style={{ width: '24%' }}></div>
+              <div className="w-full bg-muted/80 rounded-full h-2">
+                <div className="bg-primary h-2 rounded-full" style={{ width: '24%' }}></div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
               <div>
-                <p className="text-sm text-slate-500">Fichiers</p>
-                <p className="text-2xl font-bold text-slate-900">1.2 GB</p>
+                <p className="text-sm text-muted-foreground">Fichiers</p>
+                <p className="text-2xl font-bold text-foreground">1.2 GB</p>
               </div>
               <div>
-                <p className="text-sm text-slate-500">Bases de données</p>
-                <p className="text-2xl font-bold text-slate-900">800 MB</p>
+                <p className="text-sm text-muted-foreground">Bases de données</p>
+                <p className="text-2xl font-bold text-foreground">800 MB</p>
               </div>
               <div>
-                <p className="text-sm text-slate-500">Autres</p>
-                <p className="text-2xl font-bold text-slate-900">400 MB</p>
+                <p className="text-sm text-muted-foreground">Autres</p>
+                <p className="text-2xl font-bold text-foreground">400 MB</p>
               </div>
             </div>
           </div>
@@ -128,15 +128,15 @@ export default function DataSettings() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg p-6 max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50">
+          <div className="bg-card rounded-2xl shadow-lg p-6 max-w-sm w-full mx-4">
             <div className="flex items-start gap-4 mb-4">
-              <div className="bg-rose-50 p-3 rounded-2xl">
-                <AlertTriangle className="w-6 h-6 text-rose-600" />
+              <div className="bg-delta-negative/10 p-3 rounded-2xl">
+                <AlertTriangle className="w-6 h-6 text-delta-negative" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900">Supprimer toutes les données?</h3>
-                <p className="text-sm text-slate-500 mt-1">
+                <h3 className="font-bold text-foreground">Supprimer toutes les données?</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Cette action est irréversible. Assurez-vous d'avoir exporté vos données avant de continuer.
                 </p>
               </div>
@@ -146,13 +146,13 @@ export default function DataSettings() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50"
+                className="flex-1 rounded-xl border-border text-muted-foreground hover:bg-muted"
               >
                 Annuler
               </Button>
               <Button
                 onClick={handleDeleteData}
-                className="flex-1 rounded-xl bg-rose-600 text-white hover:bg-rose-700"
+                className="flex-1 rounded-xl bg-delta-negative text-primary-foreground hover:bg-delta-negative/90"
               >
                 Supprimer
               </Button>

@@ -63,12 +63,12 @@ export default function RoomForm({
   };
 
   const inputClasses = (name) => `
-    w-full px-4 py-3.5 rounded-2xl border bg-slate-50/50 text-sm transition-all 
-    focus:bg-white focus:outline-none focus:ring-4 
-    ${errors[name] ? 'border-rose-300 focus:ring-rose-100' : 'border-slate-200 focus:ring-slate-100 focus:border-slate-400'}
+    w-full px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all 
+    focus:bg-card focus:outline-none focus:ring-4 
+    ${errors[name] ? 'border-delta-negative/40 focus:ring-delta-negative/20' : 'border-border focus:ring-muted/60 focus:border-border/80'}
   `;
 
-  const labelClasses = "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2";
+  const labelClasses = "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1 mb-2";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -76,7 +76,7 @@ export default function RoomForm({
       {/* --- CODE DE LA SALLE --- */}
       <div className="space-y-1">
         <label className={labelClasses}>
-          <DoorOpen className="w-3.5 h-3.5 text-slate-500" /> Code de la Salle *
+          <DoorOpen className="w-3.5 h-3.5 text-muted-foreground" /> Code de la Salle *
         </label>
         <input
           type="text"
@@ -87,14 +87,14 @@ export default function RoomForm({
           className={inputClasses('code')}
           required
         />
-        {errors.code && <p className="text-rose-500 text-[10px] font-bold mt-1 ml-1">{errors.code[0]}</p>}
+        {errors.code && <p className="text-delta-negative text-[10px] font-bold mt-1 ml-1">{errors.code[0]}</p>}
       </div>
 
       {/* --- CAPACITÉ & DISPONIBILITÉ --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className={labelClasses}>
-            <Users className="w-3.5 h-3.5 text-slate-500" /> Capacité (places) *
+            <Users className="w-3.5 h-3.5 text-muted-foreground" /> Capacité (places) *
           </label>
           <input
             type="number"
@@ -113,12 +113,12 @@ export default function RoomForm({
             onClick={() => setFormData(p => ({...p, is_available: !p.is_available}))}
             className={`flex items-center justify-between px-4 py-3.5 rounded-2xl border cursor-pointer transition-all ${
               formData.is_available 
-                ? 'bg-emerald-50/50 border-emerald-100 text-emerald-700' 
-                : 'bg-slate-50 border-slate-200 text-slate-500'
+                ? 'bg-delta-positive/10/50 border-delta-positive/20 text-delta-positive' 
+                : 'bg-muted border-border text-muted-foreground'
             }`}
           >
             <span className="text-sm font-bold">{formData.is_available ? 'Disponible' : 'Indisponible'}</span>
-            {formData.is_available ? <ToggleRight className="w-6 h-6 text-emerald-500" /> : <ToggleLeft className="w-6 h-6 text-slate-300" />}
+            {formData.is_available ? <ToggleRight className="w-6 h-6 text-delta-positive" /> : <ToggleLeft className="w-6 h-6 text-muted-foreground/60" />}
           </div>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function RoomForm({
       {/* --- TYPE DE SALLE --- */}
       <div className="space-y-1 relative group">
         <label className={labelClasses}>
-          <AlertCircle className="w-3.5 h-3.5 text-slate-500" /> Type de Salle *
+          <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" /> Type de Salle *
         </label>
         <select 
           name="type_room" 
@@ -140,13 +140,13 @@ export default function RoomForm({
           <option value="td">TD</option>
           <option value="tp">TP</option>
         </select>
-        <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-slate-400 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+        <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-muted-foreground/80 pointer-events-none group-focus-within:rotate-180 transition-transform" />
       </div>
 
       {/* --- SÉLECTION CAMPUS --- */}
       <div className="space-y-1 relative group">
         <label className={labelClasses}>
-          <MapPin className="w-3.5 h-3.5 text-slate-500" /> Campus de rattachement *
+          <MapPin className="w-3.5 h-3.5 text-muted-foreground" /> Campus de rattachement *
         </label>
         <select 
           name="campus_id" 
@@ -162,7 +162,7 @@ export default function RoomForm({
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-slate-400 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+        <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-muted-foreground/80 pointer-events-none group-focus-within:rotate-180 transition-transform" />
       </div>
 
       {/* --- ACTIONS --- */}
@@ -170,7 +170,7 @@ export default function RoomForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-700 hover:to-slate-600 text-white rounded-2xl py-7 h-auto shadow-xl shadow-blue-100 transition-all active:scale-[0.98]"
+          className="flex-[2] bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/80 text-primary-foreground rounded-2xl py-7 h-auto shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -187,7 +187,7 @@ export default function RoomForm({
           type="button"
           onClick={onCancel}
           variant="outline"
-          className="flex-1 border-slate-200 text-slate-500 hover:bg-slate-50 rounded-2xl py-7 h-auto font-bold transition-all"
+          className="flex-1 border-border text-muted-foreground hover:bg-muted rounded-2xl py-7 h-auto font-bold transition-all"
         >
           Annuler
         </Button>

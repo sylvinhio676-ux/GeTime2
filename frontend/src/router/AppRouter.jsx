@@ -22,9 +22,11 @@ import DisponibilityList from "@/pages/Admin/disponibility/DisponibilityList";
 import Settings from "@/pages/Admin/Settings/Settings";
 import EmailSend from "@/pages/Admin/email/EmailSend";
 import NotificationList from "@/pages/Admin/notifications/NotificationList";
+import AuditLogList from "@/pages/Admin/audit/AuditLogList";
 import RequireAuth from "@/router/RequireAuth";
 import RequireGuest from "@/router/RequireGuest";
 import RequirePermission from "@/router/RequirePermission";
+import ProgrammationList from "@/pages/Admin/programmation/ProgrammationList";
 
 export default function AppRouter() {
   return (
@@ -62,6 +64,11 @@ export default function AppRouter() {
               </RequirePermission>
             }
           />
+          <Route path="programmationList" element={
+            <RequirePermission permission="view-programmation" denyRoles={["teacher"]}>
+              <ProgrammationList />
+            </RequirePermission>
+          } />
           <Route path="timetable" element={<TableGris readOnly />} />
           <Route path="years" element={<YearList />} />
           <Route path="levels" element={<LevelList />} />
@@ -73,6 +80,7 @@ export default function AppRouter() {
           <Route path="disponibilities" element={<DisponibilityList />}/>
           <Route path="email" element={<EmailSend />} />
           <Route path="notifications" element={<NotificationList />} />
+          <Route path="audit-logs" element={<AuditLogList />} />
           <Route path="settings" element={<Settings/>} />
 
         </Route>

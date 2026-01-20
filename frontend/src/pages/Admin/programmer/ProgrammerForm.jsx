@@ -46,7 +46,7 @@ export default function ProgrammerForm({ initialData = null, onSubmit, isLoading
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded shadow">
+    <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded shadow">
       {errors.general && (
         <p className="text-red-500 text-sm">{errors.general}</p>
       )}
@@ -105,7 +105,7 @@ export default function ProgrammerForm({ initialData = null, onSubmit, isLoading
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        className="w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90"
       >
         {isLoading ? 'Saving...' : initialData ? 'Update Programmer' : 'Create Programmer'}
       </button>

@@ -19,6 +19,7 @@ class Programmation extends Model
         'programmer_id',
         'year_id',
         'room_id',
+        'status',
     ];
 
     protected $casts = [

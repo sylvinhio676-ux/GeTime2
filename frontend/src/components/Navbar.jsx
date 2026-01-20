@@ -11,14 +11,14 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-[#1E3A8A] text-white shadow-lg">
+    <nav className="bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             
             {/* Left section */}
             <div className="flex items-center space-x-8">
             <Link
                 to="/"
-                className="text-2xl font-bold tracking-wide hover:text-[#9DB1D9] transition"
+                className="text-2xl font-bold tracking-wide hover:text-primary/70 transition"
             >
                 GeTime
             </Link>
@@ -29,8 +29,8 @@ export default function Navbar() {
                     to="/campuses"
                     className="
                     px-3 py-2 rounded-md font-medium
-                    hover:bg-[#9DB1D9]/20
-                    hover:text-[#9DB1D9]
+                    hover:bg-primary/20
+                    hover:text-primary/70
                     transition
                     "
                 >
@@ -41,8 +41,8 @@ export default function Navbar() {
                     to="/teachers"
                     className="
                     px-3 py-2 rounded-md font-medium
-                    hover:bg-[#9DB1D9]/20
-                    hover:text-[#9DB1D9]
+                    hover:bg-primary/20
+                    hover:text-primary/70
                     transition
                     "
                 >
@@ -57,13 +57,13 @@ export default function Navbar() {
             <button
                 onClick={handleLogout}
                 className="
-                bg-[#B4232B]
+                bg-destructive
                 px-4
                 py-2
                 rounded-md
                 font-medium
                 transition
-                hover:bg-[#8F1F2D]
+                hover:bg-destructive/90
                 "
             >
                 Logout

@@ -43,6 +43,24 @@ export const programmationService = {
         }
     },
 
+    publishValidated: async () => {
+        try {
+            const response = await api.post(`${ENDPOINT}/publish`);
+            return response.data.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    suggest: async (payload) => {
+        try {
+            const response = await api.post(`${ENDPOINT}/suggest`, payload);
+            return response.data.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
     //delete programmation
     delete: async (id) => {
         try {

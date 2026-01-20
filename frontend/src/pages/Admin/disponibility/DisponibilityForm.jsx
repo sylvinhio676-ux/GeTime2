@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Button from '../../../components/Button';
+import { Button } from '@/components/ui/button';
 
 export default function DisponibilityForm({ initialData = null, subjects = [], etablishments = [], onSubmit, onCancel, isLoading = false }) {
   const [formData, setFormData] = useState(
@@ -25,6 +25,9 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
       });
     }
   }, [initialData]);
+
+  const selectedSubject = subjects.find((subject) => String(subject.id) === String(formData.subject_id));
+  const selectedSpecialtyLabel = selectedSubject?.specialty?.specialty_name || selectedSubject?.specialties?.specialty_name || '';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,122 +66,153 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
   const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
   return (
-    <div className='absolute bg-[rgba(0 0 0 0.1)] left-0 top-0 right-0 bottom-0 flex justify-center w-full'>
-      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow-md border border-gray-200">
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">Day *</label>
-          <select 
-            name="day" 
-            value={formData.day}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-            required
-          >
-            <option value="">--Select a Day--</option>
-            {days.map((day) => (
-              <option key={day} value={day}>
-                {day}
-              </option>
-            ))}
-          </select>
-          {errors.day && (
-            <p className="text-danger text-sm mt-1">{errors.day[0]}</p>
-          )}
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
+          Jour *
+        </label>
+        <select
+          name="day"
+          value={formData.day}
+          onChange={handleChange}
+          className={`w-full appearance-none px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all focus:bg-card focus:outline-none focus:ring-4 cursor-pointer ${
+            errors.day
+              ? 'border-delta-negative/40 focus:ring-delta-negative/20 text-delta-negative'
+              : 'border-border focus:ring-muted/60 focus:border-border/80'
+          }`}
+          required
+        >
+          <option value="">Sélectionner un jour</option>
+          {days.map((day) => (
+            <option key={day} value={day}>
+              {day}
+            </option>
+          ))}
+        </select>
+        {errors.day && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.day[0]}</p>}
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">Start Hour *</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
+            Heure de début *
+          </label>
           <input
             type="time"
             name="hour_star"
             value={formData.hour_star}
             onChange={handleChange}
-            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/30 transition ${
-              errors.hour_star ? 'border-danger' : 'border-gray-300'
+            className={`w-full px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all focus:bg-card focus:outline-none focus:ring-4 ${
+              errors.hour_star
+                ? 'border-delta-negative/40 focus:ring-delta-negative/20 text-delta-negative'
+                : 'border-border focus:ring-muted/60 focus:border-border/80'
             }`}
             required
           />
-          {errors.hour_star && (
-            <p className="text-danger text-sm mt-1">{errors.hour_star[0]}</p>
-          )}
+          {errors.hour_star && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.hour_star[0]}</p>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">End Hour *</label>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
+            Heure de fin *
+          </label>
           <input
             type="time"
             name="hour_end"
             value={formData.hour_end}
             onChange={handleChange}
-            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/30 transition ${
-              errors.hour_end ? 'border-danger' : 'border-gray-300'
+            className={`w-full px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all focus:bg-card focus:outline-none focus:ring-4 ${
+              errors.hour_end
+                ? 'border-delta-negative/40 focus:ring-delta-negative/20 text-delta-negative'
+                : 'border-border focus:ring-muted/60 focus:border-border/80'
             }`}
             required
           />
-          {errors.hour_end && (
-            <p className="text-danger text-sm mt-1">{errors.hour_end[0]}</p>
-          )}
+          {errors.hour_end && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.hour_end[0]}</p>}
         </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">Subject *</label>
-          <select 
-            name="subject_id" 
-            value={formData.subject_id}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-            required
-          >
-            <option value="">--Select a Subject--</option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.subject_name}
-              </option>
-            ))}
-          </select>
-          {errors.subject_id && (
-            <p className="text-danger text-sm mt-1">{errors.subject_id[0]}</p>
-          )}
-        </div>
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
+          Matiere *
+        </label>
+        <select
+          name="subject_id"
+          value={formData.subject_id}
+          onChange={handleChange}
+          className={`w-full appearance-none px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all focus:bg-card focus:outline-none focus:ring-4 cursor-pointer ${
+            errors.subject_id
+              ? 'border-delta-negative/40 focus:ring-delta-negative/20 text-delta-negative'
+              : 'border-border focus:ring-muted/60 focus:border-border/80'
+          }`}
+          required
+        >
+          <option value="">Sélectionner une matière</option>
+          {subjects.map((subject) => (
+            <option key={subject.id} value={subject.id}>
+              {subject.subject_name}
+            </option>
+          ))}
+        </select>
+        {errors.subject_id && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.subject_id[0]}</p>}
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">Etablissement *</label>
-          <select 
-            name="etablishment_id" 
-            value={formData.etablishment_id}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-            required
-          >
-            <option value="">--Select an Etablishment--</option>
-            {etablishments.map((etab) => (
-              <option key={etab.id} value={etab.id}>
-                {etab.etablishment_name}
-              </option>
-            ))}
-          </select>
-          {errors.etablishment_id && (
-            <p className="text-danger text-sm mt-1">{errors.etablishment_id[0]}</p>
-          )}
-        </div>
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
+          Specialite concernee
+        </label>
+        <input
+          type="text"
+          value={selectedSpecialtyLabel || '-'}
+          readOnly
+          className="w-full px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm text-muted-foreground/80 transition-all focus:bg-card focus:outline-none focus:ring-4 border-border focus:ring-muted/60 focus:border-border/80"
+        />
+      </div>
 
-        <div className="flex gap-3">
-          <Button
-            type='submit'
-            className="flex-1 bg-primary text-white hover:bg-primary/90 disabled:opacity-60 transition"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saving...' : initialData ? 'Update Disponibility' : 'Create Disponibility'}
-          </Button>
-          <Button
-            type='button'
-            onClick={onCancel}
-            className="flex-1 bg-gray-300 text-gray-700 hover:bg-gray-400 transition"
-          >
-            Annuler
-          </Button>
-        </div>
-      </form>
-    </div>
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
+          Etablissement *
+        </label>
+        <select
+          name="etablishment_id"
+          value={formData.etablishment_id}
+          onChange={handleChange}
+          className={`w-full appearance-none px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all focus:bg-card focus:outline-none focus:ring-4 cursor-pointer ${
+            errors.etablishment_id
+              ? 'border-delta-negative/40 focus:ring-delta-negative/20 text-delta-negative'
+              : 'border-border focus:ring-muted/60 focus:border-border/80'
+          }`}
+          required
+        >
+          <option value="">Sélectionner un établissement</option>
+          {etablishments.map((etab) => (
+            <option key={etab.id} value={etab.id}>
+              {etab.etablishment_name}
+            </option>
+          ))}
+        </select>
+        {errors.etablishment_id && (
+          <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.etablishment_id[0]}</p>
+        )}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <Button
+          type="submit"
+          className="flex-[2] bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-2 h-auto shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Enregistrement...' : initialData ? 'Mettre a jour la disponibilite' : 'Creer la disponibilite'}
+        </Button>
+        <Button
+          type="button"
+          onClick={onCancel}
+          variant="outline"
+          className="flex-1 border-border text-muted-foreground hover:bg-muted rounded-2xl py-2 h-auto font-bold transition-all"
+        >
+          Annuler
+        </Button>
+      </div>
+    </form>
   );
 }

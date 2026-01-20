@@ -9,7 +9,7 @@ export default function ActivityList({ items = [] }) {
   ];
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition">
+    <div className="bg-card rounded-xl border shadow-sm p-4 hover:shadow-md transition">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5 text-accent" />
