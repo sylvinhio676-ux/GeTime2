@@ -16,8 +16,37 @@ class SectorController extends Controller
     public function index()
     {
         try {
-            $sectors = Sector::with('school')->get();
+            $sectors = Sector::with(['school', 'specialities'])->get();
             if (!$sectors) throw new Exception("Aucun secteur trouvé");
+            return successResponse($sectors);
+        } catch (Exception $e) {
+            return errorResponse($e->getMessage());
+        }
+    }
+
+    public function teacherIndex(Request $request)
+    {
+        try {
+            $teacher = $request->user()?->teacher;
+            if (!$teacher) {
+                return successResponse([], "Profil enseignant introuvable");
+            }
+
+            $schoolIds = $teacher->subjects()
+                ->with('specialty.sector')
+                ->get()
+                ->map(fn ($subject) => $subject->specialty?->sector?->school_id)
+                ->filter()
+                ->unique();
+
+            if ($schoolIds->isEmpty()) {
+                return successResponse([], "Aucun secteur lié");
+            }
+
+            $sectors = Sector::with(['school', 'specialities'])
+                ->whereIn('school_id', $schoolIds)
+                ->get();
+
             return successResponse($sectors);
         } catch (Exception $e) {
             return errorResponse($e->getMessage());

@@ -25,7 +25,7 @@ class SpecialtyUpdateRequest extends FormRequest
             'specialty_name' => ['nullable', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
-            'number_student' => ['nullable', 'integer', 'min:1'],
+            'number_student' => ['nullable', 'integer', 'min:0'],
             'sector_id' => ['nullable', 'exists:sectors,id'],
             'programmer_id' => ['nullable', 'exists:programmers,id'],
             'level_id' => ['nullable', 'exists:levels,id'],

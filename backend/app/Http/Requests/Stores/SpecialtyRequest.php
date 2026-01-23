@@ -25,10 +25,10 @@ class SpecialtyRequest extends FormRequest
             'specialty_name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:50'],
             'description' => ['nullable', 'string'],
-            'number_student' => ['required', 'integer', 'min:1'],
+            'number_student' => ['required', 'integer', 'min:0'],
             'sector_id' => ['required', 'exists:sectors,id'],
-            'programmer_id' => ['required', 'exists:programmers,id'],
-            'level_id' => ['required', 'exists:levels,id'],
+            'programmer_id' => ['nullable', 'exists:programmers,id'],
+            'level_id' => ['nullable', 'exists:levels,id'],
         ];
     }
 }

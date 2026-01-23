@@ -230,7 +230,7 @@ export default function UserList() {
                     <tr key={user.id} className="group hover:bg-muted/50 transition-colors">
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-4">
-                          <div className="w-11 h-11 bg-gradient-to-br from-primary via-primary/80 to-secondary rounded-2xl flex items-center justify-center text-primary-foreground shadow-md shrink-0 font-black text-xs tracking-tighter uppercase">
+                          <div className="w-11 h-11 rounded-xl bg-muted  flex items-center justify-center text-muted-foreground shadow-md shrink-0 font-black text-xs tracking-tighter uppercase">
                             {user.name?.substring(0, 2)}
                           </div>
                           <div>

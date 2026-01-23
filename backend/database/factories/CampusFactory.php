@@ -19,7 +19,7 @@ class CampusFactory extends Factory
     {
         return [
             'campus_name' => $this->faker->name(),
-            'localisation'=> $this->faker->address(),
+            'city'=> $this->faker->address(),
             'etablishment_id' => Etablishment::factory()
         ];
     }

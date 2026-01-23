@@ -5,75 +5,118 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Stores\CampusRequest;
 use App\Http\Requests\Updates\CampusUpdateRequest;
 use App\Models\Campus;
+use App\Models\Location;
 use Illuminate\Http\Request;
-use Exception;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 
 class CampusController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        try{
-            $campus = Campus::with('etablishment')->get();
-            if(!$campus) throw new Exception("Aucun campus trouvé");
-            return successResponse($campus);   
-        }catch(Exception $e){
+        try {
+            $campus = $this->buildCampusQuery()->get();
+            if ($campus->isEmpty()) throw new Exception("Aucun campus trouvé");
+            return successResponse($campus);
+        } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(CampusRequest $request)
     {
-        try{
-            $campus = Campus::create($request->validated());
-            return successResponse($campus, "Campus créé avec succès");
-        }catch(Exception $e){
+        try {
+            $validated = $request->validated();
+            $locationData = Arr::only($validated, ['city', 'address', 'latitude', 'longitude']);
+            $location = Location::create(array_filter($locationData, fn($value) => $value !== null && $value !== ''));
+            $campusData = array_merge($validated, ['location_id' => $location->id ?? null]);
+            $campus = Campus::create($campusData);
+            return successResponse($campus->load('location'), "Campus créé avec succès");
+        } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Campus $campus)
     {
-        try{
-            if(!$campus) return notFoundResponse("Campus non trouvé");
+        try {
+            if (!$campus) return notFoundResponse("Campus non trouvé");
+            $campus = $this->buildCampusQuery()->where('id', $campus->id)->first();
             return successResponse($campus);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(CampusUpdateRequest $request, Campus $campus)
     {
-        try{
-            $campus->update($request->validated());
-            return successResponse($campus, "Campus modifié avec succès");
-        }catch(Exception $e){
+        try {
+            $validated = $request->validated();
+            $locationData = Arr::only($validated, ['city', 'address', 'latitude', 'longitude']);
+            if (!empty(array_filter($locationData, fn($value) => $value !== null && $value !== ''))) {
+                if ($campus->location) {
+                    $campus->location->update($locationData);
+                } else {
+                $location = Location::create(array_filter($locationData, fn($value) => $value !== null && $value !== ''));
+                    $campus->location_id = $location->id;
+                }
+            }
+            $campus->fill($validated);
+            $campus->save();
+            return successResponse($campus->load('location'), "Campus modifié avec succès");
+        } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Campus $campus)
     {
-        try{
+        try {
             $campus->delete();
-            if(!$campus) return notFoundResponse("Campus non trouvé");
+            if (!$campus) return notFoundResponse("Campus non trouvé");
             return successResponse(null,"Campus supprimé avec succès");
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
+    }
+
+    public function teacherCampuses(Request $request)
+    {
+        try {
+            $teacher = $request->user()?->teacher;
+            if (!$teacher) return notFoundResponse("Profil enseignant introuvable");
+
+            $establishmentIds = $teacher->subjects()
+                ->whereHas('specialty.programmer')
+                ->with('specialty.programmer')
+                ->get()
+                ->pluck('specialty.programmer.etablishment_id')
+                ->filter()
+                ->unique();
+
+            if ($establishmentIds->isEmpty()) {
+                return successResponse([], "Aucun établissement associé");
+            }
+
+            $campuses = $this->buildCampusQuery()
+                ->whereIn('etablishment_id', $establishmentIds)
+                ->get();
+
+            return successResponse($campuses);
+        } catch (Exception $e) {
+            return errorResponse($e->getMessage());
+        }
+    }
+
+    private function buildCampusQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Campus::with(['etablishment', 'rooms', 'location'])
+            ->withCount([
+                'rooms',
+                'rooms as available_rooms_count' => function ($query) {
+                    $query->where('is_available', true);
+                }
+            ])
+            ->withSum('rooms', 'capacity');
     }
 }

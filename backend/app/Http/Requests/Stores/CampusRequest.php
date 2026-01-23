@@ -23,8 +23,11 @@ class CampusRequest extends FormRequest
     {
         return [
             'campus_name' => ['required', 'string', 'max:255'],
-            'localisation' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
             'etablishment_id' => ['required', 'exists:etablishments,id'],
+            'latitude' => ['nullable','numeric','between:-90,90'],
+            'longitude' => ['nullable','numeric','between:-180,180'],
         ];
     }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Users, BookOpen, School, Activity, CalendarCheck,
   GraduationCap, TrendingUp, Plus, 
@@ -38,7 +38,7 @@ export default function Dashboard() {
   const [adminData, setAdminData] = useState({
     users: [], rooms: [], subjects: [], specialities: [], 
     campuses: [], programmers: [], etablishments: [],
-    sectors: [], levels: [], years: [] 
+    sectors: [], levels: [], years: [], programmations: []
   });
   const [roleData, setRoleData] = useState({
     programmations: [],
@@ -67,33 +67,35 @@ export default function Dashboard() {
     }
   }, [authLoading, user, isAdmin, isProgrammer, isTeacher]);
 
-  const loadAdminDashboardData = async () => {
+  const loadAdminDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       // Simule l'appel à tous tes services incluant les nouveaux
-      const [u, r, s, sp, c, p, e] = await Promise.all([
+      const [u, r, s, sp, c, p, e, prog] = await Promise.all([
         userService.getAll(), roomService.getAll(),
         subjectService.getAll(), specialtyService.getAll(),
         campusService.getAll(), programmersService.getAll(),
-        etablishmentService.getAll(),
+        etablishmentService.getAll(), programmationService.getAll()
       ]);
       
       setAdminData(prev => ({ 
         ...prev,
         users: u, rooms: r, subjects: s, 
         specialities: sp, campuses: c, 
-        programmers: p, etablishments: e 
+        programmers: p, etablishments: e,
+        programmations: prog
       }));
     } catch (error) {
       console.error("Erreur de chargement:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadRoleDashboardData = async ({ includeTeachers, includeDisponibilities }) => {
-    try {
-      setLoading(true);
+  const loadRoleDashboardData = useCallback(
+    async ({ includeTeachers, includeDisponibilities }) => {
+      try {
+        setLoading(true);
       const requests = [
         programmationService.getAll(),
         subjectService.getAll(),
@@ -133,15 +135,17 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+    },
+    []
+  );
 
   if (loading) return <DashboardSkeleton />;
-  if (isAdmin) return <AdminDashboard data={adminData} />;
+  if (isAdmin) return <AdminDashboard data={adminData} refresh={loadAdminDashboardData} />;
   if (isTeacher) return <TeacherDashboard data={roleData} />;
   return <ProgrammerDashboard data={roleData} isProgrammer={isProgrammer} />;
 }
 
-function AdminDashboard({ data }) {
+function AdminDashboard({ data, refresh }) {
   // --- CALCULS ANALYTIQUES AVANCÉS ---
   const analytics = useMemo(() => {
     const totalRooms = data.rooms.length;
@@ -156,7 +160,23 @@ function AdminDashboard({ data }) {
     };
   }, [data]);
 
-  return (
+  const [validatingId, setValidatingId] = useState(null);
+  const recentProgrammes = useRecentProgrammations(data.programmations);
+
+  const handleValidateProgrammation = async (programmation) => {
+    if (validatingId) return;
+    try {
+      setValidatingId(programmation.id);
+      await programmationService.update(programmation.id, { status: "validated" });
+      refresh?.();
+    } catch (error) {
+      console.error("Erreur validation programmation", error);
+    } finally {
+      setValidatingId(null);
+    }
+  };
+
+    return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-[1600px] mx-auto space-y-8">
         
@@ -233,21 +253,27 @@ function AdminDashboard({ data }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/40 text-sm">
-                    {data.programmers.slice(0, 5).map((p, i) => (
-                      <tr key={i} className="hover:bg-muted/50 transition-colors cursor-pointer">
+                    {recentProgrammes.slice(0, 5).map((prog) => (
+                      <tr key={prog.id || `${prog.day}-${prog.hour_star}`} className="hover:bg-muted/50 transition-colors cursor-pointer">
                         <td className="px-6 py-4 font-bold text-foreground">
-                          {p.subject?.name || "Matière"}
-                          <div className="text-[10px] text-muted-foreground/80 font-medium">Niveau: Master 1 • {p.speciality?.name}</div>
+                          {prog.subject?.subject_name || "Matière"}
+                          <div className="text-[10px] text-muted-foreground/80 font-medium">
+                            {prog.subject?.specialty?.level?.name_level || "Niveau —"}
+                          </div>
                         </td>
-                        <td className="px-6 py-4 text-muted-foreground">Dr. {p.user?.name}</td>
+                        <td className="px-6 py-4 text-muted-foreground">
+                          {prog.teacher?.user?.name || prog.teacher?.name || "Enseignant"}
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
-                            <span className="font-medium">{p.room?.name || "Salle 102"}</span>
-                            <span className="text-xs text-muted-foreground/80">Campus Principal</span>
+                            <span className="font-medium">{prog.room?.name || prog.room?.code || "Salle"}</span>
+                            <span className="text-xs text-muted-foreground/80">{prog.campus?.name || prog.room?.campus?.name || "Campus principal"}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge className="bg-delta-positive/10 text-delta-positive border-delta-positive/20 font-bold">Validé</Badge>
+                          <Badge className="bg-delta-positive/10 text-delta-positive border-delta-positive/20 font-bold">
+                            {prog.status ? prog.status.charAt(0).toUpperCase() + prog.status.slice(1) : "Validé"}
+                          </Badge>
                         </td>
                       </tr>
                     ))}
@@ -310,6 +336,7 @@ function ProgrammerDashboard({ data, isProgrammer }) {
     ? "Planification, salles et matières à portée de main"
     : "Suivi des matières et de l'emploi du temps";
   const activeYear = data.years[data.years.length - 1];
+  const recentProgrammes = useRecentProgrammations(data.programmations);
 
   return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
@@ -357,7 +384,7 @@ function ProgrammerDashboard({ data, isProgrammer }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/40 text-sm">
-                    {data.programmations.slice(0, 6).map((prog) => (
+                    {recentProgrammes.map((prog) => (
                       <tr key={prog.id} className="hover:bg-muted/50 transition-colors">
                         <td className="px-6 py-4 font-bold text-foreground">
                           {prog.subject?.subject_name || "Matière"}
@@ -373,7 +400,17 @@ function ProgrammerDashboard({ data, isProgrammer }) {
                           {prog.room?.code || "Salle auto"}
                         </td>
                         <td className="px-6 py-4">
-                          <Badge className="bg-delta-positive/10 text-delta-positive border-delta-positive/20 font-bold">Planifié</Badge>
+                          <Badge
+                            className={`font-bold ${
+                              prog.status === "canceled"
+                                ? "border-rose-200 bg-rose-50 text-rose-700"
+                                : prog.status === "draft"
+                                  ? "border-muted-foreground/40 bg-muted-foreground/10 text-muted-foreground"
+                                  : "border-delta-positive/20 bg-delta-positive/10 text-delta-positive"
+                            }`}
+                          >
+                            {prog.status ? prog.status.charAt(0).toUpperCase() + prog.status.slice(1) : "Planifié"}
+                          </Badge>
                         </td>
                       </tr>
                     ))}
@@ -582,6 +619,20 @@ function QuickAction({ icon: Icon, label, count }) {
       <span className="text-[10px] font-bold text-primary-foreground/80 uppercase tracking-tighter">{label}</span>
     </button>
   );
+}
+
+function useRecentProgrammations(programmations = []) {
+  return useMemo(() => {
+    const list = Array.isArray(programmations) ? programmations : [];
+    return [...list]
+      .filter(Boolean)
+      .sort((a, b) => {
+        const left = new Date(b.created_at || b.updated_at || 0).getTime();
+        const right = new Date(a.created_at || a.updated_at || 0).getTime();
+        return left - right;
+      })
+      .slice(0, 6);
+  }, [programmations]);
 }
 
 function DashboardSkeleton() {

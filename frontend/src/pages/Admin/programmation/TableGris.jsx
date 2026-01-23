@@ -11,11 +11,13 @@ import { levelService } from '@/services/levelService';
 import { yearService } from '@/services/yearService';
 import { campusService } from '@/services/campusService';
 import { roomService } from '@/services/roomService';
+import { sectorService } from '@/services/sectorService';
 import ProgrammationForm from './ProgrammationForm';
 
 export default function TimetableDashboard({ readOnly = false }) {
   const [programmations, setProgrammations] = useState([]);
   const [specialties, setSpecialties] = useState([]);
+  const [sectors, setSectors] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [levels, setLevels] = useState([]);
@@ -25,6 +27,7 @@ export default function TimetableDashboard({ readOnly = false }) {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('specialty');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
+  const [selectedSector, setSelectedSector] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
@@ -35,6 +38,15 @@ export default function TimetableDashboard({ readOnly = false }) {
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
   const componentRef = useRef(null);
+  const requiresSelectionTeacher =
+    viewMode === 'teacher' &&
+    (!selectedTeacher || !selectedSector || !selectedSpecialty || !selectedLevel || !selectedYear);
+  const requiresSelectionSpecialty =
+    viewMode === 'specialty' &&
+    (!selectedSector || !selectedSpecialty || !selectedLevel || !selectedYear);
+  const selectionBlocked =
+    (viewMode === 'specialty' && requiresSelectionSpecialty) ||
+    (viewMode === 'teacher' && requiresSelectionTeacher);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -53,22 +65,24 @@ export default function TimetableDashboard({ readOnly = false }) {
     const load = async () => {
       setLoading(true);
       try {
-        const [specData, subjectData, teacherData, levelData, yearData, campusData, roomData] = await Promise.all([
-          specialtyService.getAll(),
-          subjectService.getAll(),
-          teacherService.getAll(),
-          levelService.getAll(),
-          yearService.getAll(),
-          campusService.getAll(),
-          roomService.getAll(),
-        ]);
-        setSpecialties(specData || []);
-        setSubjects(subjectData || []);
-        setTeachers(teacherData || []);
-        setLevels(levelData || []);
-        setYears(yearData || []);
-        setCampuses(campusData || []);
-        setRooms(roomData || []);
+      const [specData, subjectData, teacherData, levelData, yearData, campusData, roomData, sectorData] = await Promise.all([
+        specialtyService.getAll(),
+        subjectService.getAll(),
+        teacherService.getAll(),
+        levelService.getAll(),
+        yearService.getAll(),
+        campusService.getAll(),
+        roomService.getAll(),
+        sectorService.getAll(),
+      ]);
+      setSpecialties(specData || []);
+      setSubjects(subjectData || []);
+      setTeachers(teacherData || []);
+      setLevels(levelData || []);
+      setYears(yearData || []);
+      setCampuses(campusData || []);
+      setRooms(roomData || []);
+      setSectors(sectorData || []);
       } finally {
         setLoading(false);
       }
@@ -77,18 +91,36 @@ export default function TimetableDashboard({ readOnly = false }) {
   }, []);
 
   useEffect(() => {
+    if (viewMode !== 'specialty') {
+      setSelectedSector('');
+      setSelectedSpecialty('');
+    }
+  }, [viewMode]);
+
+  useEffect(() => {
     if (viewMode === 'specialty' && !selectedSpecialty) {
       setProgrammations([]);
       return;
     }
-    if (viewMode === 'teacher' && !selectedTeacher) {
+    if (
+      viewMode === 'specialty' &&
+      (!selectedSector || !selectedSpecialty || !selectedLevel || !selectedYear)
+    ) {
+      setProgrammations([]);
+      return;
+    }
+    if (requiresSelectionTeacher) {
       setProgrammations([]);
       return;
     }
 
     const params = {};
     if (viewMode === 'specialty') params.specialty_id = selectedSpecialty;
-    if (viewMode === 'teacher') params.teacher_id = selectedTeacher;
+    if (viewMode === 'teacher') {
+      params.teacher_id = selectedTeacher;
+      if (selectedSector) params.sector_id = selectedSector;
+      if (selectedSpecialty) params.specialty_id = selectedSpecialty;
+    }
     if (selectedLevel) params.level_id = selectedLevel;
     if (selectedYear) params.year_id = selectedYear;
 
@@ -96,7 +128,37 @@ export default function TimetableDashboard({ readOnly = false }) {
       .getAll(params)
       .then(setProgrammations)
       .catch(() => setProgrammations([]));
-  }, [viewMode, selectedSpecialty, selectedTeacher, selectedLevel, selectedYear]);
+  }, [
+    viewMode,
+    selectedSpecialty,
+    selectedTeacher,
+    selectedLevel,
+    selectedYear,
+    selectedSector,
+    requiresSelectionTeacher,
+  ]);
+
+  const filteredSpecialties = useMemo(() => {
+    if (!selectedSector) return specialties;
+    return specialties.filter(
+      (s) =>
+        String(s.sector_id) === String(selectedSector) ||
+        String(s.sector?.id) === String(selectedSector)
+    );
+  }, [specialties, selectedSector]);
+
+  useEffect(() => {
+    if (!selectedSector) {
+      setSelectedSpecialty('');
+      return;
+    }
+    if (
+      selectedSpecialty &&
+      !filteredSpecialties.some((s) => String(s.id) === String(selectedSpecialty))
+    ) {
+      setSelectedSpecialty('');
+    }
+  }, [selectedSector, filteredSpecialties, selectedSpecialty]);
 
   const selectedSpecialtyObj = useMemo(
     () => specialties.find((s) => String(s.id) === String(selectedSpecialty)),
@@ -245,17 +307,37 @@ export default function TimetableDashboard({ readOnly = false }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+            Filière
+            <select
+              className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
+              value={selectedSector}
+              onChange={(e) => setSelectedSector(e.target.value)}
+              disabled={viewMode !== 'specialty' && viewMode !== 'teacher'}
+            >
+              <option value="">-- Choisir --</option>
+              {sectors.map((sector) => (
+                <option key={sector.id} value={sector.id}>
+                  {sector.sector_name || sector.name || `Filière ${sector.id}`}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Spécialité
             <select
               className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
               value={selectedSpecialty}
               onChange={(e) => setSelectedSpecialty(e.target.value)}
-              disabled={viewMode !== 'specialty'}
+              disabled={
+                (viewMode !== 'specialty' && viewMode !== 'teacher') ||
+                !selectedSector
+              }
             >
               <option value="">-- Choisir --</option>
-              {specialties.map((s) => (
+              {filteredSpecialties.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.specialty_name} {s.code ? `(${s.code})` : ''}
                 </option>
@@ -263,22 +345,23 @@ export default function TimetableDashboard({ readOnly = false }) {
             </select>
           </label>
 
+          {viewMode === 'teacher' && (
             <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            Enseignant
-            <select
-              className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
-              value={selectedTeacher}
-              onChange={(e) => setSelectedTeacher(e.target.value)}
-              disabled={viewMode !== 'teacher'}
-            >
-              <option value="">-- Choisir --</option>
-              {teachers.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.user?.name || `Prof. ${t.id}`}
-                </option>
-              ))}
-            </select>
-          </label>
+              Enseignant
+              <select
+                className="w-full px-3 py-2 border-border rounded-xl text-sm text-foreground bg-input"
+                value={selectedTeacher}
+                onChange={(e) => setSelectedTeacher(e.target.value)}
+              >
+                <option value="">-- Choisir --</option>
+                {teachers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.user?.name || `Prof. ${t.id}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <label className="space-y-1 text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Niveau
@@ -326,7 +409,15 @@ export default function TimetableDashboard({ readOnly = false }) {
           </div>
         </div>
 
-        {loading ? (
+        {selectionBlocked ? (
+          <div className="p-6 text-sm text-muted-foreground border border-dashed border-border rounded-2xl text-center space-y-2">
+            <p>
+              {viewMode === 'specialty'
+                ? 'Veuillez sélectionner la filière, la spécialité, le niveau et l’année pour afficher le tableau.'
+                : 'Choisissez un enseignant, une filière, une spécialité, un niveau et une année pour afficher son emploi du temps.'}
+            </p>
+          </div>
+        ) : loading ? (
           <div className="text-sm text-muted-foreground/80 p-6">Chargement...</div>
         ) : (
           <TimetableGrid

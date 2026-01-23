@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Mail\ForgotPasswordMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -40,5 +44,25 @@ class AuthController extends Controller
         $token?->delete();
 
         return response()->noContent();
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $user = User::where('email', $request->input('email'))->first();
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
+        }
+
+        $plainPassword = Str::random(12);
+        $user->password = Hash::make($plainPassword);
+        $user->setRememberToken(Str::random(60));
+        $user->save();
+
+        Mail::to($user->email)->send(new ForgotPasswordMail($user, $plainPassword));
+
+        return response()->json([
+            'message' => 'Un nouveau mot de passe a été envoyé par e-mail',
+            'data' => ['password' => $plainPassword],
+        ], 200);
     }
 }

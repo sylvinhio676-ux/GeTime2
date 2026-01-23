@@ -129,7 +129,7 @@ export default function EmailSend() {
     <div className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-[2rem] border border-border shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary/80 rounded-2xl flex items-center justify-center text-primary-foreground shadow-lg shrink-0">
+          <div className="w-12 h-12 bg-primary/80 rounded-2xl flex items-center justify-center text-muted-foreground shadow-lg shrink-0">
             <Mail className="w-6 h-6" />
           </div>
           <div>

@@ -19,10 +19,12 @@ class Disponibility extends Model
         'hour_end',
         'subject_id',
         'etablishment_id',
+        'used',
     ];
 
     protected $casts =[
-        'day' => JourEnum::class
+        'day' => JourEnum::class,
+        'used' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -38,5 +40,13 @@ class Disponibility extends Model
 
     public function etablishment(){
         return $this->belongsTo(Etablishment::class);
+    }
+
+    public function markAsUsed(): self
+    {
+        if (!$this->used) {
+            $this->update(['used' => true]);
+        }
+        return $this;
     }
 }

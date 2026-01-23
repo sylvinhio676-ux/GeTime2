@@ -24,6 +24,32 @@ class ProgrammerController extends Controller
         }
     }
 
+    public function teacherIndex(Request $request)
+    {
+        try {
+            $teacher = $request->user()?->teacher;
+            if (!$teacher) {
+                return successResponse([], "Profil enseignant introuvable");
+            }
+
+            $programmerIds = $teacher->subjects()
+                ->with('specialty.programmer')
+                ->get()
+                ->map(fn ($subject) => $subject->specialty?->programmer?->id)
+                ->filter()
+                ->unique();
+
+            if ($programmerIds->isEmpty()) {
+                return successResponse([], "Aucun programmateur lié");
+            }
+
+            $programmers = Programmer::with(['user', 'etablishment'])->whereIn('id', $programmerIds)->get();
+            return successResponse($programmers);
+        } catch (Exception $e) {
+            return errorResponse($e->getMessage());
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */

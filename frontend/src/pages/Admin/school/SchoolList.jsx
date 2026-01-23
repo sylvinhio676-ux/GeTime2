@@ -4,7 +4,7 @@ import SchoolForm from './SchoolForm';
 import { Progress } from '@/components/ui/progress';
 import { 
   Pencil, Trash2, Plus, Search, University, 
-  AlertCircle, CheckCircle2, X, School2
+  AlertCircle, CheckCircle2, X, School2, MapPin, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ export default function SchoolList() {
   const [showForm, setShowForm] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [detailSchool, setDetailSchool] = useState(null);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -70,10 +71,14 @@ export default function SchoolList() {
   };
 
   const filteredSchools = useMemo(() => {
-    return schools.filter(s => 
-      s.school_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return schools.filter(s => {
+      const term = searchTerm.toLowerCase();
+      return (
+        s.school_name?.toLowerCase().includes(term) ||
+        s.description?.toLowerCase().includes(term) ||
+        s.responsible?.name?.toLowerCase().includes(term)
+      );
+    });
   }, [schools, searchTerm]);
   const PAGE_SIZE = 10;
   useEffect(() => {
@@ -153,6 +158,8 @@ export default function SchoolList() {
                 <tr>
                   <th className="px-8 py-4">Nom de l'École</th>
                   <th className="px-8 py-4">Description</th>
+                  <th className="px-8 py-4">Responsable</th>
+                  <th className="px-8 py-4 text-right">Secteurs</th>
                   <th className="px-8 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -168,9 +175,20 @@ export default function SchoolList() {
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <p className="text-sm text-muted-foreground font-medium line-clamp-1 max-w-xs">
-                        {school.description || "---"}
+                      <p className="text-sm text-muted-foreground font-medium line-clamp-2 max-w-xs">
+                        {school.description || 'Aucune description'}
                       </p>
+                    </td>
+                    <td className="px-8 py-5 text-sm text-foreground font-semibold">
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="font-bold">{school.responsible?.name || 'Non attribué'}</span>
+                        <span className="text-xs text-muted-foreground">{school.responsible?.email || '—'}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <Badge className="rounded-lg bg-muted text-muted-foreground text-xs font-black uppercase tracking-[0.25em]">
+                        {school.sectors_count ?? 0} {school.sectors_count > 1 ? 'secteurs' : 'secteur'}
+                      </Badge>
                     </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-2">
@@ -185,6 +203,12 @@ export default function SchoolList() {
                           className="p-2 text-delta-negative hover:bg-delta-negative/10 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDetailSchool(school)}
+                          className="text-xs rounded-full border border-border/60 px-3 py-1 text-muted-foreground hover:border-primary hover:text-primary transition-all"
+                        >
+                          Voir
                         </button>
                       </div>
                     </td>
@@ -213,6 +237,70 @@ export default function SchoolList() {
                 onCancel={() => setShowForm(false)}
                 isLoading={loading}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {detailSchool && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" onClick={() => setDetailSchool(null)} />
+          <div className="relative w-full max-w-3xl bg-card rounded-[2rem] shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-border/60 flex items-center justify-between bg-muted/50">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-2">
+                  <MapPin className="w-4 h-4" /> Campus principal
+                </p>
+                <h3 className="text-2xl font-black text-foreground">{detailSchool.school_name}</h3>
+                <p className="text-xs text-muted-foreground">{detailSchool.description || 'Aucune description du moment'}</p>
+              </div>
+              <button
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setDetailSchool(null)}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-[1.5rem] border border-border/60 p-4 bg-muted/30 space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground">Responsable</p>
+                  <p className="font-bold text-foreground">{detailSchool.responsible?.name || 'Non attribué'}</p>
+                  <p className="text-xs text-muted-foreground">{detailSchool.responsible?.email || '—'}</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-border/60 p-4 bg-muted/30 space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground">Secteurs</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(detailSchool.sectors || []).length ? (
+                      detailSchool.sectors.map((sector) => (
+                        <Badge key={sector.id} className="flex items-center gap-1 border-border/40 text-xs">
+                          {sector.sector_name}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Aucun secteur rattaché</span>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-[1.5rem] border border-border/60 p-4 bg-muted/30 space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground">Contacts clés</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-2">
+                    <User className="w-3.5 h-3.5" />
+                    {detailSchool.responsible?.phone || 'Téléphone non fourni'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Visites & rendez-vous sur demande</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground">Détails complémentaires</p>
+                <div className="rounded-[1.25rem] border border-border/40 p-4 bg-card/70">
+                  <p className="text-sm text-muted-foreground">
+                    Le campus principal est estimé via les secteurs rattachés. Pour modifier la carte des campus ou ajouter un emplacement, utilisez la fiche de secteur.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

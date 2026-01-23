@@ -15,7 +15,7 @@ class SchoolController extends Controller
     public function index()
     {
         try {
-            $schools = School::with('responsible')->get();
+            $schools = School::with(['responsible', 'sectors'])->withCount('sectors')->get();
             if (!$schools) throw new Exception("Aucune école trouvée");
             return successResponse($schools);
         } catch (Exception $e) {

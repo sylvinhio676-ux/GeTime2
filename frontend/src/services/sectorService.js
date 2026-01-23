@@ -12,6 +12,15 @@ export const sectorService = {
     }
   },
 
+  getForTeacher: async () => {
+    try {
+      const response = await api.get('/teacher/sectors');
+      return response.data.data || [];
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   getById: async (id) => {
     try {
       const response = await api.get(`${ENDPOINT}/${id}`);

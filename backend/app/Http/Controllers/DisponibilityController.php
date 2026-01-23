@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Stores\DisponibilityRequest;
 use App\Http\Requests\Updates\DisponibilityUpdateRequest;
+use App\Enum\JourEnum;
 use App\Models\Disponibility;
+use App\Models\Programmation;
 use App\Models\User;
 use App\Notifications\ProgrammationNotification;
+use App\Services\DisponibilityToProgrammationService;
 use Illuminate\Http\Request;
 use Exception;
 
@@ -33,7 +36,7 @@ class DisponibilityController extends Controller
     public function index()
     {
         try {
-            $disponibilities = Disponibility::with(['subject.teacher.user','etablishment'])->get();
+            $disponibilities = Disponibility::with(['subject.teacher.user','subject.specialty.level','etablishment'])->get();
             return successResponse($disponibilities);
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -124,5 +127,43 @@ class DisponibilityController extends Controller
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
+    }
+
+    public function convert(Request $request, Disponibility $disponibility, DisponibilityToProgrammationService $service)
+    {
+        try {
+            $overrides = array_filter(
+                $request->only(['room_id', 'programmer_id', 'year_id', 'status']),
+                fn ($value) => $value !== null
+            );
+
+            $programmation = $service->convert($disponibility, $overrides);
+            $this->notifyProgrammationCreation($programmation, $request->user()?->id);
+            return successResponse($programmation, "Programmation créée à partir de la disponibilité");
+        } catch (Exception $e) {
+            return errorResponse($e->getMessage());
+        }
+    }
+
+    private function notifyProgrammationCreation(Programmation $programmation, ?int $actorId = null): void
+    {
+        $programmerUser = $programmation->programmer?->user;
+        $payload = [
+            'type' => 'programmation_created_from_disponibility',
+            'title' => 'Programmation générée',
+            'message' => "Programmation créée pour {$this->resolveDayLabel($programmation->day)} ({$programmation->hour_star} - {$programmation->hour_end}).",
+            'meta' => ['programmation_id' => $programmation->id],
+            'action_url' => url('/dashboard/programmations'),
+            'action_label' => 'Voir la programmation',
+        ];
+        $this->notifyAdminsAndProgrammer($programmerUser, $payload, $actorId);
+    }
+
+    private function resolveDayLabel(string|JourEnum|null $value): string
+    {
+        if ($value instanceof JourEnum) {
+            return $value->value;
+        }
+        return (string) ($value ?? '—');
     }
 }

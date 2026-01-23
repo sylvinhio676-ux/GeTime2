@@ -3,7 +3,9 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen, Building, 
   Calendar, Settings, LogOut, Building2, Clock1, CircleUser, 
   University, BarChart2, ClipboardListIcon, Factory, Menu, X, CalendarClock,
-  Sun, Moon, Home, Mail, Bell, History
+  Sun, Moon, Home, Mail, Bell, History, MapPin,
+  Navigation, TrainTrackIcon,
+  MapPinHouse
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { logout } from "@/services/auth";
@@ -114,6 +116,8 @@ export default function Sidebar() {
                   <>
                     <SidebarItem to="/dashboard/schools" icon={University} label="Écoles" badge={1} onClick={toggleSidebar} />
                     <SidebarItem to="/dashboard/campuses" icon={Building} label="Campus" onClick={toggleSidebar} />
+                    <SidebarItem to="/dashboard/locations" icon={MapPin} label="Locations" onClick={toggleSidebar} />
+                    <SidebarItem to="/dashboard/tracking" icon={MapPinHouse} label="Tracking" onClick={toggleSidebar} />
                   </>
                 )}
                 {canAny("view-sector") && (
@@ -170,6 +174,9 @@ export default function Sidebar() {
                 {canAny("view-programmation") && (
                   <SidebarItem to="/dashboard/programmations" icon={ClipboardListIcon} label="Planning" badge={3} onClick={toggleSidebar} />
                 )}
+                {/* {canAny("view-programmation") && (
+                  
+                )} */}
                 {canAny("view-programmation") && (
                   <SidebarItem to="/dashboard/timetable" icon={CalendarClock} label="Emploi du temps" onClick={toggleSidebar} />
                 )}

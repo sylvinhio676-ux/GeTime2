@@ -4,14 +4,23 @@ const ENDPOINT = '/levels';
 
 export const levelService = {
     //Get all level
-    getAll: async () => {
+  getAll: async () => {
         try {
             const response = await api.get(ENDPOINT);
             return response.data.data || [];
         } catch (error) {
             throw error.response?.data || error;
         }
-    },
+  },
+
+  getForTeacher: async () => {
+    try {
+      const response = await api.get('/teacher/levels');
+      return response.data.data || [];
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 
     //Get single level
     getById: async (id) => {

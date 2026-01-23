@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('campuses', function (Blueprint $table) {
             $table->id();
             $table->string('campus_name');
-            $table->string('localisation');
+            $table->string('city');
             $table->foreignId('etablishment_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });

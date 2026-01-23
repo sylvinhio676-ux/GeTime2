@@ -31,3 +31,8 @@ export function initAuthFromStorage() {
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
+
+export async function forgotPassword(email) {
+  const response = await api.post('/forgot-password', { email });
+  return response.data;
+}

@@ -10,6 +10,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Schedule::command('schedules:remind-teachers')
+    ->dailyAt('18:00');
+
 Artisan::command('programmations:assign-rooms {--dry-run}', function () {
     if (!Schema::hasColumn('programmations', 'campus_id')) {
         $this->error('La colonne programmations.campus_id est absente. Stop.');

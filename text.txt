@@ -1723,3 +1723,45 @@ Programmer -> POST /programmations/publish-week
 
 
 Si tu veux, je peux aussi te donner une arborescence “clean architecture” (avec Domain/, Application/, Infrastructure/) plus “pro”, mais celle-ci reste parfaite et standard pour Laravel/React.
+
+
+pour partie d'une disponibilites d'enseignant jusqu'a une programmation complete,
+il faut suivre ces etapes cles:
+
+1. Vérifier la disponibilité
+    .Chaque disponibilites doit contenir le jour, la plage horaire, la matiere, l'etablissement.
+        attravers une matiere on peut deja recupere une specialite et attravers la
+        specialite on recupere deja le niveau
+    .Confirme que le créneau n’est pas déjà utilisé (conflit de salle ou d’enseignant).
+
+2. Rassembler les données nécessaires
+
+    .Enseignant (id / user), matière (subject), spécialité/niveau, salle/campus disponibles.
+    .Année académique courante et éventuelles contraintes (ex. “semaine paire”, “cours magistral”).
+
+3. Choisir une salle et un campus
+
+    .Filtrer sur les salles disponibles pour ce créneau et cette capacité.
+    .Associer le bon campus (et prendre en compte les relations entre campus, filières et disponibilités).
+
+4. Créer la programmation
+
+    .Utiliser programmationService.create
+    .Ajouter la spécialité / niveau lié à subject.
+
+5. Valider et notifier
+
+    .Si la prog est validée automatiquement, mettre status: "validated". Sinon, utiliser la mécanique de validation (workflow + notifications) déjà en place.
+    .Enregistrer l’action côté backend (log, notifications push/Firebase).
+
+6. Mettre à jour la disponibilité si nécessaire
+
+    .Si un créneau est consommé, soit le supprimer, soit marquer comme “utilisé” pour éviter les doublons.
+
+utomatiser ce processus dans un service qui :
+
+Filtre les disponibilités actives,
+Cherche salle/campus dispo,
+Crée la programmation,
+Notifie l’enseignant ou le programmeur,
+Et bascule la dispo en “réservée”.

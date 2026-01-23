@@ -24,6 +24,32 @@ class LevelController extends Controller
         }
     }
 
+    public function teacherIndex(Request $request)
+    {
+        try {
+            $teacher = $request->user()?->teacher;
+            if (!$teacher) {
+                return successResponse([], "Profil enseignant introuvable");
+            }
+
+            $levelIds = $teacher->subjects()
+                ->with('specialty.level')
+                ->get()
+                ->map(fn ($subject) => $subject->specialty?->level?->id)
+                ->filter()
+                ->unique();
+
+            if ($levelIds->isEmpty()) {
+                return successResponse([], "Aucun niveau associé");
+            }
+
+            $levels = Level::whereIn('id', $levelIds)->get();
+            return successResponse($levels);
+        } catch (Exception $e) {
+            return errorResponse($e->getMessage());
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */

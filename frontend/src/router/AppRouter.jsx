@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "@/pages/Auth/Login";
+import ForgotPassword from "@/pages/Auth/ForgotPassword";
 import Landing from "@/pages/Public/Landing";
 // import Dashboard from "@/pages/dashboard/Dashboard";
 import CampusList from "@/pages/Admin/campus/CampusList";
+import ShowCampus from "@/pages/Admin/campus/ShowCampus";
 import TeacherList from "@/pages/Admin/teacher/TeacherList";
 import ProgrammerList from "@/pages/Admin/programmer/ProgrammerList";
 import UserList from "@/pages/Admin/user/UserList";
@@ -18,6 +20,7 @@ import SpecialtyList from "@/pages/Admin/specialty/SpecialtyList";
 import SubjectList from "@/pages/Admin/Subject/SubjectList";
 import RoomList from "@/pages/Admin/room/RoomList";
 import SchoolList from "@/pages/Admin/school/SchoolList";
+import LocationList from "@/pages/Admin/location/LocationList";
 import DisponibilityList from "@/pages/Admin/disponibility/DisponibilityList";
 import Settings from "@/pages/Admin/Settings/Settings";
 import EmailSend from "@/pages/Admin/email/EmailSend";
@@ -27,6 +30,7 @@ import RequireAuth from "@/router/RequireAuth";
 import RequireGuest from "@/router/RequireGuest";
 import RequirePermission from "@/router/RequirePermission";
 import ProgrammationList from "@/pages/Admin/programmation/ProgrammationList";
+import TrackingPage from "@/pages/Admin/tracking/TrackingPage";
 
 export default function AppRouter() {
   return (
@@ -38,6 +42,11 @@ export default function AppRouter() {
         <Route path="/login" element={
           <RequireGuest>
             <Login />
+          </RequireGuest>
+        } />
+        <Route path="/forgot-password" element={
+          <RequireGuest>
+            <ForgotPassword />
           </RequireGuest>
         } />
 
@@ -53,6 +62,7 @@ export default function AppRouter() {
 
           {/* admin pages */}
           <Route path="campuses" element={<CampusList />} />
+          <Route path="campuses/:id" element={<ShowCampus />} />
           <Route path="teachers" element={<TeacherList />} />
           <Route path="users" element={<UserList />} />
           <Route path="programmers" element={<ProgrammerList />} />
@@ -77,6 +87,8 @@ export default function AppRouter() {
           <Route path="subjects" element={<SubjectList />} />
           <Route path="rooms" element={<RoomList />} />
           <Route path="schools" element={<SchoolList />} />
+          <Route path="locations" element={<LocationList />} />
+          <Route path="tracking" element={<TrackingPage />} />
           <Route path="disponibilities" element={<DisponibilityList />}/>
           <Route path="email" element={<EmailSend />} />
           <Route path="notifications" element={<NotificationList />} />

@@ -16,7 +16,14 @@ class SpecialtyController extends Controller
     public function index()
     {
         try {
-            $query = Specialty::with(['sector.school.responsible', 'programmer.user', 'level']);
+            $query = Specialty::with([
+                'sector.school.responsible',
+                'programmer.user',
+                'level',
+                'subjects.teacher.user',
+                'subjects.disponibilities',
+                'programmations.room',
+            ]);
             $user = request()->user();
             if ($user && $user->hasRole('teacher')) {
                 $teacherId = $user->teacher?->id;

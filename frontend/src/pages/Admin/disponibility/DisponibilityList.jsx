@@ -8,9 +8,13 @@ import { Progress } from '@/components/ui/progress';
 import { DeleteIcon, EditIcon, CalendarClock, Search, AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Pagination from '@/components/Pagination';
+import { specialtyService } from '@/services/specialtyService';
+import { levelService } from '@/services/levelService';
 
 export default function DisponibilityList() {
   const [disponibilities, setDisponibilities] = useState([]);
+  const [speciality, setSpeciality] = useState([]);
+  const [level, SetLevel] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [etablishments, setEtablishments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +24,9 @@ export default function DisponibilityList() {
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [convertingId, setConvertingId] = useState(null);
 
   const getErrorMessage = (error, fallback) => {
     if (!error) return fallback;
@@ -36,6 +43,8 @@ export default function DisponibilityList() {
     fetchSubjects();
     fetchEtablishments();
     fetchDisponibilities();
+    fetchSpeciality();
+    fetchLevel();
   }, []);
 
   const fetchSubjects = async () => {
@@ -67,6 +76,30 @@ export default function DisponibilityList() {
       setLoading(false);
     }
   };
+
+  const fetchSpeciality = async () => {
+    try {
+      setLoading(true);
+      const data = await specialtyService.getAll();
+      setSpeciality(data);
+    } catch (error) {
+      showNotify(getErrorMessage(error, "Erreur de chargement des disponibilites"), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const fetchLevel = async () => {
+    try {
+      setLoading(true);
+      const data = await levelService.getAll();
+      SetLevel(data);
+    } catch (error) {
+      showNotify(getErrorMessage(error, "Erreur de chargement des niveax"), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleCreate = async (formData) => {
     try {
@@ -104,6 +137,20 @@ export default function DisponibilityList() {
     }
   };
 
+  const handleConvert = async (id) => {
+    if (convertingId) return;
+    try {
+      setConvertingId(id);
+      await disponibilityService.convert(id);
+      showNotify('Programmation créée à partir de la disponibilité');
+      fetchDisponibilities();
+    } catch (error) {
+      showNotify(getErrorMessage(error, 'Erreur lors de la conversion'), 'error');
+    } finally {
+      setConvertingId(null);
+    }
+  };
+
   const startEdit = (disponibility) => {
     setEditingId(disponibility.id);
     setEditingData(disponibility);
@@ -121,7 +168,9 @@ export default function DisponibilityList() {
     return disponibilities.filter((d) =>
       d.day?.toLowerCase().includes(term) ||
       d.subject?.subject_name?.toLowerCase().includes(term) ||
-      d.etablishment?.etablishment_name?.toLowerCase().includes(term)
+      d.etablishment?.etablishment_name?.toLowerCase().includes(term) ||
+      d.speciality?.speciality_name?.toLowerCase().includes(term) ||
+      d.level?.name_level?.toLowerCase().includes(term)
     );
   }, [disponibilities, searchTerm]);
   const PAGE_SIZE = 10;
@@ -133,6 +182,41 @@ export default function DisponibilityList() {
     const start = (page - 1) * PAGE_SIZE;
     return filteredDisponibilities.slice(start, start + PAGE_SIZE);
   }, [filteredDisponibilities, page]);
+  const currentPageIds = pagedDisponibilities.map((disp) => disp.id);
+  const allCurrentSelected =
+    currentPageIds.length > 0 && currentPageIds.every((id) => selectedIds.includes(id));
+
+  const toggleSelection = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllCurrentPage = (value) => {
+    if (value) {
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...currentPageIds])));
+    } else {
+      setSelectedIds((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length || bulkDeleting) return;
+    if (!window.confirm('Supprimer toutes les disponibilités sélectionnées ?')) {
+      return;
+    }
+    try {
+      setBulkDeleting(true);
+      await Promise.all(selectedIds.map((id) => disponibilityService.delete(id)));
+      showNotify(`${selectedIds.length} disponibilité(s) supprimée(s)`);
+      setSelectedIds([]);subjects
+      fetchDisponibilities();
+    } catch (error) {
+      showNotify(getErrorMessage(error, 'Erreur lors de la suppression groupée'), 'error');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
 
   if (loading && disponibilities.length === 0) {
     return <div className="p-4 md:p-8 max-w-[1600px] mx-auto"><Progress value={25} className="h-1" /></div>;
@@ -187,6 +271,21 @@ export default function DisponibilityList() {
           <Badge variant="secondary" className="bg-muted text-foreground/80 border-none font-bold px-4 py-1">
             {filteredDisponibilities.length} Disponibilités
           </Badge>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={!selectedIds.length || bulkDeleting}
+              className="rounded-xl px-4 py-2 text-xs font-semibold"
+            >
+              {bulkDeleting ? 'Suppression...' : 'Supprimer la sélection'}
+            </Button>
+            {selectedIds.length > 0 && (
+              <span className="text-xs font-semibold text-muted-foreground/80">
+                {selectedIds.length} sélectionné(s)
+              </span>
+            )}
+          </div>
         </div>
 
         {showForm && (
@@ -225,16 +324,37 @@ export default function DisponibilityList() {
             <table className="w-full text-left min-w-[900px]">
               <thead className="bg-muted/50 text-muted-foreground/80 text-[10px] uppercase font-black tracking-widest border-b border-border/60">
                 <tr>
+                  <th className="px-4 py-5">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4"
+                      checked={allCurrentSelected}
+                      onChange={(event) => handleSelectAllCurrentPage(event.target.checked)}
+                      aria-label="Sélectionner toutes les disponibilités"
+                    />
+                  </th>
                   <th className="px-8 py-5">Jour</th>
                   <th className="px-8 py-5">Heure</th>
                   <th className="px-8 py-5">Matière</th>
                   <th className="px-8 py-5">Établissement</th>
+                  <th className='px-8 py-5'>Specialite</th>
+                  <th className='px-8 py-5'>Niveau</th>
+                  <th className="px-8 py-5">Statut</th>
                   <th className="px-8 py-5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
                 {pagedDisponibilities.map((disp) => (
-                  <tr key={disp.id} className="group hover:bg-muted/50 transition-colors">
+                  <tr key={disp.id} className="group transition-colors">
+                    <td className="px-4 py-5">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4"
+                        checked={selectedIds.includes(disp.id)}
+                        onChange={() => toggleSelection(disp.id)}
+                        aria-label={`Sélectionner la disponibilité ${disp.id}`}
+                      />
+                    </td>
                     <td className="px-8 py-5 font-bold text-foreground">{disp.day}</td>
                     <td className="px-8 py-5 text-muted-foreground font-medium">
                       {disp.hour_star} - {disp.hour_end}
@@ -245,6 +365,23 @@ export default function DisponibilityList() {
                     <td className="px-8 py-5 text-muted-foreground font-medium">
                       {disp.etablishment?.etablishment_name || '—'}
                     </td>
+                    <td className="px-8 py-5 text-foreground font-bold">
+                      {disp.subject?.specialty?.specialty_name || '-'}
+                    </td>
+                    <td className="px-8 py-5 text-foreground font-bold">
+                      {disp.subject?.specialty?.level?.name_level || '-'}
+                    </td>
+                    <td className="px-8 py-5">
+                      <Badge
+                        className={`px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] border ${
+                          disp.used
+                            ? 'border-delta-positive/20 bg-delta-positive/10 text-delta-positive'
+                            : 'border-border/40 bg-muted/10 text-muted-foreground'
+                        }`}
+                      >
+                        {disp.used ? 'Programmée' : 'Disponible'}
+                      </Badge>
+                    </td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button
@@ -252,6 +389,14 @@ export default function DisponibilityList() {
                           className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
                         >
                           <EditIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleConvert(disp.id)}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={disp.used || convertingId === disp.id}
+                          title="Créer la programmation"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(disp.id)}

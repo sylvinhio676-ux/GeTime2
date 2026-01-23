@@ -18,8 +18,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Pagination from '@/components/Pagination';
+import { useNavigate } from 'react-router-dom';
 
 export default function CampusList() {
+  const navigate = useNavigate();
   const [campuses, setCampuses] = useState([]);
   const [etablishments, setEtablishments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ export default function CampusList() {
   const filteredCampuses = useMemo(() => {
     return campuses.filter(c => 
       c.campus_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.localisation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.etablishment?.etablishment_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [campuses, searchTerm]);
@@ -174,8 +176,10 @@ export default function CampusList() {
               <thead className="bg-muted/50 text-muted-foreground/80 text-[10px] uppercase font-black tracking-widest border-b border-border/60">
                 <tr>
                   <th className="px-8 py-4">Désignation</th>
-                  <th className="px-8 py-4">Localisation</th>
+                  <th className="px-8 py-4">city</th>
                   <th className="px-8 py-4">Établissement</th>
+                  <th className="px-6 py-4 text-center">Status</th>
+                  <th className="px-6 py-4 text-center">Salles dispo.</th>
                   <th className="px-8 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -191,7 +195,7 @@ export default function CampusList() {
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <p className="text-sm text-muted-foreground font-medium">{campus.localisation || "Non définie"}</p>
+                      <p className="text-sm text-muted-foreground font-medium">{campus.city || "Non définie"}</p>
                     </td>
                     <td className="px-8 py-5">
                        <Badge variant="secondary" className="bg-muted text-muted-foreground border-none font-bold">
@@ -199,8 +203,23 @@ export default function CampusList() {
                           {campus.etablishment?.etablishment_name || "---"}
                        </Badge>
                     </td>
+                    <td className="px-6 py-5 text-center">
+                      { (campus.available_rooms_count ?? 0) > 0 ? (
+                        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-black uppercase tracking-[0.25em]">
+                          Actif
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-black uppercase tracking-[0.25em]">
+                          En maintenance
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-6 py-5 text-center">
+                      <p className="text-sm font-black text-foreground">{campus.available_rooms_count ?? 0}</p>
+                      <p className="text-[11px] text-muted-foreground">sur {campus.rooms_count ?? 0}</p>
+                    </td>
                     <td className="px-8 py-5 text-right">
-                      <div className="flex items-center justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-2 transition-opacity">
                         <button 
                           onClick={() => { setEditingData(campus); setShowForm(true); }}
                           className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
@@ -212,6 +231,13 @@ export default function CampusList() {
                           className="p-2 text-delta-negative hover:bg-delta-negative/10 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/dashboard/campuses/${campus.id}`)}
+                          className="px-3 py-1 text-xs font-bold border border-border/60 rounded-full text-muted-foreground hover:border-primary hover:text-primary transition-all"
+                        >
+                          Voir
                         </button>
                       </div>
                     </td>
@@ -252,16 +278,3 @@ export default function CampusList() {
     </div>
   );
 }
-
-// Dans ton tableau, remplace la cellule localisation par :
-{/* <td className="px-8 py-5">
-  <a 
-    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(campus.localisation)}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center gap-2 text-sm text-muted-foreground font-medium hover:text-muted-foreground transition-colors"
-  >
-    <MapPin className="w-3 h-3" />
-    {campus.localisation || "Non définie"}
-  </a>
-</td> */}

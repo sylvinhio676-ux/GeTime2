@@ -43,6 +43,16 @@ export const disponibilityService = {
         }
     },
 
+    //convert availability into programmation
+    convert: async (id, overrides = {}) => {
+        try {
+            const response = await api.post(`${ENDPOINT}/${id}/convert`, overrides);
+            return response.data.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
     //delete disponibility
     delete: async (id) => {
         try {
