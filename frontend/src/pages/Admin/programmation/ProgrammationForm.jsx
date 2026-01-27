@@ -18,6 +18,7 @@ export default function ProgrammationForm({
   subjects = [], 
   campuses = [],
   rooms = [],
+  availableSubjects = [],
   onSubmit, 
   onCancel, 
   isLoading = false,
@@ -80,6 +81,16 @@ export default function ProgrammationForm({
     () => subjects.find((s) => String(s.id) === String(formData.subject_id)),
     [subjects, formData.subject_id]
   );
+
+  const subjectOptions = useMemo(() => {
+    const pool = availableSubjects.length ? availableSubjects : subjects;
+    const subjectId = initialData?.subject_id;
+    if (!subjectId) return pool;
+    const alreadyIncluded = pool.some((s) => String(s.id) === String(subjectId));
+    if (alreadyIncluded) return pool;
+    const selected = subjects.find((s) => String(s.id) === String(subjectId));
+    return selected ? [...pool, selected] : pool;
+  }, [availableSubjects, subjects, initialData?.subject_id]);
 
   useEffect(() => {
     const hasSubject = Boolean(formData.subject_id);
@@ -200,7 +211,7 @@ export default function ProgrammationForm({
             required
           >
             <option value="">-- Sélectionner --</option>
-            {subjects.map((s) => (
+            {subjectOptions.map((s) => (
               <option key={s.id} value={s.id}>{s.subject_name}</option>
             ))}
           </select>

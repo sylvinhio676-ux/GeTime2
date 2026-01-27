@@ -51,5 +51,14 @@ export const roomService = {
         } catch (error) {
             throw error.response?.data || error;
         }
-    }
+    },
+    //rooms for teacher
+    getTeacherRooms: async () => {
+        try {
+            const response = await api.get('/teacher/rooms');
+            return response.data.data?.rooms || [];
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
 }

@@ -13,20 +13,17 @@ class RoomsSeeder extends Seeder
      */
     public function run(): void
     {
-        $campusIds = Campus::query()->pluck('id')->all();
-        $types = ['cours', 'td', 'tp'];
-        $count = 30;
+        $campusIds = Campus::query()->take(3)->pluck('id')->all();
+        $rooms = [
+            ['code' => 'A101', 'capacity' => 25, 'is_available' => true, 'type_room' => 'cours'],
+            ['code' => 'B102', 'capacity' => 20, 'is_available' => false, 'type_room' => 'td'],
+            ['code' => 'C103', 'capacity' => 30, 'is_available' => true, 'type_room' => 'cours'],
+            ['code' => 'D104', 'capacity' => 18, 'is_available' => true, 'type_room' => 'tp'],
+            ['code' => 'E105', 'capacity' => 22, 'is_available' => false, 'type_room' => 'td'],
+        ];
 
-        for ($index = 0; $index < $count; $index++) {
-            $letter = chr(ord('A') + intdiv($index, 6));
-            $number = 101 + ($index % 6);
-            $room = [
-                'code' => $letter . $number,
-                'capacity' => 20 + (($index % 8) * 5),
-                'is_available' => $index % 4 !== 0,
-                'campus_id' => $campusIds[$index % count($campusIds)] ?? null,
-                'type_room' => $types[$index % count($types)],
-            ];
+        foreach ($rooms as $index => $room) {
+            $room['campus_id'] = $campusIds[$index % count($campusIds)] ?? null;
             Room::create($room);
         }
     }

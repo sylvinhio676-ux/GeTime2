@@ -18,6 +18,7 @@ class Subject extends Model
         'color',
         'teacher_id',
         'specialty_id',
+        'quota_hours',
     ];
 
     protected $casts = [
@@ -46,5 +47,9 @@ class Subject extends Model
 
     public function specialty(){
         return $this->belongsTo(Specialty::class);
+    }
+
+    public function quotas(){
+        return $this->hasMany(SubjectQuota::class);
     }
 }

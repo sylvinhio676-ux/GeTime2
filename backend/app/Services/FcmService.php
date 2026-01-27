@@ -8,7 +8,7 @@ use Kreait\Firebase\Messaging\CloudMessage;
 
 class FcmService
 {
-    public function __construct(private Messaging $messaging) {}
+    public function __construct(private ?Messaging $messaging = null) {}
 
     /**
      * @param array<int,string> $tokens
@@ -33,6 +33,6 @@ class FcmService
             ->withData($data);
 
         // multicast
-        $this->messaging->sendMulticast($message, $tokens);
+        $this->messaging?->sendMulticast($message, $tokens);
     }
 }

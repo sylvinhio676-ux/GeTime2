@@ -51,5 +51,25 @@ export const subjectService = {
         } catch (error) {
             throw error.response?.data || error;
         }
+    },
+
+    // Get quota status for subjects
+    getQuotaStatus: async (params = {}) => {
+        try {
+            const response = await api.get(`${ENDPOINT}/quota-status`, { params });
+            return response.data.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    // Get stats for a specific subject
+    getStats: async (subjectId) => {
+        try {
+            const response = await api.get(`${ENDPOINT}/${subjectId}/quota`);
+            return response.data.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
     }
 }

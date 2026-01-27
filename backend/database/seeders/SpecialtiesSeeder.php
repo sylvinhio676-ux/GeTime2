@@ -31,15 +31,7 @@ class SpecialtiesSeeder extends Seeder
             ['specialty_name' => 'Traduction', 'code' => 'TRAD', 'description' => 'Langues et traduction', 'number_student' => 19],
             ['specialty_name' => 'Management Sportif', 'code' => 'SPORT', 'description' => 'Gestion des activites sportives', 'number_student' => 21],
         ];
-        $count = 30;
-
-        for ($index = 0; $index < $count; $index++) {
-            $specialty = $baseSpecialties[$index % count($baseSpecialties)];
-            if ($index >= count($baseSpecialties)) {
-                $specialty['specialty_name'] = sprintf('%s %d', $specialty['specialty_name'], $index + 1);
-                $specialty['code'] = sprintf('%s%02d', $specialty['code'], $index + 1);
-                $specialty['number_student'] = $specialty['number_student'] + ($index % 6);
-            }
+        foreach (array_slice($baseSpecialties, 0, 5) as $index => $specialty) {
             $specialty['sector_id'] = $sectorIds[$index % count($sectorIds)] ?? null;
             $specialty['programmer_id'] = $programmerIds[$index % count($programmerIds)] ?? null;
             $specialty['level_id'] = $levelIds[$index % count($levelIds)] ?? null;

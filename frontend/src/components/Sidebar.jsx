@@ -141,10 +141,13 @@ export default function Sidebar() {
                     <SidebarItem to="/dashboard/teachers" icon={Users} label="Enseignants" onClick={toggleSidebar} />
                   )
                 )}
+                {hasRole("teacher") && (
+                  <SidebarItem to="/dashboard/teacher-rooms" icon={MapPin} label="Salles attribuées" onClick={toggleSidebar} />
+                )}
                 {canAny("view-subject") && (
                   <SidebarItem to="/dashboard/subjects" icon={BookOpen} label="Matières" onClick={toggleSidebar} />
                 )}
-                {canAny("view-room") && (
+                {canAny("view-room") && !hasRole("teacher") && (
                   <SidebarItem to="/dashboard/rooms" icon={Building2} label="Salles" onClick={toggleSidebar} />
                 )}
                 {!isAdmin && canAny("view-teacher") && (
@@ -171,7 +174,7 @@ export default function Sidebar() {
                 {canAny("view-year") && (
                   <SidebarItem to="/dashboard/years" icon={Calendar} label="Années" onClick={toggleSidebar} />
                 )}
-                {canAny("view-programmation") && (
+                {canAny("view-programmation") && !hasRole("teacher") && (
                   <SidebarItem to="/dashboard/programmations" icon={ClipboardListIcon} label="Planning" badge={3} onClick={toggleSidebar} />
                 )}
                 {/* {canAny("view-programmation") && (
@@ -186,6 +189,12 @@ export default function Sidebar() {
                 {canAny("view-disponibility") && (
                   <SidebarItem to="/dashboard/disponibilities" icon={CalendarClock} label="Disponibilités" onClick={toggleSidebar} />
                 )}
+              </NavSection>
+            )}
+
+            {!loading && isAdmin && (
+              <NavSection title="Analytique">
+                <SidebarItem to="/dashboard/analytics" icon={BarChart2} label="Analytics" onClick={toggleSidebar} />
               </NavSection>
             )}
           </nav>

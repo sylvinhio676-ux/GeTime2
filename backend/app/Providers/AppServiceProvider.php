@@ -14,13 +14,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(Messaging::class, function() {
-            $credentials = env('FIREBASE_CREDENTIALS');
-
-            return (new Factory)
-                ->withServiceAccount($credentials)
-                ->createMessaging();
-        });
+        $credentials = env('FIREBASE_CREDENTIALS');
+        if ($credentials && file_exists($credentials)) {
+            $this->app->singleton(Messaging::class, function () use ($credentials) {
+                return (new Factory)
+                    ->withServiceAccount($credentials)
+                    ->createMessaging();
+            });
+        }
     }
 
     /**

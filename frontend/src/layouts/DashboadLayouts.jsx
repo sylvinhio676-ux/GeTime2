@@ -2,7 +2,7 @@ import Sidebar from '@/components/Sidebar'
 import NotificationBell from '@/components/NotificationBell'
 import React, { useEffect, useState } from 'react'
 import { Outlet, Link } from 'react-router-dom'
-import { Home, Settings, Moon, Sun } from 'lucide-react'
+import { Home, Settings, Moon, Sun, BarChart3 } from 'lucide-react'
 
 export default function DashboadLayouts() {
   const [theme, setTheme] = useState('light')
@@ -37,6 +37,9 @@ export default function DashboadLayouts() {
                 </Link>
                 <Link to='/dashboard/settings' className='inline-flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground text-xs font-semibold uppercase tracking-wide'>
                   <Settings className='w-4 h-4' /> Paramètres
+                </Link>
+                <Link to='/dashboard/quota-dashboard' className='inline-flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground text-xs font-semibold uppercase tracking-wide'>
+                  <BarChart3 className='w-4 h-4' /> Quotas
                 </Link>
               </div>
 

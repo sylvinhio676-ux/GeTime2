@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle } from "react-leaflet";
 import { Play, Pause, RotateCcw, MapPin, Navigation } from "lucide-react";
@@ -62,10 +62,12 @@ export default function TrackingPage() {
 
   // tracking state
   const [tracking, setTracking] = useState(false);
-  const [me, setMe] = useState(null); // { lat, lng, accuracy, speed }
-  const [path, setPath] = useState([]); // [{lat,lng}]
+  const [me, setMe] = useState(null);
+  const [path, setPath] = useState([]);
   const watchIdRef = useRef(null);
   const prevDistanceRef = useRef(null);
+  const trackingStartRef = useRef(null);
+  const [savingSession, setSavingSession] = useState(false);
   const [trend, setTrend] = useState(null);
 
   // (optionnel pro) reset quand on change de campus
@@ -105,6 +107,11 @@ export default function TrackingPage() {
       return;
     }
 
+    trackingStartRef.current = Date.now();
+    setPath([]);
+    setCampusRoute([]);
+    setTrend(null);
+
     setTracking(true);
 
     watchIdRef.current = navigator.geolocation.watchPosition(
@@ -141,13 +148,46 @@ export default function TrackingPage() {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
+    void flushTracking();
   };
 
   const resetTracking = () => {
     stopTracking();
     setMe(null);
-    setPath([]);
+    trackingStartRef.current = null;
   };
+
+  const flushTracking = useCallback(async () => {
+    if (!path.length) return;
+    setSavingSession(true);
+    const durationSeconds = trackingStartRef.current
+      ? Math.max(0, (Date.now() - trackingStartRef.current) / 1000)
+      : 0;
+    const payload = {
+      path,
+      distance: distanceWalked,
+      duration_seconds: durationSeconds,
+      campus_id: campus?.id,
+      campus_name: campus?.campus_name ?? campus?.name ?? null,
+      meta: {
+        trend,
+        started_at: trackingStartRef.current
+          ? new Date(trackingStartRef.current).toISOString()
+          : null,
+      },
+    };
+
+    try {
+      await trackingService.savePath(payload);
+    } catch (error) {
+      console.error("Impossible d'envoyer la trace GPS", error);
+    } finally {
+      setSavingSession(false);
+      trackingStartRef.current = null;
+      setPath([]);
+      setCampusRoute([]);
+    }
+  }, [path, distanceWalked, campus, trend]);
 
   useEffect(() => {
     return () => stopTracking();
@@ -183,11 +223,6 @@ export default function TrackingPage() {
       controller.abort();
     };
   }, [me, campusPos]);
-
-  useEffect(() => {
-    if (!path.length) return;
-    trackingService.savePath(path).catch(() => {});
-  }, [path]);
 
   useEffect(() => {
     if (distanceToCampus === null) return;
@@ -251,6 +286,11 @@ export default function TrackingPage() {
             Reset
           </Button>
         </div>
+        {savingSession && (
+          <div className="text-xs text-primary font-bold uppercase tracking-[0.3em]">
+            Transmission en cours...
+          </div>
+        )}
       </div>
 
       {campusError ? (

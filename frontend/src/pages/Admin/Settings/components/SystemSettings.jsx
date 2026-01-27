@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
 import { Settings, Server, Clock, Package } from 'lucide-react';
 
+const SettingToggle = ({ label, description, value, onChange }) => (
+  <div className="flex items-start justify-between p-4 border border-border rounded-2xl hover:bg-muted transition">
+    <div className="flex-1">
+      <p className="font-medium text-foreground">{label}</p>
+      {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+    </div>
+    <label className="flex items-center cursor-pointer ml-4">
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={onChange}
+        className="w-5 h-5"
+      />
+    </label>
+  </div>
+);
+
 export default function SystemSettings({ onDataChange }) {
   const [systemSettings, setSystemSettings] = useState({
     autoBackup: true,
@@ -27,23 +44,6 @@ export default function SystemSettings({ onDataChange }) {
     }));
     onDataChange();
   };
-
-  const SettingToggle = ({ label, description, value, onChange }) => (
-    <div className="flex items-start justify-between p-4 border border-border rounded-2xl hover:bg-muted transition">
-      <div className="flex-1">
-        <p className="font-medium text-foreground">{label}</p>
-        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
-      </div>
-      <label className="flex items-center cursor-pointer ml-4">
-        <input
-          type="checkbox"
-          checked={value}
-          onChange={onChange}
-          className="w-5 h-5"
-        />
-      </label>
-    </div>
-  );
 
   const systemInfo = [
     { label: 'Version', value: '1.0.0' },

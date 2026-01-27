@@ -27,14 +27,7 @@ class SectorsSeeder extends Seeder
             ['sector_name' => 'Langues', 'code' => 'LANG'],
             ['sector_name' => 'Sport', 'code' => 'SPORT'],
         ];
-        $count = 30;
-
-        for ($index = 0; $index < $count; $index++) {
-            $sector = $baseSectors[$index % count($baseSectors)];
-            if ($index >= count($baseSectors)) {
-                $sector['sector_name'] = sprintf('%s %d', $sector['sector_name'], $index + 1);
-                $sector['code'] = sprintf('%s%02d', $sector['code'], $index + 1);
-            }
+        foreach (array_slice($baseSectors, 0, 5) as $index => $sector) {
             $sector['school_id'] = $schoolIds[$index % count($schoolIds)] ?? null;
             Sector::create($sector);
         }

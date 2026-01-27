@@ -31,6 +31,10 @@ import RequireGuest from "@/router/RequireGuest";
 import RequirePermission from "@/router/RequirePermission";
 import ProgrammationList from "@/pages/Admin/programmation/ProgrammationList";
 import TrackingPage from "@/pages/Admin/tracking/TrackingPage";
+import QuotaDashboard from "@/pages/Admin/quota/QuotaDashboard";
+import AnalyticsDashboard from "@/pages/Admin/analytics/AnalyticsDashboard";
+import TeacherRoomList from "@/pages/Admin/room/TeacherRoomList";
+import RequireTeacher from "@/router/RequireTeacher";
 
 export default function AppRouter() {
   return (
@@ -86,6 +90,14 @@ export default function AppRouter() {
           <Route path="specialties" element={<SpecialtyList />} />
           <Route path="subjects" element={<SubjectList />} />
           <Route path="rooms" element={<RoomList />} />
+          <Route
+            path="teacher-rooms"
+            element={
+              <RequireTeacher>
+                <TeacherRoomList />
+              </RequireTeacher>
+            }
+          />
           <Route path="schools" element={<SchoolList />} />
           <Route path="locations" element={<LocationList />} />
           <Route path="tracking" element={<TrackingPage />} />
@@ -93,6 +105,8 @@ export default function AppRouter() {
           <Route path="email" element={<EmailSend />} />
           <Route path="notifications" element={<NotificationList />} />
           <Route path="audit-logs" element={<AuditLogList />} />
+          <Route path="quota-dashboard" element={<QuotaDashboard />} />
+          <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="settings" element={<Settings/>} />
 
         </Route>

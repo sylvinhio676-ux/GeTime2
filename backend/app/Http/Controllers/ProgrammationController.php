@@ -11,13 +11,18 @@ use App\Models\Room;
 use App\Models\Subject;
 use App\Models\Year;
 use App\Models\User;
+use App\Enum\JourEnum;
 use App\Notifications\ProgrammationNotification;
+use App\Services\QuotaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Exception;
 
 class ProgrammationController extends Controller
 {
+    public function __construct(private QuotaService $quotaService)
+    {
+    }
     // Vérifie si un créneau se chevauche avec un autre en filtrant sur les bornes et optionnellement en excluant un id.
     private function hasOverlap($query, string $day, string $start, string $end, ?int $excludeId = null): bool
     {
@@ -332,11 +337,20 @@ class ProgrammationController extends Controller
                 }
             }
 
+            $teacherId = $subject->teacher_id ?? 0;
+            $hoursNeeded = $this->quotaService->calculateHoursFromTimes($data['hour_star'], $data['hour_end']);
+            if ($this->quotaService->isQuotaExceeded($subject->id, $teacherId, $hoursNeeded)) {
+                return errorResponse("Quota insuffisant pour cette matière");
+            }
+
             unset($data['campus_id']);
             if (empty($data['status'])) {
                 $data['status'] = 'draft';
             }
             $programmation = Programmation::create($data);
+
+            // Update quota
+            $this->quotaService->updateQuotaOnCreate($programmation);
 
             if (!empty($specialtyIds)) {
                 $programmation->specialties()->sync($specialtyIds);
@@ -482,11 +496,23 @@ class ProgrammationController extends Controller
                 }
             }
 
+            $teacherId = $subject->teacher_id ?? 0;
+            $newHoursUsed = $this->quotaService->calculateHoursFromTimes($start, $end);
+            $oldHoursUsed = $programmation->hours_used ?? 0;
+            $difference = $newHoursUsed - $oldHoursUsed;
+
+            if ($difference > 0 && $this->quotaService->isQuotaExceeded($subject->id, $teacherId, $difference)) {
+                return errorResponse("Quota insuffisant pour cette matière");
+            }
+
             unset($data['campus_id']);
             if (array_key_exists('status', $data) && empty($data['status'])) {
                 $data['status'] = $programmation->status ?? 'draft';
             }
             $programmation->update($data);
+
+            // Update quota
+            $this->quotaService->updateQuotaOnUpdate($programmation, $oldHoursUsed);
 
             if (!empty($specialtyIds)) {
                 $programmation->specialties()->sync($specialtyIds);
@@ -517,10 +543,11 @@ class ProgrammationController extends Controller
             $subject = $programmation->subject;
             $teacherUser = $subject?->teacher?->user;
             $programmerUser = $programmation->programmer?->user;
+            $dayValue = $programmation->day instanceof \App\Enum\JourEnum ? $programmation->day->value : $programmation->day;
             $payload = [
                 'type' => 'programmation_deleted',
                 'title' => 'Programmation supprimée',
-                'message' => "Une séance du {$programmation->day} ({$programmation->hour_star} - {$programmation->hour_end}) a été supprimée.",
+                'message' => "Une séance du {$dayValue} ({$programmation->hour_star} - {$programmation->hour_end}) a été supprimée.",
                 'meta' => ['programmation_id' => $programmation->id, 'subject_id' => $subject?->id],
                 'action_url' => url('/dashboard/programmations'),
                 'action_label' => 'Voir le planning',

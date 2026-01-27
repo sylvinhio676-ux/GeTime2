@@ -36,7 +36,13 @@ class DisponibilityController extends Controller
     public function index()
     {
         try {
-            $disponibilities = Disponibility::with(['subject.teacher.user','subject.specialty.level','etablishment'])->get();
+            $query = Disponibility::with(['subject.teacher.user','subject.specialty.level','etablishment']);
+            $user = request()->user();
+            if ($user && $user->hasRole('teacher')) {
+                $teacherId = $user->teacher?->id;
+                $query->whereHas('subject', fn($q) => $q->where('teacher_id', $teacherId));
+            }
+            $disponibilities = $query->get();
             return successResponse($disponibilities);
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
@@ -132,6 +138,10 @@ class DisponibilityController extends Controller
     public function convert(Request $request, Disponibility $disponibility, DisponibilityToProgrammationService $service)
     {
         try {
+            $user = $request->user();
+            if ($user && $user->hasRole('teacher')) {
+                return forbiddenResponse('Accès refusé');
+            }
             $overrides = array_filter(
                 $request->only(['room_id', 'programmer_id', 'year_id', 'status']),
                 fn ($value) => $value !== null

@@ -24,13 +24,6 @@ class UsersSeeder extends Seeder
                 'role' => 'admin',
             ],
             [
-                'name' => 'Milford Test',
-                'email' => 'milford46@example.net',
-                'phone' => '690000002',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-            ],
-            [
                 'name' => 'Alice Teacher',
                 'email' => 'alice.teacher@example.com',
                 'phone' => '690000003',
@@ -52,53 +45,22 @@ class UsersSeeder extends Seeder
                 'role' => 'programmer',
             ],
             [
-                'name' => 'David Programmer',
-                'email' => 'david.programmer@example.com',
-                'phone' => '690000006',
-                'password' => Hash::make('password'),
-                'role' => 'programmer',
-            ],
-            [
                 'name' => 'Eva Admin',
                 'email' => 'eva.admin@example.com',
                 'phone' => '690000007',
                 'password' => Hash::make('password'),
                 'role' => 'super_admin',
             ],
-            [
-                'name' => 'Frank User',
-                'email' => 'frank.user@example.com',
-                'phone' => '690000008',
-                'password' => Hash::make('password'),
-                'role' => 'teacher',
-            ],
-            [
-                'name' => 'Grace User',
-                'email' => 'grace.user@example.com',
-                'phone' => '690000009',
-                'password' => Hash::make('password'),
-                'role' => 'programmer',
-            ],
-            [
-                'name' => 'Hugo User',
-                'email' => 'hugo.user@example.com',
-                'phone' => '690000010',
-                'password' => Hash::make('password'),
-                'role' => 'teacher',
-            ],
         ];
-        $extraRoles = ['teacher', 'programmer', 'admin'];
-        for ($i = 11; $i <= 30; $i++) {
-            $users[] = [
-                'name' => sprintf('User %02d', $i),
-                'email' => sprintf('user%02d@example.com', $i),
-                'phone' => sprintf('690%06d', $i),
-                'password' => Hash::make('password'),
-                'role' => $extraRoles[$i % count($extraRoles)],
-            ];
-        }
 
         // 2. Boucle de création et d'assignation
+        // Crée les rôles si nécessaire (guard 'sanctum')
+        $guardName = 'sanctum';
+        $allRoles = array_unique(array_column($users, 'role'));
+        foreach ($allRoles as $roleName) {
+            Role::firstOrCreate(['name' => $roleName, 'guard_name' => $guardName]);
+        }
+
         foreach ($users as $userData) {
             // On extrait le nom du rôle pour Spatie
             $roleName = $userData['role'];

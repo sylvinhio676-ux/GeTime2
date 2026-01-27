@@ -35,7 +35,7 @@ class SendTeacherScheduleRemindersTest extends TestCase
         $year = Year::factory()->create();
 
         $tomorrow = Carbon::now()->addDay();
-        $enumDay = JourEnum::from($tomorrow->locale('fr')->dayName);
+        $enumDay = JourEnum::fromString($tomorrow->locale('fr')->dayName);
         \App\Models\Programmation::create([
             'day' => $enumDay->value,
             'hour_star' => '08:00',

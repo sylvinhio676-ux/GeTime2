@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Button from '../../../components/Button';
 
-export default function SpecialtyForm({ initialData = null, sectors = [], programmers = [], levels = [], onSubmit, onCancel, isLoading = false }) {
+export default function SpecialtyForm({ 
+  initialData = null, 
+  sectors = [], 
+  programmers = [], 
+  levels = [], 
+  onSubmit, 
+  onCancel, 
+  isLoading = false 
+}) {
   const [formData, setFormData] = useState(
     initialData || {
       specialty_name: '',
@@ -66,156 +74,163 @@ export default function SpecialtyForm({ initialData = null, sectors = [], progra
     }
   };
 
+  const inputClasses = (name) => `
+    w-full px-4 py-2.5 rounded-xl border bg-background/50 text-sm 
+    focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-200
+    ${errors[name] ? 'border-destructive' : 'border-border'}
+  `;
+
+  const labelClasses = "block text-[10px] uppercase tracking-widest font-black text-muted-foreground mb-1.5 ml-1";
+
   return (
-    <div className='absolute bg-[rgba(0 0 0 0.1)] left-0 top-0 right-0 bottom-0 flex justify-center w-full'>
-      <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded-lg shadow-md border border-gray-200">
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">Specialty Name *</label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Grille principale */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        {/* Nom de la Spécialité - Pleine largeur sur Desktop */}
+        <div className="md:col-span-2">
+          <label className={labelClasses}>Nom de la Spécialité *</label>
           <input
             type="text"
             name="specialty_name"
             value={formData.specialty_name}
             onChange={handleChange}
-            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/30 transition ${
-              errors.specialty_name ? 'border-danger' : 'border-gray-300'
-            }`}
+            placeholder="Ex: Génie Logiciel"
+            className={inputClasses('specialty_name')}
             required
           />
           {errors.specialty_name && (
-            <p className="text-danger text-sm mt-1">{errors.specialty_name[0]}</p>
+            <p className="text-destructive text-[10px] font-bold mt-1 ml-1">{errors.specialty_name[0]}</p>
           )}
         </div>
 
+        {/* Code */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Code *</label>
+          <label className={labelClasses}>Code *</label>
           <input
             type="text"
             name="code"
             value={formData.code}
             onChange={handleChange}
-            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/30 transition ${
-              errors.code ? 'border-danger' : 'border-gray-300'
-            }`}
+            placeholder="Ex: GL"
+            className={inputClasses('code')}
             required
           />
           {errors.code && (
-            <p className="text-danger text-sm mt-1">{errors.code[0]}</p>
+            <p className="text-destructive text-[10px] font-bold mt-1 ml-1">{errors.code[0]}</p>
           )}
         </div>
 
+        {/* Nombre d'étudiants */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Description</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/30 transition ${
-              errors.description ? 'border-danger' : 'border-gray-300'
-            }`}
-            rows="3"
-          />
-          {errors.description && (
-            <p className="text-danger text-sm mt-1">{errors.description[0]}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">Number of Students *</label>
+          <label className={labelClasses}>Nombre d'étudiants *</label>
           <input
             type="number"
             name="number_student"
             value={formData.number_student}
             onChange={handleChange}
-            className={`w-full px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary/30 transition ${
-              errors.number_student ? 'border-danger' : 'border-gray-300'
-            }`}
+            className={inputClasses('number_student')}
             required
           />
           {errors.number_student && (
-            <p className="text-danger text-sm mt-1">{errors.number_student[0]}</p>
+            <p className="text-destructive text-[10px] font-bold mt-1 ml-1">{errors.number_student[0]}</p>
           )}
         </div>
 
+        {/* Niveau */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Level *</label>
+          <label className={labelClasses}>Niveau *</label>
           <select 
             name="level_id" 
             value={formData.level_id}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className={inputClasses('level_id')}
             required
           >
-            <option value="">--Select a Level--</option>
+            <option value="">Sélectionner...</option>
             {levels.map((level) => (
               <option key={level.id} value={level.id}>
-                {level.name_level}
+                {level.level_name || level.name_level}
               </option>
             ))}
           </select>
-          {errors.level_id && (
-            <p className="text-danger text-sm mt-1">{errors.level_id[0]}</p>
-          )}
         </div>
 
+        {/* Secteur */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Sector *</label>
+          <label className={labelClasses}>Secteur *</label>
           <select 
             name="sector_id" 
             value={formData.sector_id}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className={inputClasses('sector_id')}
             required
           >
-            <option value="">--Select a Sector--</option>
+            <option value="">Sélectionner...</option>
             {sectors.map((sector) => (
               <option key={sector.id} value={sector.id}>
                 {sector.sector_name}
               </option>
             ))}
           </select>
-          {errors.sector_id && (
-            <p className="text-danger text-sm mt-1">{errors.sector_id[0]}</p>
-          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-primary mb-1">Programmer</label>
+        {/* Responsable (Programmer) - Pleine largeur sur Desktop */}
+        <div className="md:col-span-2">
+          <label className={labelClasses}>Responsable / Programmeur</label>
           <select 
             name="programmer_id" 
             value={formData.programmer_id}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
-            required
+            className={inputClasses('programmer_id')}
           >
-            <option value="">--Select a Programmer--</option>
-            {programmers.map((programmer) => (
-              <option key={programmer.id} value={programmer.id}>
-                {programmer.registration_number}
+            <option value="">-- Aucun responsable --</option>
+            {programmers.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.user?.name || p.registration_number}
               </option>
             ))}
           </select>
-          {errors.programmer_id && (
-            <p className="text-danger text-sm mt-1">{errors.programmer_id[0]}</p>
-          )}
         </div>
 
-        <div className="flex gap-3">
-          <Button
-            type='submit'
-            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saving...' : initialData ? 'Update Specialty' : 'Create Specialty'}
-          </Button>
-          <Button
-            type='button'
-            onClick={onCancel}
-            className="flex-1 bg-gray-300 text-gray-700 hover:bg-gray-400 transition"
-          >
-            Annuler
-          </Button>
+        {/* Description - Pleine largeur */}
+        <div className="md:col-span-2">
+          <label className={labelClasses}>Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            className={inputClasses('description')}
+            rows="3"
+            placeholder="Informations complémentaires..."
+          />
         </div>
-      </form>
-    </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-row gap-3 pt-4 sticky bottom-0 bg-card pb-2">
+        <Button
+          type='button'
+          onClick={onCancel}
+          className="flex-1 bg-muted text-muted-foreground hover:bg-muted/80 rounded-xl h-12 font-bold transition-all"
+        >
+          Annuler
+        </Button>
+        <Button
+          type='submit'
+          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 rounded-xl h-12 font-bold shadow-lg shadow-primary/20 transition-all active:scale-95"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ...
+            </span>
+          ) : (
+            initialData ? 'Enregistrer' : 'Créer'
+          )}
+        </Button>
+      </div>
+    </form>
   );
 }

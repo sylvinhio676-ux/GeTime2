@@ -22,6 +22,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\DeviceTokenController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\QuotaController;
+use App\Http\Controllers\TeacherRoomController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -46,9 +49,16 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/archived', [NotificationController::class, 'archived']);
     Route::get('/notifications/unread', [NotificationController::class, 'unread']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+    Route::patch('/notifications/{id}/archive', [NotificationController::class, 'archive']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::get('/notifications/stats', [NotificationController::class, 'stats']);
+    Route::get('/notifications/templates', [NotificationController::class, 'templates']);
+    Route::post('/notifications/schedule', [NotificationController::class, 'schedule']);
+    Route::post('/notifications/push', [NotificationController::class, 'push']);
     Route::get('/audit-logs', [AuditLogController::class, 'index'])
         ->middleware('role_or_permission:super_admin|admin,sanctum');
 
@@ -59,7 +69,15 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
         ->middleware('role_or_permission:teacher|super_admin|admin,sanctum');
     Route::apiResource('schools', SchoolController::class)
         ->middleware('role_or_permission:super_admin|admin,sanctum');
-    Route::apiResource('etablishments', EtablishmentController::class)
+    Route::get('etablishments', [EtablishmentController::class, 'index'])
+        ->middleware('role_or_permission:super_admin|admin|teacher,sanctum');
+    Route::get('etablishments/{etablishment}', [EtablishmentController::class, 'show'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::post('etablishments', [EtablishmentController::class, 'store'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::put('etablishments/{etablishment}', [EtablishmentController::class, 'update'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::delete('etablishments/{etablishment}', [EtablishmentController::class, 'destroy'])
         ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::get('locations', [LocationController::class, 'index'])
         ->middleware('role_or_permission:super_admin|admin,sanctum');
@@ -118,6 +136,10 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Subjects
     Route::get('subjects', [SubjectController::class, 'index'])
+        ->middleware('role_or_permission:super_admin|admin|view-subject|teacher,sanctum');
+    Route::get('subjects/quota-status', [QuotaController::class, 'getSubjectsByStatus'])
+        ->middleware('role_or_permission:super_admin|admin|view-subject,sanctum');
+    Route::get('subjects/{subject}/quota', [QuotaController::class, 'getSubjectStats'])
         ->middleware('role_or_permission:super_admin|admin|view-subject,sanctum');
     Route::get('subjects/{subject}', [SubjectController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|view-subject,sanctum');
@@ -130,7 +152,7 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Teachers
     Route::get('teachers', [TeacherController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin|view-teacher,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|view-teacher|teacher,sanctum');
     Route::get('teachers/{teacher}', [TeacherController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|view-teacher,sanctum');
     Route::post('teachers', [TeacherController::class, 'store'])
@@ -196,7 +218,7 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Disponibilities
     Route::get('disponibilities', [DisponibilityController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin|view-disponibility,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|view-disponibility|teacher,sanctum');
     Route::get('disponibilities/{disponibility}', [DisponibilityController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|view-disponibility,sanctum');
     Route::post('disponibilities', [DisponibilityController::class, 'store'])
@@ -212,8 +234,20 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
     Route::apiResource('/device-token', DeviceTokenController::class);
 
     // tracking
-    Route::post('tracking/path', [TrackingController::class, 'store'])
+    Route::post('tracking/path', [TrackingController::class, 'store']);
+    Route::get('analytics/usage', [AnalyticsController::class, 'usageMetrics'])
         ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::get('analytics/routes', [AnalyticsController::class, 'topCampuses'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::get('analytics/recent-sessions', [AnalyticsController::class, 'recentSessions'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+
+    // Quota
+    Route::get('/quota/stats', [QuotaController::class, 'getStats'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+
+    Route::get('/teacher/rooms', [TeacherRoomController::class, 'index'])
+        ->middleware('auth:sanctum');
 
     //=======Event
     Route::post('/programmations/publish-week', [ProgrammationController::class, 'publishWeek']);

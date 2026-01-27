@@ -6,6 +6,7 @@ use App\Enum\JourEnum;
 use App\Events\DisponibilityCreated;
 use App\Events\DisponibilityDeleted;
 use App\Events\DisponibilityUpdated;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -42,11 +43,32 @@ class Disponibility extends Model
         return $this->belongsTo(Etablishment::class);
     }
 
-    public function markAsUsed(): self
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('used', false);
+    }
+
+    public function scopeUnused(Builder $query): Builder
+    {
+        return $this->scopeActive($query);
+    }
+
+    public function isReserved(): bool
+    {
+        return (bool) $this->used;
+    }
+
+    public function markAsReserved(): self
     {
         if (!$this->used) {
             $this->update(['used' => true]);
         }
+
         return $this;
+    }
+
+    public function markAsUsed(): self
+    {
+        return $this->markAsReserved();
     }
 }

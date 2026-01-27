@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\Programmation;
+use App\Services\DisponibilityConversionService;
 use App\Models\Room;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -12,6 +14,9 @@ Artisan::command('inspire', function () {
 
 Schedule::command('schedules:remind-teachers')
     ->dailyAt('18:00');
+
+Schedule::command('disponibilities:auto-schedule')
+    ->dailyAt('02:30');
 
 Artisan::command('programmations:assign-rooms {--dry-run}', function () {
     if (!Schema::hasColumn('programmations', 'campus_id')) {
@@ -77,3 +82,17 @@ Artisan::command('programmations:assign-rooms {--dry-run}', function () {
 
     return self::SUCCESS;
 })->purpose('Assigne automatiquement les salles aux programmations existantes (basé sur campus_id)');
+
+Artisan::command('disponibilities:auto-schedule', function () {
+    /** @var DisponibilityConversionService $service */
+    $service = app(DisponibilityConversionService::class);
+    $programmations = $service->processPending();
+
+    if (empty($programmations)) {
+        $this->info('Aucune disponibilité active n’a pu être transformée.');
+        return self::SUCCESS;
+    }
+
+    $this->info(sprintf('Programmations automatiques créées : %d', count($programmations)));
+    return self::SUCCESS;
+})->purpose('Convertit automatiquement les disponibilités actives en programmations validées');

@@ -16,10 +16,10 @@ class TeachersSeeder extends Seeder
         $userIds = User::query()->pluck('id')->all();
         $year = date('Y');
 
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= min(5, $userCount = count($userIds)); $i++) {
             Teacher::create([
                 'registration_number' => sprintf('T%s%04d', $year, $i),
-                'user_id' => $userIds[($i - 1) % count($userIds)] ?? null,
+                'user_id' => $userIds[($i - 1) % $userCount] ?? null,
             ]);
         }
     }

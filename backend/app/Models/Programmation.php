@@ -20,10 +20,12 @@ class Programmation extends Model
         'year_id',
         'room_id',
         'status',
+        'hours_used',
     ];
 
     protected $casts = [
-        'day' => JourEnum::class
+        'day' => JourEnum::class,
+        'hours_used' => 'decimal:2',
     ];
 
     // public function generateDaysOptions(){

@@ -13,8 +13,6 @@ export default function ProfileSettings({ onDataChange }) {
     location: 'Paris, France',
   });
 
-  const [avatarPreview, setAvatarPreview] = useState(null);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({
@@ -27,12 +25,7 @@ export default function ProfileSettings({ onDataChange }) {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-        onDataChange();
-      };
-      reader.readAsDataURL(file);
+      onDataChange();
     }
   };
 

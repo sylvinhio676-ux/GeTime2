@@ -1,7 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-export default function DisponibilityForm({ initialData = null, subjects = [], etablishments = [], onSubmit, onCancel, isLoading = false }) {
+const SHIFTS = {
+  morning: {
+    key: 'morning',
+    label: 'Matin (08h00-12h00)',
+    ranges: [{ start: '08:00', end: '12:00' }],
+  },
+  afternoon: {
+    key: 'afternoon',
+    label: 'Après-midi (13h00-17h00)',
+    ranges: [{ start: '13:00', end: '17:00' }],
+  },
+  fullday: {
+    key: 'fullday',
+    label: 'Toute la journée',
+    ranges: [
+      { start: '08:00', end: '12:00' },
+      { start: '13:00', end: '17:00' },
+    ],
+  },
+};
+
+export default function DisponibilityForm({
+  initialData = null,
+  subjects = [],
+  availableSubjects = [],
+  etablishments = [],
+  onSubmit,
+  onCancel,
+  isLoading = false,
+}) {
   const [formData, setFormData] = useState(
     initialData || {
       day: '',
@@ -11,8 +40,19 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
       etablishment_id: '',
     }
   );
-
   const [errors, setErrors] = useState({});
+  const [selectedShift, setSelectedShift] = useState('morning');
+  const applyShift = (shiftKey) => {
+    const shift = SHIFTS[shiftKey];
+    if (!shift) return;
+    setSelectedShift(shiftKey);
+    const primaryRange = shift.ranges[0];
+    setFormData((prev) => ({
+      ...prev,
+      hour_star: primaryRange.start,
+      hour_end: primaryRange.end,
+    }));
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -23,11 +63,46 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
         subject_id: initialData.subject_id || '',
         etablishment_id: initialData.etablishment_id || '',
       });
+      const shiftKey = Object.values(SHIFTS).find((shift) =>
+        shift.ranges.some(
+          (range) =>
+            range.start === initialData.hour_star && range.end === initialData.hour_end
+        )
+      )?.key;
+      if (shiftKey) {
+        setSelectedShift(shiftKey);
+      }
     }
   }, [initialData]);
 
-  const selectedSubject = subjects.find((subject) => String(subject.id) === String(formData.subject_id));
-  const selectedSpecialtyLabel = selectedSubject?.specialty?.specialty_name || selectedSubject?.specialties?.specialty_name || '';
+  useEffect(() => {
+    if (!initialData) {
+      applyShift('morning');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData]);
+
+  const selectedSubject = subjects.find(
+    (subject) => String(subject.id) === String(formData.subject_id)
+  );
+  const selectedSpecialtyLabel =
+    selectedSubject?.specialty?.specialty_name ||
+    selectedSubject?.specialties?.specialty_name ||
+    '';
+
+  const subjectOptions = useMemo(() => {
+    const base = availableSubjects.length ? availableSubjects : subjects;
+    const subjectId = initialData?.subject_id;
+    if (!subjectId) return base;
+    const alreadyIncluded = base.some(
+      (subject) => String(subject.id) === String(subjectId)
+    );
+    if (alreadyIncluded) return base;
+    const fallback = subjects.find(
+      (subject) => String(subject.id) === String(subjectId)
+    );
+    return fallback ? [...base, fallback] : base;
+  }, [availableSubjects, subjects, initialData?.subject_id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,10 +118,20 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
     }
   };
 
+  const handleShiftChange = (shiftKey) => {
+    applyShift(shiftKey);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await onSubmit(formData);
+      const shift = SHIFTS[selectedShift] || SHIFTS.morning;
+      const entries = shift.ranges.map((range) => ({
+        ...formData,
+        hour_star: range.start,
+        hour_end: range.end,
+      }));
+      await onSubmit(shift.key === 'fullday' ? entries : entries[0]);
       if (!initialData) {
         setFormData({
           day: '',
@@ -55,6 +140,7 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
           subject_id: '',
           etablishment_id: '',
         });
+        applyShift('morning');
       }
     } catch (error) {
       if (error.errors) {
@@ -66,7 +152,7 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
   const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-auto">
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
           Jour *
@@ -89,47 +175,44 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
             </option>
           ))}
         </select>
-        {errors.day && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.day[0]}</p>}
+        {errors.day && (
+          <p className="text-delta-negative text-[11px] font-bold ml-1">
+            {errors.day[0]}
+          </p>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
-            Heure de début *
-          </label>
-          <input
-            type="time"
-            name="hour_star"
-            value={formData.hour_star}
-            onChange={handleChange}
-            className={`w-full px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all focus:bg-card focus:outline-none focus:ring-4 ${
-              errors.hour_star
-                ? 'border-delta-negative/40 focus:ring-delta-negative/20 text-delta-negative'
-                : 'border-border focus:ring-muted/60 focus:border-border/80'
-            }`}
-            required
-          />
-          {errors.hour_star && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.hour_star[0]}</p>}
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
+          Tranche horaire *
+        </label>
+        <div className="flex flex-wrap gap-3">
+          {Object.values(SHIFTS).map((shift) => (
+            <label
+              key={shift.key}
+              className={`flex-1 min-w-[120px] px-4 py-3 rounded-2xl border transition-all cursor-pointer text-sm font-semibold text-center ${
+                selectedShift === shift.key
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-muted text-foreground'
+              }`}
+            >
+              <input
+                type="radio"
+                name="shift"
+                value={shift.key}
+                checked={selectedShift === shift.key}
+                onChange={() => handleShiftChange(shift.key)}
+                className="hidden"
+              />
+              {shift.label}
+            </label>
+          ))}
         </div>
-
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">
-            Heure de fin *
-          </label>
-          <input
-            type="time"
-            name="hour_end"
-            value={formData.hour_end}
-            onChange={handleChange}
-            className={`w-full px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all focus:bg-card focus:outline-none focus:ring-4 ${
-              errors.hour_end
-                ? 'border-delta-negative/40 focus:ring-delta-negative/20 text-delta-negative'
-                : 'border-border focus:ring-muted/60 focus:border-border/80'
-            }`}
-            required
-          />
-          {errors.hour_end && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.hour_end[0]}</p>}
-        </div>
+        <p className="text-[11px] text-muted-foreground">
+          {selectedShift === 'fullday'
+            ? 'Matin 08:00-12:00 et après-midi 13:00-17:00'
+            : `${SHIFTS[selectedShift].ranges[0].start} - ${SHIFTS[selectedShift].ranges[0].end}`}
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -148,13 +231,17 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
           required
         >
           <option value="">Sélectionner une matière</option>
-          {subjects.map((subject) => (
+          {subjectOptions.map((subject) => (
             <option key={subject.id} value={subject.id}>
               {subject.subject_name}
             </option>
           ))}
         </select>
-        {errors.subject_id && <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.subject_id[0]}</p>}
+        {errors.subject_id && (
+          <p className="text-delta-negative text-[11px] font-bold ml-1">
+            {errors.subject_id[0]}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -192,7 +279,9 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
           ))}
         </select>
         {errors.etablishment_id && (
-          <p className="text-delta-negative text-[11px] font-bold ml-1">{errors.etablishment_id[0]}</p>
+          <p className="text-delta-negative text-[11px] font-bold ml-1">
+            {errors.etablishment_id[0]}
+          </p>
         )}
       </div>
 
@@ -202,7 +291,11 @@ export default function DisponibilityForm({ initialData = null, subjects = [], e
           className="flex-[2] bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-2 h-auto shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
           disabled={isLoading}
         >
-          {isLoading ? 'Enregistrement...' : initialData ? 'Mettre a jour la disponibilite' : 'Creer la disponibilite'}
+          {isLoading
+            ? 'Enregistrement...'
+            : initialData
+              ? 'Mettre a jour la disponibilite'
+              : 'Creer la disponibilite'}
         </Button>
         <Button
           type="button"
