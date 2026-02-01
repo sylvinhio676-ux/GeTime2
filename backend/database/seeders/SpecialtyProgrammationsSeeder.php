@@ -17,7 +17,7 @@ class SpecialtyProgrammationsSeeder extends Seeder
         $specialtyIds = Specialty::query()->pluck('id')->all();
         $programmationIds = Programmation::query()->pluck('id')->all();
 
-        for ($i = 0; $i < 30; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             SpecialtyProgrammation::create([
                 'specialty_id' => $specialtyIds[$i % count($specialtyIds)] ?? null,
                 'programmation_id' => $programmationIds[$i % count($programmationIds)] ?? null,

@@ -17,17 +17,28 @@ export default function YearForm({
   const [formData, setFormData] = useState({
     date_star: '',
     date_end: '',
+    status: ''
   });
 
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        date_star: initialData.date_star || '',
-        date_end: initialData.date_end || '',
-      });
-    }
+    if (!initialData) return;
+    const nextForm = {
+      date_star: initialData.date_star || '',
+      date_end: initialData.date_end || '',
+      status: initialData?.status || '',
+    };
+    setFormData((prev) => {
+      if (
+        prev.date_star === nextForm.date_star &&
+        prev.date_end === nextForm.date_end &&
+        prev.status === nextForm.status
+      ) {
+        return prev;
+      }
+      return nextForm;
+    });
   }, [initialData]);
 
   const handleChange = ({ target }) => {
@@ -106,6 +117,20 @@ export default function YearForm({
           {errors.date_end && (
             <p className="text-delta-negative text-[10px] font-bold mt-1 ml-1">{errors.date_end[0]}</p>
           )}
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">
+            Statut de l'année
+          </label>
+          <select 
+            className="w-full px-4 py-3 bg-muted/50 rounded-xl text-sm border border-transparent focus:border-primary/30 outline-none font-semibold"
+            value={formData.status}
+            onChange={e => setFormData({...formData, status: e.target.value})}
+          >
+            <option value="upcoming">À venir</option>
+            <option value="active">Actif</option>
+            <option value="unactive">inactive</option>
+          </select>
         </div>
       </div>
 

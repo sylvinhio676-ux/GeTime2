@@ -170,7 +170,7 @@ export default function RoomForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="flex-[2] bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/80 text-primary-foreground rounded-2xl py-7 h-auto shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
+          className="flex-[2] bg-primary text-primary-foreground rounded-2xl py-7 h-auto shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -187,7 +187,7 @@ export default function RoomForm({
           type="button"
           onClick={onCancel}
           variant="outline"
-          className="flex-1 border-border text-muted-foreground hover:bg-muted rounded-2xl py-7 h-auto font-bold transition-all"
+          className="flex-1 border-border text-primary hover:bg-muted rounded-2xl py-7 h-auto font-bold transition-all"
         >
           Annuler
         </Button>

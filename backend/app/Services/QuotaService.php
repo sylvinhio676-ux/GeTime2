@@ -8,59 +8,60 @@ use Carbon\Carbon;
 
 class QuotaService
 {
-    /**
-     * Calculate hours used for a programmation.
-     */
     public function calculateHoursUsed(Programmation $programmation): float
     {
         $start = Carbon::parse($programmation->hour_star);
         $end = Carbon::parse($programmation->hour_end);
-        return $end->diffInMinutes($start) / 60.0;
+        return abs($end->diffInMinutes($start)) / 60.0;
     }
 
-    /**
-     * Calculate hours between two time strings.
-     */
     public function calculateHoursFromTimes(string $start, string $end): float
     {
         try {
             $parsedStart = Carbon::parse($start);
             $parsedEnd = Carbon::parse($end);
-            if ($parsedEnd->lessThanOrEqualTo($parsedStart)) {
-                return 0;
-            }
+            if ($parsedEnd->lessThanOrEqualTo($parsedStart)) return 0;
             return $parsedEnd->diffInMinutes($parsedStart) / 60.0;
         } catch (\Exception $e) {
             return 0;
         }
     }
 
-    /**
-     * Get or create quota for subject-teacher.
-     */
     public function getOrCreateQuota(int $subjectId, int $teacherId): SubjectQuota
     {
-        return SubjectQuota::firstOrCreate(
+        $subject = \App\Models\Subject::find($subjectId);
+        $currentTotal = $subject ? (float)$subject->total_hour : 0.0;
+
+        // 1. On récupère ou on crée l'entrée
+        $quota = SubjectQuota::firstOrCreate(
             ['subject_id' => $subjectId, 'teacher_id' => $teacherId],
             [
-                'total_quota' => 0, // Default, can be set later
-                'used_quota' => 0,
-                'remaining_quota' => 0,
+                'total_quota' => $currentTotal,
+                'used_quota' => 0, 
+                'remaining_quota' => $currentTotal
             ]
         );
+
+        // 2. CORRECTION CRITIQUE : Si le quota existe mais que total_quota est différent 
+        // de la matière (ex: 0 alors qu'elle fait 45h), on synchronise.
+        if (abs((float)$quota->total_quota - $currentTotal) > 0.01) {
+            $quota->total_quota = $currentTotal;
+            $quota->remaining_quota = $currentTotal - $quota->used_quota;
+            $quota->save();
+        }
+
+        return $quota;
     }
 
-    /**
-     * Check if quota is exceeded for a subject-teacher.
-     */
     public function isQuotaExceeded(int $subjectId, int $teacherId, float $hoursToUse): bool
     {
         $quota = $this->getOrCreateQuota($subjectId, $teacherId);
-        return ($quota->used_quota + $hoursToUse) > $quota->total_quota;
+        // On autorise si le dépassement est inférieur à 1 minute (0.01h)
+        return ($quota->used_quota + $hoursToUse) > ($quota->total_quota + 0.01);
     }
 
     /**
-     * Update quota after programmation creation.
+     * MISE À JOUR : Utilisation de saveQuietly() pour briser la boucle infinie
      */
     public function updateQuotaOnCreate(Programmation $programmation): void
     {
@@ -71,12 +72,13 @@ class QuotaService
         $quota->remaining_quota = $quota->total_quota - $quota->used_quota;
         $quota->save();
 
+        // On met à jour la programmation sans déclencher les événements de modèle
         $programmation->hours_used = $hoursUsed;
-        $programmation->save();
+        $programmation->saveQuietly(); 
     }
 
     /**
-     * Update quota after programmation update.
+     * MISE À JOUR : Utilisation de saveQuietly()
      */
     public function updateQuotaOnUpdate(Programmation $programmation, float $oldHoursUsed): void
     {
@@ -90,49 +92,58 @@ class QuotaService
         $quota->save();
 
         $programmation->hours_used = $newHoursUsed;
-        $programmation->save();
+        $programmation->saveQuietly(); 
     }
 
-    /**
-     * Update quota after programmation deletion.
-     */
     public function updateQuotaOnDelete(Programmation $programmation): void
     {
         $quota = $this->getOrCreateQuota($programmation->subject_id, $programmation->subject->teacher_id ?? 0);
-        
-        $quota->used_quota -= $programmation->hours_used ?? 0;
+        $quota->used_quota -= (float) ($programmation->hours_used ?? 0);
         $quota->remaining_quota = $quota->total_quota - $quota->used_quota;
         $quota->save();
     }
 
-    /**
-     * Get quota status for a subject.
-     */
     public function getQuotaStatus(int $subjectId, int $teacherId): array
     {
+        // 1. Récupérer le quota de base (qui contient la colonne total_quota)
         $quota = $this->getOrCreateQuota($subjectId, $teacherId);
-        $programmationsCount = Programmation::where('subject_id', $subjectId)->count();
+        
+        // 2. Calculer le réalisé RÉEL depuis la table programmations (Source de vérité)
+        // On ne compte que les séances "published"
+        $realUsedMinutes = \App\Models\Programmation::where('subject_id', $subjectId)
+            ->where('status', 'published')
+            ->get()
+            ->sum(function($prog) {
+                // On utilise hours_used s'il existe, sinon on parse les heures
+                return (float) ($prog->hours_used ?? 0);
+            });
 
+        $totalQuota = (float) $quota->total_quota;
+        $usedQuota = (float) $realUsedMinutes;
+        $remainingQuota = max(0, $totalQuota - $usedQuota);
+
+        // 3. Logique de statut robuste
         $status = 'not_programmed';
-        if ($programmationsCount > 0) {
-            $status = $quota->remaining_quota <= 0 ? 'completed' : 'in_progress';
+        if ($usedQuota > 0) {
+            $status = ($usedQuota >= $totalQuota && $totalQuota > 0) 
+                    ? 'completed' 
+                    : 'in_progress';
         }
 
         return [
-            'total_quota' => $quota->total_quota,
-            'used_quota' => $quota->used_quota,
-            'remaining_quota' => $quota->remaining_quota,
-            'status' => $status,
-            'percentage_used' => $quota->total_quota > 0 ? ($quota->used_quota / $quota->total_quota) * 100 : 0,
+            'subject_id'      => $subjectId,
+            'teacher_id'      => $teacherId,
+            'total_quota'     => $totalQuota,
+            'used_quota'      => $usedQuota,
+            'remaining_quota' => $remainingQuota,
+            'status'          => $status,
+            'percentage_used' => $totalQuota > 0 ? ($usedQuota / $totalQuota) * 100 : 0,
         ];
     }
 
-    /**
-     * Get stats for all subjects.
-     */
     public function getStats(): array
     {
-        $quotas = SubjectQuota::with('subject', 'teacher')->get();
+        $quotas = SubjectQuota::with(['subject', 'teacher.user'])->get();
 
         $stats = [
             'total_subjects' => $quotas->count(),
@@ -143,14 +154,14 @@ class QuotaService
         ];
 
         foreach ($quotas as $quota) {
-            $status = $this->getQuotaStatus($quota->subject_id, $quota->teacher_id)['status'];
+            $statusData = $this->getQuotaStatus($quota->subject_id, $quota->teacher_id);
+            $status = $statusData['status'];
+            
             $stats[$status]++;
-            $stats['subjects'][] = [
-                'subject' => $quota->subject->subject_name,
-                'teacher' => $quota->teacher->name,
-                'status' => $status,
-                'percentage_used' => $quota->total_quota > 0 ? ($quota->used_quota / $quota->total_quota) * 100 : 0,
-            ];
+            $stats['subjects'][] = array_merge($statusData, [
+                'subject_name' => $quota->subject->subject_name ?? 'Inconnu',
+                'teacher_name' => $quota->teacher->user->name ?? 'N/A',
+            ]);
         }
 
         return $stats;

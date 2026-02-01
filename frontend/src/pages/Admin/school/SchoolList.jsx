@@ -161,7 +161,7 @@ export default function SchoolList() {
                   <th className="px-4 lg:px-8 py-4">Nom de l'École</th>
                   <th className="px-4 lg:px-8 py-4 hidden lg:table-cell">Description</th>
                   <th className="px-4 lg:px-8 py-4">Responsable</th>
-                  <th className="px-4 lg:px-8 py-4 text-right">Secteurs</th>
+                  <th className="px-4 lg:px-8 py-4 text-right">Filiere</th>
                   <th className="px-4 lg:px-8 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -192,7 +192,7 @@ export default function SchoolList() {
                     </td>
                     <td className="px-4 lg:px-8 py-4 text-right">
                       <Badge className="rounded-lg bg-muted text-muted-foreground text-xs font-black uppercase tracking-[0.25em]">
-                        {school.sectors_count ?? 0} {school.sectors_count > 1 ? 'secteurs' : 'secteur'}
+                        {school.sectors_count ?? 0} {school.sectors_count > 1 ? 'Filieres' : 'Filiere'}
                       </Badge>
                     </td>
                     <td className="px-4 lg:px-8 py-4 text-right">

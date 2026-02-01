@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Users, Search, X, Pencil, Trash2, Plus, Mail, Phone, 
-  RefreshCcw, Download, Upload, History, Bell, BarChart3, Wifi, WifiOff, PhoneCall
+  RefreshCcw, Download, Upload, History, Bell, BarChart3, Wifi, WifiOff, PhoneCall,
+  Save
 } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
 import Pagination from '@/components/Pagination';
@@ -39,8 +40,8 @@ export default function UserList() {
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
-    name: '', email: '', phone: '', role: 'teacher',
-    assignedSubjects: [], assignedRooms: [], assignedSpecialties: []
+    name: '', email: '', phone: '', role: 'teacher', password: 'password',
+    assignedSubjects: [], assignedSpecialties: []
   });
 
   const [showStats, setShowStats] = useState(false);
@@ -251,6 +252,7 @@ export default function UserList() {
             <option value="all">Tous les rôles</option>
             <option value="admin">Admin</option>
             <option value="teacher">Enseignant</option>
+            <option value="programmer">Programmeur</option>
           </select>
         </div>
       </div>
@@ -343,58 +345,179 @@ export default function UserList() {
         )}
       </div>
 
-      {/* FORM MODAL */}
-      {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowForm(false)} />
-          <div className="relative w-full max-w-lg bg-card border border-border rounded-t-[2rem] sm:rounded-3xl shadow-2xl overflow-hidden overflow-y-auto max-h-[90vh]">
-             <div className="p-6 border-b border-border flex justify-between items-center">
-                <h2 className="font-black italic uppercase tracking-tight">{editingUser ? 'Editer Profil' : 'Nouveau Compte'}</h2>
-                <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-full"><X className="w-5 h-5" /></Button>
-             </div>
-             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Nom Complet</label>
-                    <input required className="w-full px-4 py-2.5 bg-muted/50 rounded-xl text-sm border-none outline-none focus:ring-2 ring-primary/20" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Email Professionnel</label>
-                    <input type="email" required className="w-full px-4 py-2.5 bg-muted/50 rounded-xl text-sm border-none outline-none focus:ring-2 ring-primary/20" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Rôle</label>
-                      <select className="w-full px-4 py-2.5 bg-muted/50 rounded-xl text-sm border-none outline-none" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
-                        <option value="teacher">Enseignant</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Téléphone</label>
-                      <input className="w-full px-4 py-2.5 bg-muted/50 rounded-xl text-sm border-none outline-none" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Matières</label>
-                      <Select 
-                        isMulti 
-                        options={options.subjects.map(s => ({ value: s.id, label: s.subject_name }))} 
-                        styles={selectStyles}
-                        value={formData.assignedSubjects}
-                        onChange={v => setFormData({...formData, assignedSubjects: v})}
-                      />
-                  </div>
-                </div>
-                <div className="pt-4">
-                  <Button disabled={actionLoading} type="submit" className="w-full bg-primary h-12 rounded-xl font-bold text-white shadow-lg">
-                    {actionLoading ? <RefreshCcw className="w-4 h-4 animate-spin" /> : (editingUser ? 'Enregistrer les modifications' : 'Créer le compte')}
-                  </Button>
-                </div>
-             </form>
+      {/* Remplacer le bloc {showForm && (...)} par cette version améliorée */}
+{showForm && (
+  <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
+    <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setShowForm(false)} />
+    
+    <div className="relative w-full max-w-2xl bg-card border border-border rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+      
+      {/* HEADER AMÉLIORÉ */}
+      <div className="p-6 border-b border-border bg-muted/20 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+            {editingUser ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+          </div>
+          <div>
+            <h2 className="text-lg font-black uppercase tracking-tight">
+              {editingUser ? 'Modifier le Profil' : 'Nouveau Compte Utilisateur'}
+            </h2>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+              {editingUser ? `ID: ${editingUser.id}` : 'Configuration des accès système'}
+            </p>
           </div>
         </div>
-      )}
+        <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-full hover:bg-red-50 hover:text-red-500 transition-colors">
+          <X className="w-5 h-5" />
+        </Button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-8">
+        
+        {/* SECTION 1: INFORMATIONS PERSONNELLES */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-4 w-1 bg-primary rounded-full" />
+            <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Informations Personnelles</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-muted-foreground ml-1 flex items-center gap-1">
+                <Users className="w-3 h-3" /> Nom Complet
+              </label>
+              <input 
+                required 
+                placeholder="Ex: Jean Dupont"
+                className="w-full px-4 py-3 bg-muted/50 rounded-xl text-sm border border-transparent focus:border-primary/30 focus:ring-4 ring-primary/5 outline-none transition-all font-semibold" 
+                value={formData.name} 
+                onChange={e => setFormData({...formData, name: e.target.value})} 
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-muted-foreground ml-1 flex items-center gap-1">
+                <Mail className="w-3 h-3" /> Email Professionnel
+              </label>
+              <input 
+                type="email" 
+                required 
+                placeholder="jean.dupont@ecole.com"
+                className="w-full px-4 py-3 bg-muted/50 rounded-xl text-sm border border-transparent focus:border-primary/30 focus:ring-4 ring-primary/5 outline-none transition-all font-semibold" 
+                value={formData.email} 
+                onChange={e => setFormData({...formData, email: e.target.value})} 
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-muted-foreground ml-1 flex items-center gap-1">
+                <BarChart3 className="w-3 h-3" /> Rôle Système
+              </label>
+              <select 
+                className="w-full px-4 py-3 bg-muted/50 rounded-xl text-sm border border-transparent focus:border-primary/30 outline-none font-semibold appearance-none cursor-pointer" 
+                value={formData.role} 
+                onChange={e => setFormData({...formData, role: e.target.value})}
+              >
+                <option value="teacher">Enseignant</option>
+                <option value="admin">Administrateur</option>
+                <option value="programmer">Programmeur</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-muted-foreground ml-1 flex items-center gap-1">
+                <PhoneCall className="w-3 h-3" /> Téléphone
+              </label>
+              <input 
+                placeholder="+237 6xx xxx xxx"
+                className="w-full px-4 py-3 bg-muted/50 rounded-xl text-sm border border-transparent focus:border-primary/30 outline-none font-semibold" 
+                value={formData.phone} 
+                onChange={e => setFormData({...formData, phone: e.target.value})} 
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 2: AFFECTATIONS & MATIÈRES */}
+        <div className="space-y-4 pt-4 border-t border-border/60">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-4 w-1 bg-primary rounded-full" />
+            <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Affectations Pédagogiques</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Matières Enseignées</label>
+              <Select 
+                isMulti 
+                placeholder="Sélectionner les matières..."
+                options={options.subjects.map(s => ({ value: s.id, label: s.subject_name }))} 
+                styles={selectStyles}
+                value={formData.assignedSubjects}
+                onChange={v => setFormData({...formData, assignedSubjects: v})}
+                className="text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Spécialités</label>
+                <Select 
+                  isMulti 
+                  placeholder="Spécialités..."
+                  options={options.specialties.map(s => ({ value: s.id, label: s.specialty_name }))} 
+                  styles={selectStyles}
+                  value={formData.assignedSpecialties}
+                  onChange={v => setFormData({...formData, assignedSpecialties: v})}
+                  className="text-sm"
+                />
+              </div>
+
+              {/* <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Salles de Référence</label>
+                <Select 
+                  isMulti 
+                  placeholder="Salles..."
+                  options={options.rooms.map(r => ({ value: r.id, label: r.code }))} 
+                  styles={selectStyles}
+                  value={formData.assignedRooms}
+                  onChange={v => setFormData({...formData, assignedRooms: v})}
+                  className="text-sm"
+                />
+              </div> */}
+            </div>
+          </div>
+        </div>
+
+        {/* FOOTER ACTIONS */}
+        <div className="pt-6 flex flex-col sm:flex-row gap-3">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={() => setShowForm(false)}
+            className="flex-1 h-12 rounded-xl font-bold uppercase text-xs tracking-widest border border-border"
+          >
+            Annuler
+          </Button>
+          <Button 
+            disabled={actionLoading} 
+            type="submit" 
+            className="flex-[2] bg-primary hover:opacity-90 h-12 rounded-xl font-black uppercase text-xs tracking-widest text-white shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
+          >
+            {actionLoading ? (
+              <RefreshCcw className="w-5 h-5 animate-spin" />
+            ) : (
+              <div className="flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                <span>{editingUser ? 'Enregistrer les modifications' : 'Confirmer la création'}</span>
+              </div>
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </div>
   );
 }

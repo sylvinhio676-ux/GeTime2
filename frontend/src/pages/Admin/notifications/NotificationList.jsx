@@ -11,6 +11,7 @@ import {
   BarChart3,
   Clock,
   Shield,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +26,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
 } from "recharts";
 
 const formatDate = (value) => {
@@ -78,6 +77,28 @@ export default function NotificationList() {
     setNotification({ show: true, message, type });
     setTimeout(() => setNotification({ show: false, message: "", type: "" }), 4000);
   }, []);
+
+  // --- NOUVELLE FONCTION : VALIDATION DU COURS ET QUOTA ---
+  const handleValidateCourse = async (notificationId, programmationId, isDone) => {
+    setMutating(true);
+    try {
+      // 1. Appel au nouveau contrôleur Laravel
+      await api.post(`/programmations/${programmationId}/validate`, { is_done: isDone });
+      
+      // 2. Marquer la notification comme lue localement et sur le serveur
+      await notificationService.markRead(notificationId);
+      
+      showNotify(isDone ? "Cours validé : Quota mis à jour !" : "Cours marqué comme non effectué.");
+      
+      // 3. Rafraîchir les données
+      loadNotifications();
+    } catch (error) {
+      console.error("Erreur validation cours", error);
+      showNotify("Erreur lors de la mise à jour du quota", "error");
+    } finally {
+      setMutating(false);
+    }
+  };
 
   const loadAuditHistory = useCallback(async () => {
     try {
@@ -429,11 +450,42 @@ export default function NotificationList() {
                     className="p-5 hover:bg-muted/70 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div>
+                      <div className="flex-1">
                         <p className={`text-sm ${item.read_at ? "text-foreground/70" : "text-foreground"} font-black`}>
                           {item.data?.title || "Notification"}
                         </p>
                         <p className="text-xs text-muted-foreground">{item.data?.message}</p>
+                        
+                        {/* --- AJOUT : ACTIONS POUR VERIFICATION DE COURS --- */}
+                        {item.data?.type === 'verification_cours' && !item.read_at && (
+                          <div className="mt-4 flex flex-wrap gap-2 animate-in zoom-in-95">
+                            <Button 
+                              size="sm" 
+                              disabled={mutating}
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-xl text-[10px] font-bold shadow-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleValidateCourse(item.id, item.data.programmation_id, true);
+                              }}
+                            >
+                              <CheckCircle2 className="w-3 h-3 mr-1" /> OUI, COURS FAIT
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              disabled={mutating}
+                              className="rounded-xl text-[10px] font-bold shadow-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleValidateCourse(item.id, item.data.programmation_id, false);
+                              }}
+                            >
+                              <X className="w-3 h-3 mr-1" /> NON, ABSENT
+                            </Button>
+                          </div>
+                        )}
+                        {/* ----------------------------------------------- */}
+
                         <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground mt-2">
                           {item.data?.entity ?? "Général"} · {formatDate(item.created_at)}
                         </p>
@@ -490,13 +542,6 @@ export default function NotificationList() {
                   <Bar dataKey="value" fill="hsl(var(--primary))" />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-            <div className="flex gap-2">
-              {Object.entries(statsData.per_type || {}).map(([key, value]) => (
-                <Badge key={key} variant="secondary" className="text-[10px] font-black uppercase tracking-[0.3em]">
-                  {key}: {value}
-                </Badge>
-              ))}
             </div>
           </div>
 
@@ -595,23 +640,6 @@ export default function NotificationList() {
               {pushLoading ? "Envoi push..." : "Envoyer un push instantané"}
             </Button>
           </form>
-
-          <div className="bg-card rounded-[2rem] border border-border shadow-sm p-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <BarChart3 className="w-5 h-5 text-foreground/80" />
-              <p className="text-sm font-black uppercase tracking-[0.4em] text-muted-foreground">Historique audit</p>
-            </div>
-            <div className="space-y-3">
-              {history.map((entry) => (
-                <article key={entry.id} className="rounded-xl border border-border/60 p-3 bg-muted/30 text-xs">
-                  <p className="font-bold text-foreground">{entry.user?.name || "Système"}</p>
-                  <p className="text-muted-foreground">{entry.action}</p>
-                  <p className="text-muted-foreground/80 text-[11px]">{formatDate(entry.created_at)}</p>
-                </article>
-              ))}
-              {!history.length && <p className="text-xs text-muted-foreground">Aucun événement récent.</p>}
-            </div>
-          </div>
         </section>
       </div>
 
@@ -619,12 +647,12 @@ export default function NotificationList() {
         <div
           className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 p-4 rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-10 ${
             notification.type === "error"
-              ? "bg-delta-negative/10 border-delta-negative/20 text-delta-negative"
-              : "bg-delta-positive/10 border-delta-positive/20 text-delta-positive"
+              ? "bg-red-500/10 border-red-500/20 text-red-500"
+              : "bg-green-500/10 border-green-500/20 text-green-500"
           }`}
         >
           {notification.type === "error" ? (
-            <RefreshCcw className="w-5 h-5 animate-spin" />
+            <X className="w-5 h-5" />
           ) : (
             <CheckCircle2 className="w-5 h-5" />
           )}
@@ -634,18 +662,23 @@ export default function NotificationList() {
 
       {activeNotification && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm" onClick={() => setActiveNotification(null)}>
-          <section className="relative w-full max-w-2xl bg-card border border-border rounded-[2.5rem] shadow-2xl p-6 space-y-4 pointer-events-auto">
+          <section className="relative w-full max-w-2xl bg-card border border-border rounded-[2.5rem] shadow-2xl p-6 space-y-4 pointer-events-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Notification</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Notification détaillée</p>
                 <h3 className="text-lg font-black">{activeNotification.data?.title}</h3>
               </div>
-              <button onClick={() => setActiveNotification(null)} className="text-muted-foreground hover:text-foreground">
-                ×
+              <button onClick={() => setActiveNotification(null)} className="p-2 hover:bg-muted rounded-full">
+                <X className="w-6 h-6" />
               </button>
             </div>
-            <p className="text-sm text-muted-foreground">{activeNotification.data?.message}</p>
-            <div className="text-xs text-muted-foreground">Envoyée le {formatDate(activeNotification.created_at)}</div>
+            <p className="text-sm text-muted-foreground leading-relaxed">{activeNotification.data?.message}</p>
+            <div className="text-xs text-muted-foreground font-medium italic">
+              Envoyée le {formatDate(activeNotification.created_at)}
+            </div>
+            <div className="pt-4 border-t border-border/60">
+                <Button className="w-full rounded-2xl font-bold" onClick={() => setActiveNotification(null)}>Fermer</Button>
+            </div>
           </section>
         </div>
       )}

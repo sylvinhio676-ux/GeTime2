@@ -21,6 +21,8 @@ import {
   DownloadCloud,
   Bell,
   MoreVertical,
+  PencilIcon,
+  Trash2Icon,
 } from 'lucide-react';
 
 const RESPONSIBLE_OPTIONS = [
@@ -324,8 +326,8 @@ export default function SpecialtyList() {
                     <td className="px-8 py-5 text-right" onClick={(e) => e.stopPropagation()}>
                       {isAdmin && (
                         <div className="flex justify-end gap-1">
-                          <button onClick={() => startEdit(s)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary"><EditIcon className="w-4 h-4" /></button>
-                          <button onClick={() => handleStaticDelete(s.id)} className="p-2 hover:bg-muted rounded-lg text-delta-negative"><DeleteIcon className="w-4 h-4" /></button>
+                          <button onClick={() => startEdit(s)} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-primary"><PencilIcon className="w-4 h-4" /></button>
+                          <button onClick={() => handleStaticDelete(s.id)} className="p-2 hover:bg-muted rounded-lg text-delta-negative"><Trash2Icon className="w-4 h-4" /></button>
                         </div>
                       )}
                     </td>

@@ -13,6 +13,7 @@ use App\Models\Year;
 use App\Models\User;
 use App\Enum\JourEnum;
 use App\Notifications\ProgrammationNotification;
+use App\Services\ContinuityService;
 use App\Services\QuotaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -20,7 +21,7 @@ use Exception;
 
 class ProgrammationController extends Controller
 {
-    public function __construct(private QuotaService $quotaService)
+    public function __construct(private QuotaService $quotaService, private ContinuityService $continuityService)
     {
     }
     // Vérifie si un créneau se chevauche avec un autre en filtrant sur les bornes et optionnellement en excluant un id.
@@ -38,28 +39,31 @@ class ProgrammationController extends Controller
     }
 
     // Choisit une salle disponible respectant la capacité, le type et l'absence de chevauchement.
-    private function pickAvailableRoom(int $campusId, Subject $subject, string $day, string $start, string $end, ?int $excludeId = null): ?Room
+    private function pickAvailableRoom(?int $campusId, Subject $subject, string $day, string $start, string $end, ?int $excludeId = null): ?Room
     {
-        $requiredCapacity = $subject->specialty?->number_student ?? 0;
-        $roomType = $subject->type_subject?->value ?? null;
+        $requiredCapacity = (int) ($subject->specialty?->number_student ?? 0);
+        $roomType = $subject->type_subject?->value ?? $subject->type_subject;
 
-        $roomsQuery = Room::where('campus_id', $campusId)
-            ->where('is_available', true)
+        $roomsQuery = Room::where('is_available', true)
             ->where('capacity', '>=', $requiredCapacity);
 
-        if ($roomType) {
-            $roomsQuery->where('type_room', $roomType);
+        // SI LE CAMPUS EST FOURNI, ON FILTRE. SINON, ON CHERCHE PARTOUT.
+        if ($campusId) {
+            $roomsQuery->where('campus_id', $campusId);
         }
 
-        return $roomsQuery->whereDoesntHave('programmations', function ($q) use ($day, $start, $end, $excludeId) {
+        // On applique le filtre de non-chevauchement
+        $roomsQuery->whereDoesntHave('programmations', function ($q) use ($day, $start, $end, $excludeId) {
             $q->where('day', $day)
-                ->where('hour_star', '<', $end)
-                ->where('hour_end', '>', $start);
+            ->where('hour_star', '<', $end)
+            ->where('hour_end', '>', $start);
+            if ($excludeId) $q->where('id', '!=', $excludeId);
+        });
 
-            if ($excludeId) {
-                $q->where('id', '!=', $excludeId);
-            }
-        })->orderBy('capacity')->first();
+        // On retourne la première salle disponible (triée par type idéal d'abord)
+        return $roomsQuery->orderByRaw("CASE WHEN type_room = ? THEN 0 ELSE 1 END", [$roomType])
+                        ->orderBy('capacity', 'asc')
+                        ->first();
     }
 
     // Résout l'id du programmeur pour la matière, en essayant la spécialité puis l'utilisateur authentifié.
@@ -250,6 +254,8 @@ class ProgrammationController extends Controller
                 return errorResponse("Aucun programmeur associé pour cette programmation");
             }
 
+            $this->continuityService->enforceSameRoom($data, $subject);
+
             if (empty($data['year_id'])) {
                 $data['year_id'] = $this->resolveCurrentYearId();
             }
@@ -348,6 +354,7 @@ class ProgrammationController extends Controller
                 $data['status'] = 'draft';
             }
             $programmation = Programmation::create($data);
+            $this->continuityService->resolveConflicts($programmation);
 
             // Update quota
             $this->quotaService->updateQuotaOnCreate($programmation);
@@ -510,6 +517,7 @@ class ProgrammationController extends Controller
                 $data['status'] = $programmation->status ?? 'draft';
             }
             $programmation->update($data);
+            $this->continuityService->resolveConflicts($programmation);
 
             // Update quota
             $this->quotaService->updateQuotaOnUpdate($programmation, $oldHoursUsed);
@@ -537,7 +545,7 @@ class ProgrammationController extends Controller
      * Remove the specified resource from storage.
      */
     // Supprime une programmation et avertit les responsables.
-    public function destroy(Programmation $programmation)
+     public function destroy(Programmation $programmation)
     {
         try {
             $subject = $programmation->subject;
@@ -560,138 +568,269 @@ class ProgrammationController extends Controller
         }
     }
 
-    /**
-     * Publish all validated programmations.
-     */
-    // Publie toutes les programmations validées en les marquant comme publiées.
-    public function publishValidated(Request $request)
+    public function validateProgrammation(Programmation $programmation)
     {
         try {
-            $count = Programmation::where('status', 'validated')->update(['status' => 'published']);
-            return successResponse(['count' => $count], "Programmations publiées: {$count}");
+            if ($programmation->status === 'published') {
+                return errorResponse("Cette programmation est déjà publiée.");
+            }
+            $programmation->status = 'validated';
+            $programmation->save();
+            return successResponse($programmation, "Programmation marquée comme validée");
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
     }
 
     /**
+     * Publish all validated programmations.
+     */
+    // Publie toutes les programmations validées en les marquant comme publiées.
+    public function publishValidated(Request $request)
+{
+        try {
+            // 1. On récupère les programmations validées
+            $programmations = Programmation::where('status', 'validated')->get();
+            $count = $programmations->count();
+
+            foreach ($programmations as $prog) {
+                // 2. On met à jour chaque modèle individuellement
+                // Cela va déclencher le "static::saved" dans le modèle Programmation
+                $prog->update(['status' => 'published']);
+            }
+
+            return successResponse(['count' => $count], "Programmations publiées: {$count}");
+        } catch (Exception $e) {
+            return errorResponse($e->getMessage());
+        }
+    }
+    /**
      * Suggest available slot + room based on availability and conflicts.
      */
     // Propose des créneaux libres en combinant disponibilités, conflits et salles libres.
+    // public function suggest(Request $request)
+    // {
+    //     $request->validate([
+    //         'subject_id' => ['required', 'exists:subjects,id'],
+    //         'campus_id' => ['required', 'exists:campuses,id'],
+    //         'day' => ['nullable', 'string'],
+    //         'hour_star' => ['nullable', 'date_format:H:i'],
+    //         'hour_end' => ['nullable', 'date_format:H:i'],
+    //         'specialty_ids' => ['nullable', 'array'],
+    //         'specialty_ids.*' => ['integer', 'exists:specialties,id'],
+    //         'exclude_id' => ['nullable', 'integer'],
+    //     ]);
+
+    //     $subject = Subject::with(['specialty', 'teacher', 'disponibilities'])->findOrFail($request->input('subject_id'));
+    //     $specialtyIds = $request->input('specialty_ids') ?? [$subject->specialty_id];
+    //     $campusId = (int) $request->input('campus_id');
+    //     $excludeId = $request->input('exclude_id');
+
+    //     $disponibilities = $subject->disponibilities;
+    //     // $slots = $disponibilities->isEmpty() ? [] : $this->buildSlotsFromDisponibilities($disponibilities);
+    //     if ($disponibilities->isEmpty()) {
+    //         return errorResponse("Aucune disponibilité enregistrée pour cette matière");
+    //     }
+
+    //     $slots = $this->buildSlotsFromDisponibilities($disponibilities);
+    //     $suggestions = [];
+
+    //     $checkSlot = function (string $day, string $start, string $end) use ($subject, $specialtyIds, $campusId, $excludeId) {
+    //         $teacherConflict = $this->hasOverlap(
+    //             Programmation::whereHas('subject', function ($q) use ($subject) {
+    //                 $q->where('teacher_id', $subject->teacher_id);
+    //             }),
+    //             $day,
+    //             $start,
+    //             $end,
+    //             $excludeId
+    //         );
+
+    //         if ($teacherConflict) {
+    //             return ['ok' => false, 'reason' => "Enseignant déjà occupé"];
+    //         }
+
+    //         $specialtyConflict = $this->hasOverlap(
+    //             Programmation::whereHas('specialties', function ($q) use ($specialtyIds) {
+    //                 $q->whereIn('specialty_id', $specialtyIds);
+    //             }),
+    //             $day,
+    //             $start,
+    //             $end,
+    //             $excludeId
+    //         );
+
+    //         if ($specialtyConflict) {
+    //             return ['ok' => false, 'reason' => "Spécialité déjà programmée"];
+    //         }
+
+    //         $room = $this->pickAvailableRoom($campusId, $subject, $day, $start, $end, $excludeId);
+    //         if (!$room) {
+    //             return ['ok' => false, 'reason' => "Aucune salle disponible"];
+    //         }
+
+    //         return ['ok' => true, 'room' => $room];
+    //     };
+
+    //     $current = null;
+    //     $reason = null;
+    //     $day = $request->input('day');
+    //     $start = $request->input('hour_star');
+    //     $end = $request->input('hour_end');
+
+    //     if ($day && $start && $end) {
+    //         $availabilityMatch = collect($slots)->first(fn ($s) => $s['day'] === $day && $s['start'] === $start && $s['end'] === $end);
+    //         if (!$availabilityMatch) {
+    //             $reason = "Créneau hors disponibilités";
+    //         } elseif ($this->overlapsBreak($start, $end)) {
+    //             $reason = "Créneau invalide: pause 12h-13h";
+    //         } else {
+    //             $check = $checkSlot($day, $start, $end);
+    //             if ($check['ok']) {
+    //                 $room = $check['room'];
+    //                 $current = [
+    //                     'day' => $day,
+    //                     'hour_star' => $start,
+    //                     'hour_end' => $end,
+    //                     'room_id' => $room->id,
+    //                     'room_label' => $room->code,
+    //                 ];
+    //             } else {
+    //                 $reason = $check['reason'];
+    //             }
+    //         }
+    //     }
+
+    //     foreach ($slots as $slot) {
+    //         $check = $checkSlot($slot['day'], $slot['start'], $slot['end']);
+    //         if ($check['ok']) {
+    //             $room = $check['room'];
+    //             $suggestions[] = [
+    //                 'day' => $slot['day'],
+    //                 'hour_star' => $slot['start'],
+    //                 'hour_end' => $slot['end'],
+    //                 'room_id' => $room->id,
+    //                 'room_label' => $room->code,
+    //             ];
+    //         }
+    //         if (count($suggestions) >= 5) {
+    //             break;
+    //         }
+    //     }
+
+    //     return successResponse([
+    //         'current' => $current,
+    //         'reason' => $reason,
+    //         'suggestions' => $suggestions,
+    //     ], "Suggestions générées");
+    // }
     public function suggest(Request $request)
     {
+        // 1. Validation plus souple pour le debug
         $request->validate([
             'subject_id' => ['required', 'exists:subjects,id'],
-            'campus_id' => ['required', 'exists:campuses,id'],
-            'day' => ['nullable', 'string'],
-            'hour_star' => ['nullable', 'date_format:H:i'],
-            'hour_end' => ['nullable', 'date_format:H:i'],
-            'specialty_ids' => ['nullable', 'array'],
-            'specialty_ids.*' => ['integer', 'exists:specialties,id'],
-            'exclude_id' => ['nullable', 'integer'],
+            'campus_id'  => ['nullable'], // On accepte tout pour éviter le blocage 422
+            'day'        => ['nullable', 'string'],
+            'hour_star'  => ['nullable'],
+            'hour_end'   => ['nullable'],
         ]);
 
-        $subject = Subject::with(['specialty', 'teacher', 'disponibilities'])->findOrFail($request->input('subject_id'));
-        $specialtyIds = $request->input('specialty_ids') ?? [$subject->specialty_id];
-        $campusId = (int) $request->input('campus_id');
-        $excludeId = $request->input('exclude_id');
+        try {
+            $subject = Subject::with(['specialty', 'teacher', 'disponibilities'])->findOrFail($request->subject_id);
+            
+            // On récupère les IDs de spécialité (soit ceux envoyés, soit celui par défaut de la matière)
+            $specialtyIds = $request->input('specialty_ids') ?? ($subject->specialty_id ? [$subject->specialty_id] : []);
+            $campusId = $request->filled('campus_id') ? (int) $request->campus_id : null;
+            $excludeId = $request->input('exclude_id');
 
-        $disponibilities = $subject->disponibilities;
-        if ($disponibilities->isEmpty()) {
-            return errorResponse("Aucune disponibilité enregistrée pour cette matière");
-        }
+            $disponibilities = $subject->disponibilities;
+            $slots = $disponibilities->isEmpty() ? [] : $this->buildSlotsFromDisponibilities($disponibilities);
+            
+            $suggestions = [];
 
-        $slots = $this->buildSlotsFromDisponibilities($disponibilities);
-        $suggestions = [];
+            // Fonction de vérification interne
+            $checkSlot = function (string $day, string $start, string $end) use ($subject, $specialtyIds, $campusId, $excludeId) {
+                // Conflit Enseignant
+                $teacherConflict = $this->hasOverlap(
+                    Programmation::whereHas('subject', function ($q) use ($subject) {
+                        $q->where('teacher_id', $subject->teacher_id);
+                    }),
+                    $day, $start, $end, $excludeId
+                );
+                if ($teacherConflict) return ['ok' => false, 'reason' => "Enseignant déjà occupé"];
 
-        $checkSlot = function (string $day, string $start, string $end) use ($subject, $specialtyIds, $campusId, $excludeId) {
-            $teacherConflict = $this->hasOverlap(
-                Programmation::whereHas('subject', function ($q) use ($subject) {
-                    $q->where('teacher_id', $subject->teacher_id);
-                }),
-                $day,
-                $start,
-                $end,
-                $excludeId
-            );
+                // Conflit Spécialité (Vérifie bien que la relation est 'specialties')
+                if (!empty($specialtyIds)) {
+                    $specialtyConflict = $this->hasOverlap(
+                        Programmation::whereHas('specialties', function ($q) use ($specialtyIds) {
+                            $q->whereIn('specialty_id', $specialtyIds);
+                        }),
+                        $day, $start, $end, $excludeId
+                    );
+                    if ($specialtyConflict) return ['ok' => false, 'reason' => "Spécialité déjà programmée"];
+                }
 
-            if ($teacherConflict) {
-                return ['ok' => false, 'reason' => "Enseignant déjà occupé"];
-            }
+                // Recherche de salle
+                $room = $this->pickAvailableRoom($campusId, $subject, $day, $start, $end, $excludeId);
+                if (!$room) return ['ok' => false, 'reason' => "Aucune salle disponible"];
 
-            $specialtyConflict = $this->hasOverlap(
-                Programmation::whereHas('specialties', function ($q) use ($specialtyIds) {
-                    $q->whereIn('specialty_id', $specialtyIds);
-                }),
-                $day,
-                $start,
-                $end,
-                $excludeId
-            );
+                return ['ok' => true, 'room' => $room];
+            };
 
-            if ($specialtyConflict) {
-                return ['ok' => false, 'reason' => "Spécialité déjà programmée"];
-            }
+            $current = null;
+            $reason = null;
+            $day = $request->day;
+            $start = $request->hour_star;
+            $end = $request->hour_end;
 
-            $room = $this->pickAvailableRoom($campusId, $subject, $day, $start, $end, $excludeId);
-            if (!$room) {
-                return ['ok' => false, 'reason' => "Aucune salle disponible"];
-            }
-
-            return ['ok' => true, 'room' => $room];
-        };
-
-        $current = null;
-        $reason = null;
-        $day = $request->input('day');
-        $start = $request->input('hour_star');
-        $end = $request->input('hour_end');
-
-        if ($day && $start && $end) {
-            $availabilityMatch = collect($slots)->first(fn ($s) => $s['day'] === $day && $s['start'] === $start && $s['end'] === $end);
-            if (!$availabilityMatch) {
-                $reason = "Créneau hors disponibilités";
-            } elseif ($this->overlapsBreak($start, $end)) {
-                $reason = "Créneau invalide: pause 12h-13h";
-            } else {
-                $check = $checkSlot($day, $start, $end);
-                if ($check['ok']) {
-                    $room = $check['room'];
-                    $current = [
-                        'day' => $day,
-                        'hour_star' => $start,
-                        'hour_end' => $end,
-                        'room_id' => $room->id,
-                        'room_label' => $room->code,
-                    ];
+            if ($day && $start && $end) {
+                if ($this->overlapsBreak($start, $end)) {
+                    $reason = "Créneau invalide: pause 12h-13h";
                 } else {
-                    $reason = $check['reason'];
+                    $check = $checkSlot($day, $start, $end);
+                    if ($check['ok']) {
+                        $room = $check['room'];
+                        $current = [
+                            'day' => $day,
+                            'hour_star' => $start,
+                            'hour_end' => $end,
+                            'room_id' => $room->id,
+                            'room_label' => $room->code,
+                            'campus_id' => $room->campus_id,
+                        ];
+                    } else {
+                        $reason = $check['reason'];
+                    }
                 }
             }
-        }
 
-        foreach ($slots as $slot) {
-            $check = $checkSlot($slot['day'], $slot['start'], $slot['end']);
-            if ($check['ok']) {
-                $room = $check['room'];
-                $suggestions[] = [
-                    'day' => $slot['day'],
-                    'hour_star' => $slot['start'],
-                    'hour_end' => $slot['end'],
-                    'room_id' => $room->id,
-                    'room_label' => $room->code,
-                ];
+            // Générer suggestions basées sur les dispos
+            foreach ($slots as $slot) {
+                $check = $checkSlot($slot['day'], $slot['start'], $slot['end']);
+                if ($check['ok']) {
+                    $room = $check['room'];
+                    $suggestions[] = [
+                        'day' => $slot['day'],
+                        'hour_star' => $slot['start'],
+                        'hour_end' => $slot['end'],
+                        'room_id' => $room->id,
+                        'room_label' => $room->code,
+                        'campus_id' => $room->campus_id,
+                    ];
+                }
+                if (count($suggestions) >= 5) break;
             }
-            if (count($suggestions) >= 5) {
-                break;
-            }
-        }
 
-        return successResponse([
-            'current' => $current,
-            'reason' => $reason,
-            'suggestions' => $suggestions,
-        ], "Suggestions générées");
+            return successResponse([
+                'current' => $current,
+                'reason' => $reason,
+                'suggestions' => $suggestions,
+            ], "Analyse terminée");
+
+        } catch (Exception $e) {
+            // Cela permet de voir l'erreur exacte dans l'onglet Network du navigateur
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     //publier les emplois du temps par semaine
@@ -711,11 +850,38 @@ class ProgrammationController extends Controller
             $data['week_start'],
             $data['week_end'],
             (int) $data['year_id'],
-            (int) ($request->user()->id) // ou programmer_id si tu l'as
+            (int) ($request->user()->id) // programmer_id si tu l'as
         ));
 
         return response()->json([
             'message' => 'Timetable published and notifications sent.',
         ]);
+    }
+
+    //validation des cours faites
+    public function validateCourse(Request $request, $id)
+{
+        $prog = Programmation::findOrFail($id);
+        $subject = $prog->subject;
+        $isDone = $request->input('is_done'); // true ou false depuis React
+
+        if ($isDone) {
+            // Calculer la durée du cours
+            $start = \Carbon\Carbon::parse($prog->hour_star);
+            $end = \Carbon\Carbon::parse($prog->hour_end);
+            $duration = $end->diffInHours($start);
+
+            // Retrancher du quota total de la matière
+            $subject->total_hour -= $duration;
+            $subject->save();
+
+            // Mettre à jour le statut de la programmation pour ne pas le recompter
+            $prog->status = 'completed'; 
+        } else {
+            $prog->status = 'canceled';
+        }
+        
+        $prog->save();
+        return response()->json(['message' => 'Statut et quota mis à jour']);
     }
 }

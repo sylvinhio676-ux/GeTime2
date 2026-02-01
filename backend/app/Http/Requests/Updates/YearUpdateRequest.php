@@ -22,7 +22,9 @@ class YearUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'year' => ['nullable', 'string', 'max:255'],
+            'date_star' => ['required', 'date', 'date_format:Y-m-d'],
+            'date_end' => ['required', 'date', 'date_format:Y-m-d', 'after:date_star'],
+            'status' => ['required', 'string', 'in:active,unactive,upcoming'],
         ];
     }
 }

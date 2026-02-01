@@ -18,6 +18,14 @@ Schedule::command('schedules:remind-teachers')
 Schedule::command('disponibilities:auto-schedule')
     ->dailyAt('02:30');
 
+Schedule::command('programmations:publish-validated')
+    ->hourly();
+
+// Exécute la synchronisation toutes les 5 minutes
+Schedule::command('emails:sync-gmail')->everyFiveMinutes();
+// Exécute la vérification des cours quotidiens à 17h00 chaque jour
+Schedule::command('app:check-daily-courses')->dailyAt('06:10');
+
 Artisan::command('programmations:assign-rooms {--dry-run}', function () {
     if (!Schema::hasColumn('programmations', 'campus_id')) {
         $this->error('La colonne programmations.campus_id est absente. Stop.');

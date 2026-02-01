@@ -116,15 +116,23 @@ export default function DisponibilityList() {
     }
   };
 
+  const getErrorMessage = (error, fallback) => {
+    if (!error) return fallback;
+    if (typeof error === "string") {
+      return error;
+    }
+    return error.message || error.error || fallback;
+  };
+
   const handleConvert = async (id) => {
     if (convertingId) return;
     try {
       setConvertingId(id);
       await disponibilityService.convert(id);
-      showNotify('Converti en programmation avec succès');
+      showNotify("Converti en programmation avec succès");
       loadInitialData();
     } catch (error) {
-      showNotify("Échec de la conversion", 'error');
+      showNotify(getErrorMessage(error, "Échec de la conversion"), "error");
     } finally {
       setConvertingId(null);
     }

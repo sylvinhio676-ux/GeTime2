@@ -22,13 +22,25 @@ class DisponibilityRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {
+{
+    // Si la requête est un tableau numérique (plusieurs créneaux)
+    if (is_array($this->all()) && isset($this->all()[0])) {
         return [
-            'day' => ['required', 'string', new Enum(JourEnum::class)],
-            'hour_star' => ['required', 'date_format:H:i'],
-            'hour_end' => ['required', 'date_format:H:i', 'after:hour_star'],
-            'subject_id' => ['required', 'exists:subjects,id'],
-            'etablishment_id' => ['required', 'exists:etablishments,id'],
+            '*.day' => ['required', 'string', new Enum(JourEnum::class)],
+            '*.hour_star' => ['required', 'date_format:H:i'],
+            '*.hour_end' => ['required', 'date_format:H:i', 'after:*.hour_star'],
+            '*.subject_id' => ['required', 'exists:subjects,id'],
+            '*.etablishment_id' => ['required', 'exists:etablishments,id'],
         ];
     }
+
+    // Sinon, on garde les règles pour un objet unique (cas classique/update)
+    return [
+        'day' => ['required', 'string', new Enum(JourEnum::class)],
+        'hour_star' => ['required', 'date_format:H:i'],
+        'hour_end' => ['required', 'date_format:H:i', 'after:hour_star'],
+        'subject_id' => ['required', 'exists:subjects,id'],
+        'etablishment_id' => ['required', 'exists:etablishments,id'],
+    ];
+}
 }

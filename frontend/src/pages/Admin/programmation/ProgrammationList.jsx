@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Pagination from '@/components/Pagination';
+import { useAuth } from '@/context/useAuth';
 
 export default function ProgrammationList() {
   const [programmations, setProgrammations] = useState([]);
@@ -40,6 +41,7 @@ export default function ProgrammationList() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const { can } = useAuth();
   const showNotify = useCallback((message, type = 'success') => {
     setNotification({ show: true, message, type });
     setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 4000);
@@ -149,6 +151,20 @@ export default function ProgrammationList() {
       showNotify(getErrorMessage(error, 'Erreur de suppression multiple'), 'error');
     } finally {
       setBulkDeleting(false);
+    }
+  };
+
+  const canEditProgrammation = can("edit-programmation");
+
+  const handleValidate = async (id) => {
+    try {
+      const validated = await programmationService.validate(id);
+      setProgrammations((prev) =>
+        prev.map((p) => (p.id === id ? validated : p))
+      );
+      showNotify("Programmation validée");
+    } catch (error) {
+      showNotify(getErrorMessage(error, "Impossible de valider"), "error");
     }
   };
 
@@ -353,8 +369,17 @@ export default function ProgrammationList() {
                         </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                      <div className="flex justify-end gap-2 transition-opacity">
                         <button onClick={() => {setEditingData(prog); setShowForm(true);}} className="p-2 text-muted-foreground hover:bg-muted rounded-lg"><Pencil className="w-4 h-4" /></button>
+                        {prog.status === 'draft' && canEditProgrammation && (
+                          <button
+                            onClick={() => handleValidate(prog.id)}
+                            disabled={bulkDeleting}
+                            className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </button>
+                        )}
                         <button onClick={() => handleDelete(prog.id)} className="p-2 text-delta-negative hover:bg-delta-negative/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>

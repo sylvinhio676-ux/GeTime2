@@ -16,6 +16,7 @@ class Subject extends Model
         'total_hour',
         'type_subject',
         'color',
+        'status',
         'teacher_id',
         'specialty_id',
         'quota_hours',

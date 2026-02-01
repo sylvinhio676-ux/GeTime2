@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Webklex\IMAP\Facades\Client;
 
 class EmailController extends Controller
 {
@@ -49,58 +50,58 @@ class EmailController extends Controller
     /**
      * Mailtrap webhook (Email Sandbox).
      */
-    public function receiveMailtrap(Request $request)
-    {
-        $expectedToken = env('MAILTRAP_WEBHOOK_TOKEN');
-        $incomingToken = $request->header('X-Mailtrap-Token') ?? $request->query('token');
-        if ($expectedToken && $incomingToken !== $expectedToken) {
-            return response()->json(['error' => 'Unauthorized webhook.'], 401);
-        }
+    // public function receiveMailtrap(Request $request)
+    // {
+    //     $expectedToken = env('MAILTRAP_WEBHOOK_TOKEN');
+    //     $incomingToken = $request->header('X-Mailtrap-Token') ?? $request->query('token');
+    //     if ($expectedToken && $incomingToken !== $expectedToken) {
+    //         return response()->json(['error' => 'Unauthorized webhook.'], 401);
+    //     }
 
-        $payload = $request->all();
-        $subject = $payload['subject'] ?? ($payload['message']['subject'] ?? 'Sans objet');
-        $from = $payload['from'] ?? ($payload['from_email'] ?? ($payload['message']['from_email'] ?? 'inconnu'));
-        $to = $payload['to'] ?? ($payload['to_email'] ?? ($payload['message']['to_email'] ?? []));
-        $toList = is_array($to) ? $to : [$to];
-        $recipientEmails = $this->extractEmails($toList);
-        $body = $payload['text'] ?? ($payload['html'] ?? ($payload['message']['text'] ?? ($payload['message']['html'] ?? '')));
+    //     $payload = $request->all();
+    //     $subject = $payload['subject'] ?? ($payload['message']['subject'] ?? 'Sans objet');
+    //     $from = $payload['from'] ?? ($payload['from_email'] ?? ($payload['message']['from_email'] ?? 'inconnu'));
+    //     $to = $payload['to'] ?? ($payload['to_email'] ?? ($payload['message']['to_email'] ?? []));
+    //     $toList = is_array($to) ? $to : [$to];
+    //     $recipientEmails = $this->extractEmails($toList);
+    //     $body = $payload['text'] ?? ($payload['html'] ?? ($payload['message']['text'] ?? ($payload['message']['html'] ?? '')));
 
-        $email = null;
-        $users = $recipientEmails ? User::whereIn('email', $recipientEmails)->get() : collect();
-        if ($users->isNotEmpty()) {
-            foreach ($users as $user) {
-                $email = Email::create([
-                    'user_id' => $user->id,
-                    'direction' => 'inbox',
-                    'from_address' => is_string($from) ? $from : json_encode($from),
-                    'to_address' => implode(', ', array_filter($toList)),
-                    'subject' => $subject,
-                    'message' => $body ?: 'Message sans contenu.',
-                    'status' => 'received',
-                    'meta' => [
-                        'unread' => true,
-                        'payload' => $payload,
-                    ],
-                ]);
-            }
-        } else {
-            $email = Email::create([
-                'user_id' => null,
-                'direction' => 'inbox',
-                'from_address' => is_string($from) ? $from : json_encode($from),
-                'to_address' => implode(', ', array_filter($toList)),
-                'subject' => $subject,
-                'message' => $body ?: 'Message sans contenu.',
-                'status' => 'received',
-                'meta' => [
-                    'unread' => true,
-                    'payload' => $payload,
-                ],
-            ]);
-        }
+    //     $email = null;
+    //     $users = $recipientEmails ? User::whereIn('email', $recipientEmails)->get() : collect();
+    //     if ($users->isNotEmpty()) {
+    //         foreach ($users as $user) {
+    //             $email = Email::create([
+    //                 'user_id' => $user->id,
+    //                 'direction' => 'inbox',
+    //                 'from_address' => is_string($from) ? $from : json_encode($from),
+    //                 'to_address' => implode(', ', array_filter($toList)),
+    //                 'subject' => $subject,
+    //                 'message' => $body ?: 'Message sans contenu.',
+    //                 'status' => 'received',
+    //                 'meta' => [
+    //                     'unread' => true,
+    //                     'payload' => $payload,
+    //                 ],
+    //             ]);
+    //         }
+    //     } else {
+    //         $email = Email::create([
+    //             'user_id' => null,
+    //             'direction' => 'inbox',
+    //             'from_address' => is_string($from) ? $from : json_encode($from),
+    //             'to_address' => implode(', ', array_filter($toList)),
+    //             'subject' => $subject,
+    //             'message' => $body ?: 'Message sans contenu.',
+    //             'status' => 'received',
+    //             'meta' => [
+    //                 'unread' => true,
+    //                 'payload' => $payload,
+    //             ],
+    //         ]);
+    //     }
 
-        return response()->json(['message' => 'Webhook received.', 'data' => $email], 200);
-    }
+    //     return response()->json(['message' => 'Webhook received.', 'data' => $email], 200);
+    // }
 
     /**
      * Send an email (single or multiple recipients).
@@ -148,100 +149,137 @@ class EmailController extends Controller
     /**
      * Sync inbox messages from Mailtrap Sandbox API.
      */
-    public function syncMailtrap(Request $request)
-    {
-        $token = env('MAILTRAP_API_TOKEN');
-        $inboxId = env('MAILTRAP_INBOX_ID');
-        $baseUrl = rtrim(env('MAILTRAP_API_BASE', 'https://mailtrap.io/api'), '/');
-        $accountId = env('MAILTRAP_ACCOUNT_ID');
+    // public function syncMailtrap(Request $request)
+    // {
+    //     $token = env('MAILTRAP_API_TOKEN');
+    //     $inboxId = env('MAILTRAP_INBOX_ID');
+    //     $baseUrl = rtrim(env('MAILTRAP_API_BASE', 'https://mailtrap.io/api'), '/');
+    //     $accountId = env('MAILTRAP_ACCOUNT_ID');
 
-        if (!$token || !$inboxId) {
-            return response()->json(['error' => 'Mailtrap API not configured.'], 422);
-        }
+    //     if (!$token || !$inboxId) {
+    //         return response()->json(['error' => 'Mailtrap API not configured.'], 422);
+    //     }
 
-        $headers = [
-            'Api-Token' => $token,
-            'Accept' => 'application/json',
-        ];
+    //     $headers = [
+    //         'Api-Token' => $token,
+    //         'Accept' => 'application/json',
+    //     ];
 
-        if ($accountId) {
-            $response = Http::withHeaders($headers)
-                ->get("{$baseUrl}/accounts/{$accountId}/inboxes/{$inboxId}/messages");
-        } else {
-            $response = Http::withHeaders($headers)
-                ->get("{$baseUrl}/inboxes/{$inboxId}/messages");
-        }
+    //     if ($accountId) {
+    //         $response = Http::withHeaders($headers)
+    //             ->get("{$baseUrl}/accounts/{$accountId}/inboxes/{$inboxId}/messages");
+    //     } else {
+    //         $response = Http::withHeaders($headers)
+    //             ->get("{$baseUrl}/inboxes/{$inboxId}/messages");
+    //     }
 
-        if (!$response->ok()) {
-            Log::warning('Mailtrap sync failed.', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-            return response()->json([
-                'error' => 'Failed to fetch Mailtrap messages.',
-                'details' => $response->body(),
-            ], 500);
-        }
+    //     if (!$response->ok()) {
+    //         Log::warning('Mailtrap sync failed.', [
+    //             'status' => $response->status(),
+    //             'body' => $response->body(),
+    //         ]);
+    //         return response()->json([
+    //             'error' => 'Failed to fetch Mailtrap messages.',
+    //             'details' => $response->body(),
+    //         ], 500);
+    //     }
 
-        $created = 0;
-        $payload = $response->json();
-        $messages = $payload['messages'] ?? $payload['data'] ?? $payload;
-        if (!is_array($messages)) {
-            return response()->json([
-                'error' => 'Invalid Mailtrap response.',
-                'details' => $payload,
-            ], 500);
-        }
-        foreach ($messages as $message) {
-            $messageId = $message['id'] ?? null;
-            $toList = isset($message['to_email']) ? (array) $message['to_email'] : [];
-            $recipientEmails = $this->extractEmails($toList);
-            $users = $recipientEmails ? User::whereIn('email', $recipientEmails)->get() : collect();
+    //     $created = 0;
+    //     $payload = $response->json();
+    //     $messages = $payload['messages'] ?? $payload['data'] ?? $payload;
+    //     if (!is_array($messages)) {
+    //         return response()->json([
+    //             'error' => 'Invalid Mailtrap response.',
+    //             'details' => $payload,
+    //         ], 500);
+    //     }
+    //     foreach ($messages as $message) {
+    //         $messageId = $message['id'] ?? null;
+    //         $toList = isset($message['to_email']) ? (array) $message['to_email'] : [];
+    //         $recipientEmails = $this->extractEmails($toList);
+    //         $users = $recipientEmails ? User::whereIn('email', $recipientEmails)->get() : collect();
 
-            if ($users->isNotEmpty()) {
-                foreach ($users as $user) {
-                    if ($messageId && Email::where('meta->message_id', $messageId)->where('user_id', $user->id)->exists()) {
-                        continue;
-                    }
+    //         if ($users->isNotEmpty()) {
+    //             foreach ($users as $user) {
+    //                 if ($messageId && Email::where('meta->message_id', $messageId)->where('user_id', $user->id)->exists()) {
+    //                     continue;
+    //                 }
+    //                 Email::create([
+    //                     'user_id' => $user->id,
+    //                     'direction' => 'inbox',
+    //                     'from_address' => $message['from_email'] ?? 'inconnu',
+    //                     'to_address' => isset($message['to_email']) ? implode(', ', (array) $message['to_email']) : null,
+    //                     'subject' => $message['subject'] ?? 'Sans objet',
+    //                     'message' => $message['text'] ?? ($message['html'] ?? 'Message sans contenu.'),
+    //                     'status' => 'received',
+    //                     'meta' => [
+    //                         'message_id' => $messageId,
+    //                         'unread' => true,
+    //                     ],
+    //                 ]);
+    //                 $created++;
+    //             }
+    //             continue;
+    //         }
+
+    //         if ($messageId && Email::where('meta->message_id', $messageId)->whereNull('user_id')->exists()) {
+    //             continue;
+    //         }
+
+    //         Email::create([
+    //             'user_id' => null,
+    //             'direction' => 'inbox',
+    //             'from_address' => $message['from_email'] ?? 'inconnu',
+    //             'to_address' => isset($message['to_email']) ? implode(', ', (array) $message['to_email']) : null,
+    //             'subject' => $message['subject'] ?? 'Sans objet',
+    //             'message' => $message['text'] ?? ($message['html'] ?? 'Message sans contenu.'),
+    //             'status' => 'received',
+    //             'meta' => [
+    //                 'message_id' => $messageId,
+    //                 'unread' => true,
+    //             ],
+    //         ]);
+    //         $created++;
+    //     }
+
+    //     return response()->json(['message' => 'Mailtrap inbox synced.', 'created' => $created], 200);
+    // }
+
+    public function syncGmail(Request $request) {
+        try {
+            // Connexion au serveur Gmail
+            $client = Client::account('default');
+            $client->connect();
+
+            // On récupère les messages du dossier INBOX
+            $folder = $client->getFolder('INBOX');
+            $messages = $folder->query()->unseen()->get(); // Unseen = seulement les non-lus
+
+            foreach($messages as $message) {
+                // On vérifie si l'email n'existe pas déjà en base (par message_id)
+                if (!Email::where('meta->message_id', $message->getMessageId())->exists()) {
                     Email::create([
-                        'user_id' => $user->id,
+                        'user_id' => null, // Ou logique pour lier à un utilisateur
                         'direction' => 'inbox',
-                        'from_address' => $message['from_email'] ?? 'inconnu',
-                        'to_address' => isset($message['to_email']) ? implode(', ', (array) $message['to_email']) : null,
-                        'subject' => $message['subject'] ?? 'Sans objet',
-                        'message' => $message['text'] ?? ($message['html'] ?? 'Message sans contenu.'),
+                        'from_address' => $message->getFrom()[0]->mail,
+                        'to_address' => 'sylvinhio676@gmail.com',
+                        'subject' => $message->getSubject(),
+                        'message' => $message->getHTMLBody() ?: $message->getTextBody(),
                         'status' => 'received',
                         'meta' => [
-                            'message_id' => $messageId,
-                            'unread' => true,
-                        ],
+                            'message_id' => $message->getMessageId(),
+                            'unread' => true
+                        ]
                     ]);
-                    $created++;
+                    
+                    // Optionnel : Marquer comme lu sur Gmail après synchro
+                    // $message->setFlag('Seen');
                 }
-                continue;
             }
-
-            if ($messageId && Email::where('meta->message_id', $messageId)->whereNull('user_id')->exists()) {
-                continue;
-            }
-
-            Email::create([
-                'user_id' => null,
-                'direction' => 'inbox',
-                'from_address' => $message['from_email'] ?? 'inconnu',
-                'to_address' => isset($message['to_email']) ? implode(', ', (array) $message['to_email']) : null,
-                'subject' => $message['subject'] ?? 'Sans objet',
-                'message' => $message['text'] ?? ($message['html'] ?? 'Message sans contenu.'),
-                'status' => 'received',
-                'meta' => [
-                    'message_id' => $messageId,
-                    'unread' => true,
-                ],
-            ]);
-            $created++;
+            return response()->json(['message' => 'Synchronisation réussie']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        return response()->json(['message' => 'Mailtrap inbox synced.', 'created' => $created], 200);
     }
 
     /**

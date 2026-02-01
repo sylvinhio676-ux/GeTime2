@@ -20,6 +20,7 @@ import SpecialtyList from "@/pages/Admin/specialty/SpecialtyList";
 import SubjectList from "@/pages/Admin/Subject/SubjectList";
 import RoomList from "@/pages/Admin/room/RoomList";
 import SchoolList from "@/pages/Admin/school/SchoolList";
+import EtablishmentList from "@/pages/Admin/etablishment/EtablishmentList";
 import LocationList from "@/pages/Admin/location/LocationList";
 import DisponibilityList from "@/pages/Admin/disponibility/DisponibilityList";
 import Settings from "@/pages/Admin/Settings/Settings";
@@ -33,6 +34,7 @@ import ProgrammationList from "@/pages/Admin/programmation/ProgrammationList";
 import TrackingPage from "@/pages/Admin/tracking/TrackingPage";
 import QuotaDashboard from "@/pages/Admin/quota/QuotaDashboard";
 import AnalyticsDashboard from "@/pages/Admin/analytics/AnalyticsDashboard";
+import AutomationReport from "@/pages/Admin/automation/AutomationReport";
 import TeacherRoomList from "@/pages/Admin/room/TeacherRoomList";
 import RequireTeacher from "@/router/RequireTeacher";
 
@@ -98,6 +100,7 @@ export default function AppRouter() {
               </RequireTeacher>
             }
           />
+          <Route path="etablishments" element={<EtablishmentList />} />
           <Route path="schools" element={<SchoolList />} />
           <Route path="locations" element={<LocationList />} />
           <Route path="tracking" element={<TrackingPage />} />
@@ -107,6 +110,11 @@ export default function AppRouter() {
           <Route path="audit-logs" element={<AuditLogList />} />
           <Route path="quota-dashboard" element={<QuotaDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
+          <Route path="automation-report" element={
+            <RequirePermission permission="view-programmation" denyRoles={["teacher"]}>
+              <AutomationReport />
+            </RequirePermission>
+          } />
           <Route path="settings" element={<Settings/>} />
 
         </Route>

@@ -25,6 +25,7 @@ use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\QuotaController;
 use App\Http\Controllers\TeacherRoomController;
+use App\Http\Controllers\AutomationReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -104,7 +105,7 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
     Route::apiResource('users', UserController::class)
         ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::get('emails', [EmailController::class, 'index']);
-    Route::get('emails/sync', [EmailController::class, 'syncMailtrap']);
+    Route::get('emails/sync', [EmailController::class, 'syncGmail']);
     Route::post('emails', [EmailController::class, 'send']);
     Route::patch('emails/{email}/read', [EmailController::class, 'markRead']);
 
@@ -215,6 +216,8 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
         ->middleware('role_or_permission:super_admin|admin|edit-programmation,sanctum');
     Route::delete('programmations/{programmation}', [ProgrammationController::class, 'destroy'])
         ->middleware('role_or_permission:super_admin|admin|delete-programmation,sanctum');
+    Route::post('programmations/{programmation}/validate', [ProgrammationController::class, 'validateProgrammation'])
+        ->middleware('role_or_permission:super_admin|admin|edit-programmation,sanctum');
 
     // Disponibilities
     Route::get('disponibilities', [DisponibilityController::class, 'index'])
@@ -235,6 +238,12 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // tracking
     Route::post('tracking/path', [TrackingController::class, 'store']);
+    Route::get('automation/report/latest', [AutomationReportController::class, 'latest'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::get('automation/report/runs', [AutomationReportController::class, 'index'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
+    Route::get('automation/report/stats', [AutomationReportController::class, 'stats'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::get('analytics/usage', [AnalyticsController::class, 'usageMetrics'])
         ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::get('analytics/routes', [AnalyticsController::class, 'topCampuses'])

@@ -33,15 +33,31 @@ class DisponibilityController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $query = Disponibility::with(['subject.teacher.user','subject.specialty.level','etablishment']);
-            $user = request()->user();
+            $query = Disponibility::with(['subject.teacher.user', 'subject.specialty.level', 'etablishment']);
+
+            // FILTRE PAR ANNÉE (Indispensable)
+            if ($request->filled('year_id')) {
+                $query->where('year_id', $request->year_id);
+            }
+
+            // FILTRE PAR SPÉCIALITÉ / NIVEAU
+            // On cherche les disponibilités dont la matière (subject) appartient à la spécialité/niveau
+            if ($request->filled('specialty_id')) {
+                $query->whereHas('subject', function($q) use ($request) {
+                    $q->where('specialty_id', $request->specialty_id);
+                });
+            }
+
+            $user = $request->user();
+            // Si c'est un prof, on restreint à ses propres matières uniquement
             if ($user && $user->hasRole('teacher')) {
                 $teacherId = $user->teacher?->id;
                 $query->whereHas('subject', fn($q) => $q->where('teacher_id', $teacherId));
             }
+
             $disponibilities = $query->get();
             return successResponse($disponibilities);
         } catch (Exception $e) {
@@ -55,19 +71,27 @@ class DisponibilityController extends Controller
     public function store(DisponibilityRequest $request)
     {
         try {
-            $data = $request->validated();
-            $disponibility = Disponibility::create($data);
-            $subject = $disponibility->subject;
-            $programmerUser = $subject?->specialty?->programmer?->user;
-            $this->notifyAdminsAndProgrammer($programmerUser, [
-                'type' => 'disponibility_created',
-                'title' => 'Nouvelle disponibilité',
-                'message' => "Disponibilité ajoutée pour {$data['day']} ({$data['hour_star']} - {$data['hour_end']}).",
-                'meta' => ['disponibility_id' => $disponibility->id, 'subject_id' => $data['subject_id']],
-                'action_url' => url('/dashboard/disponibilities'),
-                'action_label' => 'Voir les disponibilités',
-            ], $request->user()?->id);
+            $validated = $request->validated();
+
+            // Cas : Tableau de disponibilités
+            if (isset($validated[0])) {
+                $createdItems = [];
+                foreach ($validated as $itemData) {
+                    $disponibility = Disponibility::create($itemData);
+                    $createdItems[] = $disponibility;
+                    
+                    // On notifie pour chaque création
+                    $this->sendCreationNotification($disponibility, $request->user()?->id);
+                }
+                return successResponse($createdItems, "Disponibilités créées avec succès");
+            }
+
+            // Cas : Disponibilité unique
+            $disponibility = Disponibility::create($validated);
+            $this->sendCreationNotification($disponibility, $request->user()?->id);
+
             return successResponse($disponibility, "Disponibilité créée avec succès");
+
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
@@ -99,7 +123,7 @@ class DisponibilityController extends Controller
             $this->notifyAdminsAndProgrammer($programmerUser, [
                 'type' => 'disponibility_updated',
                 'title' => 'Disponibilité modifiée',
-                'message' => "Disponibilité modifiée pour {$disponibility->day} ({$disponibility->hour_star} - {$disponibility->hour_end}).",
+                'message' => "Disponibilité modifiée pour {$this->resolveDayLabel($disponibility->day)} ({$disponibility->hour_star} - {$disponibility->hour_end}).",
                 'meta' => ['disponibility_id' => $disponibility->id, 'subject_id' => $disponibility->subject_id],
                 'action_url' => url('/dashboard/disponibilities'),
                 'action_label' => 'Voir les disponibilités',
@@ -175,5 +199,20 @@ class DisponibilityController extends Controller
             return $value->value;
         }
         return (string) ($value ?? '—');
+    }
+
+    private function sendCreationNotification(Disponibility $disponibility, ?int $actorId)
+    {
+        $subject = $disponibility->subject;
+        $programmerUser = $subject?->specialty?->programmer?->user;
+        
+        $this->notifyAdminsAndProgrammer($programmerUser, [
+            'type' => 'disponibility_created',
+            'title' => 'Nouvelle disponibilité',
+            'message' => "Disponibilité ajoutée pour {$disponibility->day->value} ({$disponibility->hour_star} - {$disponibility->hour_end}).",
+            'meta' => ['disponibility_id' => $disponibility->id, 'subject_id' => $disponibility->subject_id],
+            'action_url' => url('/dashboard/disponibilities'),
+            'action_label' => 'Voir les disponibilités',
+        ], $actorId);
     }
 }

@@ -12,6 +12,7 @@ class Year extends Model
     protected $fillable = [
         'date_star',
         'date_end',
+        'status',
     ];
 
     public function programmations(){

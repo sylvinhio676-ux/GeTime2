@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  BookOpen, 
-  Clock, 
-  Layers, 
-  User, 
-  ChevronDown, 
-  Loader2, 
-  Check,
-  AlertCircle
+  BookOpen, Clock, Layers, User, ChevronDown, Loader2, Check, AlertCircle 
 } from 'lucide-react';
 
 export default function SubjectForm({ 
@@ -19,37 +12,36 @@ export default function SubjectForm({
   onCancel, 
   isLoading = false 
 }) {
+  // L'état est initialisé une seule fois au montage.
+  // La suppression du useEffect élimine l'erreur de rendu en cascade.
   const [formData, setFormData] = useState({
-    subject_name: '',
-    hour_by_week: '',
-    total_hour: '',
-    type_subject: '',
-    color: 'var(--primary)',
-    teacher_id: '',
-    specialty_id: '',
+    subject_name: initialData?.subject_name || '',
+    hour_by_week: initialData?.hour_by_week || '',
+    total_hour: initialData?.total_hour || '',
+    type_subject: initialData?.type_subject || '',
+    color: initialData?.color || '#3b82f6',
+    teacher_id: initialData?.teacher_id || '',
+    specialty_id: initialData?.specialty_id || '',
   });
 
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        subject_name: initialData.subject_name || '',
-        hour_by_week: initialData.hour_by_week || '',
-        total_hour: initialData.total_hour || '',
-        type_subject: initialData.type_subject || '',
-        color: initialData.color || 'var(--primary)',
-        teacher_id: initialData.teacher_id || '',
-        specialty_id: initialData.specialty_id || '',
-      });
-    }
-  }, [initialData]);
-
   const handleChange = ({ target }) => {
     const { name, value } = target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Conversion numérique pour les IDs et volumes horaires
+    const numericFields = ['teacher_id', 'specialty_id', 'hour_by_week', 'total_hour'];
+    const processedValue = numericFields.includes(name) && value !== '' ? Number(value) : value;
+
+    setFormData((prev) => ({ ...prev, [name]: processedValue }));
+    
+    // Nettoyage immédiat de l'erreur du champ en cours de saisie
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
   };
 
@@ -58,8 +50,9 @@ export default function SubjectForm({
     try {
       await onSubmit(formData);
     } catch (err) {
-      if (err.errors) {
-        setErrors(err.errors);
+      // Gestion des erreurs de validation Laravel
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
       } else {
         setErrors({ general: err.message || 'Une erreur est survenue' });
       }
@@ -69,7 +62,7 @@ export default function SubjectForm({
   const inputClasses = (name) => `
     w-full px-4 py-3.5 rounded-2xl border bg-muted/50 text-sm transition-all 
     focus:bg-card focus:outline-none focus:ring-4 
-    ${errors[name] ? 'border-delta-negative/40 focus:ring-delta-negative/20' : 'border-border focus:ring-muted/60 focus:border-border/80'}
+    ${errors[name] ? 'border-red-500 focus:ring-red-500/10' : 'border-border focus:ring-primary/10 focus:border-primary/40'}
   `;
 
   const labelClasses = "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1 mb-2";
@@ -77,16 +70,15 @@ export default function SubjectForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {errors.general && (
-        <div className="flex items-center gap-3 p-4 rounded-2xl bg-delta-negative/10 border border-delta-negative/20 text-delta-negative text-sm animate-in fade-in slide-in-from-top-1">
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <p className="font-bold">{errors.general}</p>
         </div>
       )}
 
-      {/* --- NOM DE LA MATIÈRE --- */}
       <div className="space-y-1">
         <label className={labelClasses}>
-          <BookOpen className="w-3.5 h-3.5 text-muted-foreground" /> Nom de la Matière *
+          <BookOpen className="w-3.5 h-3.5" /> Nom de la Matière *
         </label>
         <input
           type="text"
@@ -97,28 +89,28 @@ export default function SubjectForm({
           className={inputClasses('subject_name')}
           required
         />
-        {errors.subject_name && <p className="text-delta-negative text-[10px] font-bold mt-1 ml-1">{errors.subject_name[0]}</p>}
+        {errors.subject_name && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{errors.subject_name[0]}</p>}
       </div>
 
-      {/* --- GRILLE : HEURES --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className={labelClasses}>
-            <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Heures / Semaine *
+            <Clock className="w-3.5 h-3.5 text-muted-foreground" /> Rythme indicatif (h/sem)
           </label>
           <input
             type="number"
             name="hour_by_week"
             value={formData.hour_by_week}
             onChange={handleChange}
+            placeholder="Ex: 4"
             className={inputClasses('hour_by_week')}
-            required
           />
+          <p className="text-[9px] text-muted-foreground px-1">
+            Sert de base pour la planification standard.
+          </p>
         </div>
         <div className="space-y-1">
-          <label className={labelClasses}>
-            <Layers className="w-3.5 h-3.5 text-muted-foreground" /> Volume Total (h) *
-          </label>
+          <label className={labelClasses}><Layers className="w-3.5 h-3.5" /> Total (h) *</label>
           <input
             type="number"
             name="total_hour"
@@ -130,7 +122,6 @@ export default function SubjectForm({
         </div>
       </div>
 
-      {/* --- TYPE DE MATIÈRE --- */}
       <div className="space-y-1 relative group">
         <label className={labelClasses}>Type de Cours *</label>
         <select
@@ -140,30 +131,14 @@ export default function SubjectForm({
           className={`${inputClasses('type_subject')} appearance-none cursor-pointer`}
           required
         >
-          <option value="">-- Sélectionner le type --</option>
+          <option value="">-- Sélectionner --</option>
           <option value="cours">Cours (CM)</option>
           <option value="td">TD</option>
           <option value="tp">TP</option>
         </select>
-        <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-muted-foreground/80 pointer-events-none group-focus-within:rotate-180 transition-transform" />
+        <ChevronDown className="absolute right-4 bottom-4 w-4 h-4 text-muted-foreground/80" />
       </div>
 
-      {/* --- COULEUR --- */}
-      <div className="space-y-1">
-        <label className={labelClasses}>
-          <Check className="w-3.5 h-3.5 text-muted-foreground" /> Couleur de la Matière
-        </label>
-        <input
-          type="color"
-          name="color"
-          value={formData.color}
-          onChange={handleChange}
-          className="h-12 w-full rounded-2xl border border-border bg-card px-3"
-        />
-        {errors.color && <p className="text-delta-negative text-[10px] font-bold mt-1 ml-1">{errors.color[0]}</p>}
-      </div>
-
-      {/* --- ENSEIGNANT & SPÉCIALITÉ --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1 relative group">
           <label className={labelClasses}><User className="w-3.5 h-3.5" /> Enseignant</label>
@@ -200,27 +175,24 @@ export default function SubjectForm({
         </div>
       </div>
 
-      {/* --- FOOTER : ACTIONS --- */}
+      <div className="space-y-1">
+        <label className={labelClasses}><Check className="w-3.5 h-3.5" /> Couleur</label>
+        <input
+          type="color"
+          name="color"
+          value={formData.color}
+          onChange={handleChange}
+          className="h-12 w-24 rounded-xl border border-border bg-card cursor-pointer"
+        />
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        <Button
-          type="submit"
-          disabled={isLoading}
-          className="flex-[2] bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/80 text-primary-foreground rounded-2xl py-7 h-auto shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
-        >
-          {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <span className="font-bold tracking-tight text-base">
-              {initialData ? 'Enregistrer les modifications' : 'Confirmer la création'}
-            </span>
+        <Button type="submit" disabled={isLoading} className="flex-[2] rounded-2xl py-7 h-auto">
+          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+            <span className="font-bold">{initialData ? 'Enregistrer' : 'Créer la matière'}</span>
           )}
         </Button>
-        <Button
-          type="button"
-          onClick={onCancel}
-          variant="outline"
-          className="flex-1 border-border text-muted-foreground hover:bg-muted rounded-2xl py-7 h-auto font-bold transition-all"
-        >
+        <Button type="button" onClick={onCancel} variant="outline" className="flex-1 rounded-2xl py-7 h-auto font-bold">
           Annuler
         </Button>
       </div>

@@ -18,7 +18,7 @@ class ProgrammersSeeder extends Seeder
         $etablishmentIds = Etablishment::query()->pluck('id')->all();
         $year = date('Y');
 
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= 5; $i++) {
             Programmer::create([
                 'registration_number' => sprintf('P%s%04d', $year, $i),
                 'user_id' => $userIds[($i - 1) % count($userIds)] ?? null,

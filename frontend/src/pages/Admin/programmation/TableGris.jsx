@@ -115,6 +115,7 @@ export default function TimetableDashboard({ readOnly = false }) {
     }
 
     const params = {};
+    params.status = 'published';
     if (viewMode === 'specialty') params.specialty_id = selectedSpecialty;
     if (viewMode === 'teacher') {
       params.teacher_id = selectedTeacher;

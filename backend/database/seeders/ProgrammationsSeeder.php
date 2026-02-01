@@ -22,7 +22,7 @@ class ProgrammationsSeeder extends Seeder
         $roomIds = Room::query()->pluck('id')->all();
         $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
 
-        for ($i = 0; $i < 30; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             Programmation::create([
                 'day' => $days[$i % count($days)],
                 'hour_star' => sprintf('%02d:00', 8 + ($i % 4)),

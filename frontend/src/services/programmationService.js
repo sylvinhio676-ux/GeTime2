@@ -61,6 +61,15 @@ export const programmationService = {
         }
     },
 
+    validate: async (id) => {
+        try {
+            const response = await api.post(`${ENDPOINT}/${id}/validate`);
+            return response.data.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
     //delete programmation
     delete: async (id) => {
         try {

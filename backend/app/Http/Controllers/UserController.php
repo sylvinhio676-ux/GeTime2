@@ -7,7 +7,10 @@ use App\Http\Requests\Updates\UserUpdateRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Role;
+use Str;
 
 class UserController extends Controller
 {
@@ -52,6 +55,25 @@ class UserController extends Controller
             if (!$actor || !$this->canManageRole($actor, $roleName) || $roleName === 'super_admin') {
                 return forbiddenResponse("Accès refusé");
             }
+
+            $randomPassword = Str::random(10); 
+            $data['password'] = Hash::make($randomPassword); // Hachage pour la BDD
+
+            $user = User::create($data);
+
+            // --- ENVOI DE L'EMAIL ---
+            // Option 1 : Via une Mailable (Recommandé)
+            // Mail::to($user->email)->send(new UserCreatedMail($user, $randomPassword));
+            
+            // Option 2 : Via une simple closure pour tester rapidement
+            Mail::send([], [], function ($message) use ($user, $randomPassword) {
+                $message->to($user->email)
+                    ->subject('Votre compte a été créé')
+                    ->html("Bonjour {$user->name}, votre compte a été créé. <br> 
+                            Voici vos accès : <br>
+                            Email: {$user->email} <br>
+                            Mot de passe: <b>{$randomPassword}</b>");
+            });
             // Ensure password is present and will be hashed via model cast
             $user = User::create($data);
             if (!empty($roleName)) {

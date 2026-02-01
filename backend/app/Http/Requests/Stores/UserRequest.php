@@ -29,7 +29,7 @@ class UserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email' . ($id ? ',' . $id : '')],
             'phone' => ['required', 'string', 'unique:users,phone' . ($id ? ',' . $id : '')],
-            'password' => [$this->isMethod('post') ? 'required' : 'nullable', 'string', 'min:8', 'confirmed'],
+            'password' => [$this->isMethod('post') ? 'required' : 'nullable', 'string', 'min:8'],
             'role' => [
                 'required',
                 new Enum(RuleEnum::class),
