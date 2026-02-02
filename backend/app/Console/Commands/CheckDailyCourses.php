@@ -30,7 +30,7 @@ class CheckDailyCourses extends Command
     {
         //Récupérer les programmations d'aujourd'hui
         $today = now()->locale('fr')->dayName;
-        $programmations = Programmation::whereDate('day', $today)
+        $programmations = Programmation::where('day', $today)
             ->where('status', 'published')
             ->with(['subject.specialty', 'subject.teacher.user'])
             ->get();
@@ -38,15 +38,26 @@ class CheckDailyCourses extends Command
         foreach ($programmations as $prog) {
             //Trouver le programmateur responsable de la spécialité de cette matière
             $programmerId = $prog->subject->specialty->programmer_id;
-            $programmer = User::find($programmerId);
 
-            if ($programmer) {
-                //Envoyer une notification de vérification
-                $programmer->notify(new VerifyCourseAttendance($prog));
-                $this->info("Notification envoyée à {$programmer->name} pour la programmation ID {$prog->id}");
-            } else {
-                $this->warn("Aucun programmateur trouvé pour la spécialité ID {$prog->subject->specialty->id}");
+            if (!$programmerId) {
+                $this->warn("Aucun programmateur assigné à la spécialité ID {$prog->subject->specialty->id} ({$prog->subject->subject_name})");
+                continue;
             }
+
+            $programmer = User::find($programmerId);
+            if (!$programmer) {
+                $this->warn("Programmateur introuvable (ID {$programmerId}) pour la spécialité ID {$prog->subject->specialty->id}");
+                continue;
+            }
+
+            // Eviter d’envoyer à l’admin si par hasard le programmateur n’a pas été renseigné proprement
+            if (!$programmer->hasRole('programmer')) {
+                $this->warn("Utilisateur {$programmer->name} (ID {$programmer->id}) n’est pas un programmeur -> notification ignorée.");
+                continue;
+            }
+
+            $programmer->notify(new VerifyCourseAttendance($prog));
+            $this->info("Notification envoyée à {$programmer->name} pour la programmation ID {$prog->id}");
         }
     }
 }

@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/context/useAuth';
 import Pagination from '@/components/Pagination';
 import Select from 'react-select';
+import AssignSpecialtiesModal from '@/components/specialty/AssignSpecialtiesModal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, ResponsiveContainer } from 'recharts';
 
 export default function UserList() {
@@ -39,10 +40,13 @@ export default function UserList() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({
+  const [assignModalUser, setAssignModalUser] = useState(null);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const defaultFormState = {
     name: '', email: '', phone: '', role: 'teacher', password: 'password',
     assignedSubjects: [], assignedSpecialties: []
-  });
+  };
+  const [formData, setFormData] = useState(defaultFormState);
 
   const [showStats, setShowStats] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -155,6 +159,28 @@ export default function UserList() {
     const action = editingUser ? () => userService.update(editingUser.id, formData) : () => userService.create(formData);
     handleAction(action, editingUser ? 'Utilisateur mis à jour' : 'Utilisateur créé');
     setShowForm(false);
+    setFormData(defaultFormState);
+  };
+
+  const handleDelete = (targetUser) => {
+    if (!window.confirm(`Supprimer l'utilisateur ${targetUser.name} ?`)) return;
+    handleAction(() => userService.delete(targetUser.id), 'Utilisateur supprimé');
+  };
+
+  const handleAssignSpecialties = async (selectedIds) => {
+    if (!assignModalUser) return;
+    setAssignLoading(true);
+    try {
+      await userService.assignSpecialties(assignModalUser.id, selectedIds);
+      showNotify('Spécialités du programmeur mises à jour');
+      fetchUsers();
+      setAssignModalUser(null);
+    } catch (error) {
+      console.error('Assignation de spécialités échouée', error);
+      showNotify('Erreur lors de l’assignation', 'error');
+    } finally {
+      setAssignLoading(false);
+    }
   };
 
   const selectStyles = {
@@ -189,7 +215,7 @@ export default function UserList() {
             <Button variant="outline" size="icon" onClick={() => setShowStats(!showStats)} className="rounded-xl"><BarChart3 className="w-4 h-4" /></Button>
             <Button variant="outline" size="icon" onClick={fetchUsers} className="rounded-xl"><RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></Button>
             <Button variant="outline" onClick={() => {}} className="rounded-xl gap-2"><Download className="w-4 h-4" /> <span className="hidden sm:inline">Export</span></Button>
-            <Button onClick={() => { setEditingUser(null); setShowForm(true); }} className="bg-primary hover:opacity-90 rounded-xl gap-2 px-6 shadow-md">
+            <Button onClick={() => { setEditingUser(null); setFormData(defaultFormState); setShowForm(true); }} className="bg-primary hover:opacity-90 rounded-xl gap-2 px-6 shadow-md">
                 <Plus className="w-5 h-5" /> <span>Nouveau</span>
             </Button>
         </div>
@@ -304,8 +330,28 @@ export default function UserList() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1">
                           <Button size="icon" variant="ghost" onClick={() => { setEditingUser(user); setFormData({...user, role: user.roles?.[0]?.name}); setShowForm(true); }} className="h-8 w-8 text-primary"><Pencil className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => {}} className="h-8 w-8 text-muted-foreground"><Bell className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => {}} className="h-8 w-8 text-red-500 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
+                          {user.phone && (
+                            <>
+                              <a href={`tel:${user.phone}`} className="h-8 w-8 text-muted-foreground flex items-center justify-center rounded-full border border-muted/30 hover:bg-muted transition-colors">
+                                <PhoneCall className="w-4 h-4" />
+                              </a>
+                              <a href={`https://wa.me/${user.phone.replace(/\\D/g, "")}`} target="_blank" rel="noreferrer" className="h-8 w-8 text-green-600 flex items-center justify-center rounded-full border border-muted/30 hover:bg-green-50 transition-colors">
+                                <span className="text-[12px] font-bold tracking-tight">WA</span>
+                              </a>
+                            </>
+                          )}
+                          <Button size="icon" variant="ghost" onClick={() => handleDelete(user)} className="h-8 w-8 text-red-500 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
+                          {user.roles?.some((role) => role.name === 'programmer') && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setAssignModalUser(user)}
+                              className="h-8 w-8 text-primary"
+                              title="Assigner des spécialités"
+                            >
+                              <Bell className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -327,8 +373,16 @@ export default function UserList() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                       <Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="w-4 h-4" /></Button>
-                       <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                       <Button size="icon" variant="ghost" className="h-8 w-8"
+                         onClick={() => { setEditingUser(user); setFormData({ ...user, role: user.roles?.[0]?.name }); setShowForm(true); }}
+                       >
+                         <Pencil className="w-4 h-4" />
+                       </Button>
+                       <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500"
+                         onClick={() => handleDelete(user)}
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </Button>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -345,10 +399,19 @@ export default function UserList() {
         )}
       </div>
 
+      <AssignSpecialtiesModal
+        user={assignModalUser}
+        specialties={options.specialties}
+        open={!!assignModalUser}
+        loading={assignLoading}
+        onClose={() => setAssignModalUser(null)}
+        onSave={handleAssignSpecialties}
+      />
+
       {/* Remplacer le bloc {showForm && (...)} par cette version améliorée */}
 {showForm && (
   <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
-    <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setShowForm(false)} />
+    <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => { setShowForm(false); setFormData(defaultFormState); }} />
     
     <div className="relative w-full max-w-2xl bg-card border border-border rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
       
@@ -367,7 +430,7 @@ export default function UserList() {
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="rounded-full hover:bg-red-50 hover:text-red-500 transition-colors">
+        <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setFormData(defaultFormState); }} className="rounded-full hover:bg-red-50 hover:text-red-500 transition-colors">
           <X className="w-5 h-5" />
         </Button>
       </div>

@@ -36,6 +36,7 @@ import QuotaDashboard from "@/pages/Admin/quota/QuotaDashboard";
 import AnalyticsDashboard from "@/pages/Admin/analytics/AnalyticsDashboard";
 import AutomationReport from "@/pages/Admin/automation/AutomationReport";
 import TeacherRoomList from "@/pages/Admin/room/TeacherRoomList";
+import TeacherSpecialties from "@/pages/Teacher/TeacherSpecialties";
 import RequireTeacher from "@/router/RequireTeacher";
 
 export default function AppRouter() {
@@ -97,6 +98,14 @@ export default function AppRouter() {
             element={
               <RequireTeacher>
                 <TeacherRoomList />
+              </RequireTeacher>
+            }
+          />
+          <Route
+            path="teacher-specialties"
+            element={
+              <RequireTeacher>
+                <TeacherSpecialties />
               </RequireTeacher>
             }
           />

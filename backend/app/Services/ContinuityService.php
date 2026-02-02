@@ -25,14 +25,38 @@ class ContinuityService
             ->whereNotNull('room_id')
             ->whereIn('status', ['draft', 'validated', 'published'])
             ->orderByDesc('hour_star')
-            ->first();
+            ->get();
 
-        if ($existing && $existing->room_id) {
-            if (!empty($data['room_id']) && intval($data['room_id']) !== intval($existing->room_id)) {
-                throw new \RuntimeException("Cette matière est déjà assignée à la salle {$existing->room_id} pour le même jour.");
+        foreach ($existing as $programmation) {
+            $existingRoom = $programmation->room_id;
+            if (!$existingRoom) {
+                continue;
             }
-            $data['room_id'] = $existing->room_id;
+
+            if (!empty($data['room_id']) && intval($data['room_id']) !== intval($existingRoom)) {
+                $data['room_id'] = $existingRoom;
+                return;
+            }
+
+            $data['room_id'] = $existingRoom;
+            return;
         }
+    }
+
+    private function overlapsTime(string $startA, string $endA, string $startB, string $endB): bool
+    {
+        $startMinutesA = $this->timeToMinutes($startA);
+        $endMinutesA = $this->timeToMinutes($endA);
+        $startMinutesB = $this->timeToMinutes($startB);
+        $endMinutesB = $this->timeToMinutes($endB);
+
+        return $startMinutesA < $endMinutesB && $endMinutesA > $startMinutesB;
+    }
+
+    private function timeToMinutes(string $time): int
+    {
+        [$hours, $minutes] = array_map('intval', explode(':', $time));
+        return $hours * 60 + $minutes;
     }
 
     public function resolveConflicts(Programmation $programmation): void

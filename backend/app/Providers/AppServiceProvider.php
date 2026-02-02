@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\Channels\FcmChannel;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Contract\Messaging;
 
@@ -29,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Notification::extend('fcm', function ($app) {
+            return $app->make(FcmChannel::class);
+        });
+
         //
     }
 }

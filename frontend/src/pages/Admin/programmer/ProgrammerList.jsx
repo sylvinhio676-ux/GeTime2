@@ -206,7 +206,8 @@ export default function ProgrammerList() {
                   <th className="px-8 py-5">Matricule</th>
                   <th className="px-8 py-5">Utilisateur</th>
                   <th className="px-8 py-5">Établissement</th>
-                  <th className="px-8 py-5 text-right">Actions</th>
+                  {isAdmin && <th className="px-8 py-5 text-right">Actions</th>}
+                  <th className="px-8 py-5 text-center">Contact</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
@@ -242,17 +243,18 @@ export default function ProgrammerList() {
                         </div>
                       </td>
                     )}
-                    {/* button pour appeler un programmeur ou l'envoier un mail */}
-                    <div className='flex justify-center gap-2 transition-opacity'>
-                      <a href={`mailto${programmers.user?.email}`} className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors">
-                        <Mail className="w-4 h-4" />
-                      </a>
-                      {programmers.user?.phone && (
-                        <a href={`tel:${programmers.user?.phone}`} className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors">
-                          <PhoneIcon className="w-4 h-4" />
+                    <td className="px-8 py-5 text-center">
+                      <div className="flex justify-center gap-2">
+                        <a href={`mailto:${p.user?.email}`} className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors">
+                          <Mail className="w-4 h-4" />
                         </a>
-                      ) }
-                    </div>
+                        {p.user?.phone && (
+                          <a href={`tel:${p.user?.phone}`} className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors">
+                            <PhoneIcon className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -55,7 +55,8 @@ export default function SpecialtyList() {
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef(null);
   const { hasRole } = useAuth();
-  const isAdmin = hasRole('admin') || hasRole('super_admin');
+  const isTeacher = hasRole("teacher");
+  const isAdmin = hasRole("admin") || hasRole("super_admin");
 
   // --- FONCTIONS UTILITAIRES ---
   const getErrorMessage = (error, fallback) => {
@@ -72,21 +73,33 @@ export default function SpecialtyList() {
   // --- APPELS API ---
   const fetchSectors = async () => {
     try {
-      const data = await (isAdmin ? sectorService.getAll() : sectorService.getForTeacher());
+      const data = await (
+        isAdmin ? sectorService.getAll() :
+        isTeacher ? sectorService.getForTeacher() :
+        sectorService.getAll()
+      );
       setSectors(data || []);
     } catch (error) { console.error('Failed to fetch sectors', error); }
   };
 
   const fetchProgrammers = async () => {
     try {
-      const data = await (isAdmin ? programmersService.getAll() : programmersService.getForTeacher());
+      const data = await (
+        isAdmin ? programmersService.getAll() :
+        isTeacher ? programmersService.getForTeacher() :
+        programmersService.getAll()
+      );
       setProgrammers(data || []);
     } catch (error) { console.error('Failed to fetch programmers', error); }
   };
 
   const fetchLevels = async () => {
     try {
-      const data = await (isAdmin ? levelService.getAll() : levelService.getForTeacher());
+      const data = await (
+        isAdmin ? levelService.getAll() :
+        isTeacher ? levelService.getForTeacher() :
+        levelService.getAll()
+      );
       setLevels(data || []);
     } catch (error) { console.error('Failed to fetch levels', error); }
   };

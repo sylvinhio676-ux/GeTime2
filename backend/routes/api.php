@@ -18,6 +18,7 @@ use App\Http\Controllers\DisponibilityController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SpecialtyProgrammationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProgrammerSpecialtyController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\DeviceTokenController;
@@ -61,15 +62,15 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
     Route::post('/notifications/schedule', [NotificationController::class, 'schedule']);
     Route::post('/notifications/push', [NotificationController::class, 'push']);
     Route::get('/audit-logs', [AuditLogController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|programmer,sanctum');
 
     // API Resource Routes
     Route::apiResource('campuses', CampusController::class)
-        ->middleware('role_or_permission:super_admin|admin,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|teacher|programmer,sanctum');
     Route::get('teacher/campuses', [CampusController::class, 'teacherCampuses'])
-        ->middleware('role_or_permission:teacher|super_admin|admin,sanctum');
+        ->middleware('role_or_permission:teacher|programmer|super_admin|admin,sanctum');
     Route::apiResource('schools', SchoolController::class)
-        ->middleware('role_or_permission:super_admin|admin,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|programmer,sanctum');
     Route::get('etablishments', [EtablishmentController::class, 'index'])
         ->middleware('role_or_permission:super_admin|admin|teacher,sanctum');
     Route::get('etablishments/{etablishment}', [EtablishmentController::class, 'show'])
@@ -91,9 +92,11 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
     Route::get('programmers', [ProgrammerController::class, 'index'])
         ->middleware('role_or_permission:super_admin|admin|programmer,sanctum');
     Route::get('teacher/programmers', [ProgrammerController::class, 'teacherIndex'])
-        ->middleware('role_or_permission:teacher|super_admin|admin,sanctum');
+        ->middleware('role_or_permission:teacher|programmer|super_admin|admin,sanctum');
     Route::get('programmers/{programmer}', [ProgrammerController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|programmer,sanctum');
+    Route::patch('programmers/{user}/specialties', [ProgrammerSpecialtyController::class, 'update'])
+        ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::post('programmers', [ProgrammerController::class, 'store'])
         ->middleware('role_or_permission:super_admin|admin,sanctum');
     Route::put('programmers/{programmer}', [ProgrammerController::class, 'update'])
@@ -111,9 +114,9 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Sectors
     Route::get('sectors', [SectorController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin|view-sector,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|teacher|view-sector,sanctum');
     Route::get('teacher/sectors', [SectorController::class, 'teacherIndex'])
-        ->middleware('role_or_permission:teacher|super_admin|admin,sanctum');
+        ->middleware('role_or_permission:teacher|programmer|super_admin|admin,sanctum');
     Route::get('sectors/{sector}', [SectorController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|view-sector,sanctum');
     Route::post('sectors', [SectorController::class, 'store'])
@@ -125,7 +128,7 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Specialties
     Route::get('specialties', [SpecialtyController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin|view-specialty,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|programmer|view-specialty,sanctum');
     Route::get('specialties/{specialty}', [SpecialtyController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|view-specialty,sanctum');
     Route::post('specialties', [SpecialtyController::class, 'store'])
@@ -137,7 +140,7 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Subjects
     Route::get('subjects', [SubjectController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin|view-subject|teacher,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|view-subject|teacher|programmer,sanctum');
     Route::get('subjects/quota-status', [QuotaController::class, 'getSubjectsByStatus'])
         ->middleware('role_or_permission:super_admin|admin|view-subject,sanctum');
     Route::get('subjects/{subject}/quota', [QuotaController::class, 'getSubjectStats'])
@@ -177,9 +180,9 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Levels
     Route::get('levels', [LevelController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin|view-level,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|teacher|view-level,sanctum');
     Route::get('teacher/levels', [LevelController::class, 'teacherIndex'])
-        ->middleware('role_or_permission:teacher|super_admin|admin,sanctum');
+        ->middleware('role_or_permission:teacher|programmer|super_admin|admin,sanctum');
     Route::get('levels/{level}', [LevelController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|view-level,sanctum');
     Route::post('levels', [LevelController::class, 'store'])
@@ -203,7 +206,7 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Programmations
     Route::get('programmations', [ProgrammationController::class, 'index'])
-        ->middleware('role_or_permission:super_admin|admin|view-programmation,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|teacher|view-programmation,sanctum');
     Route::get('programmations/{programmation}', [ProgrammationController::class, 'show'])
         ->middleware('role_or_permission:super_admin|admin|view-programmation,sanctum');
     Route::post('programmations', [ProgrammationController::class, 'store'])
@@ -232,6 +235,14 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
         ->middleware('role_or_permission:super_admin|admin|delete-disponibility,sanctum');
     Route::post('disponibilities/{disponibility}/convert', [DisponibilityController::class, 'convert'])
         ->middleware('role_or_permission:super_admin|admin|create-programmation,sanctum');
+    Route::post('admin/disponibilities/{disponibility}/convert', [DisponibilityController::class, 'convertAsAdmin'])
+        ->middleware('role_or_permission:super_admin|admin|create-programmation,sanctum');
+    Route::post('disponibilities/group', [DisponibilityController::class, 'group'])
+        ->middleware('role_or_permission:super_admin|admin|edit-disponibility,sanctum');
+    Route::post('disponibilities/ungroup', [DisponibilityController::class, 'ungroup'])
+        ->middleware('role_or_permission:super_admin|admin|edit-disponibility,sanctum');
+    Route::post('disponibilities/convert-multiple', [DisponibilityController::class, 'convertMultiple'])
+        ->middleware('role_or_permission:super_admin|admin|create-programmation,sanctum');
 
     // ======device token
     Route::apiResource('/device-token', DeviceTokenController::class);
@@ -253,7 +264,7 @@ Route::middleware(['auth:sanctum', 'audit.log'])->group(function () {
 
     // Quota
     Route::get('/quota/stats', [QuotaController::class, 'getStats'])
-        ->middleware('role_or_permission:super_admin|admin,sanctum');
+        ->middleware('role_or_permission:super_admin|admin|programmer,sanctum');
 
     Route::get('/teacher/rooms', [TeacherRoomController::class, 'index'])
         ->middleware('auth:sanctum');

@@ -24,7 +24,7 @@ Schedule::command('programmations:publish-validated')
 // Exécute la synchronisation toutes les 5 minutes
 Schedule::command('emails:sync-gmail')->everyFiveMinutes();
 // Exécute la vérification des cours quotidiens à 17h00 chaque jour
-Schedule::command('app:check-daily-courses')->dailyAt('06:10');
+Schedule::command('app:check-daily-courses')->dailyAt('04:27');
 
 Artisan::command('programmations:assign-rooms {--dry-run}', function () {
     if (!Schema::hasColumn('programmations', 'campus_id')) {

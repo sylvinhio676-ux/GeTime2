@@ -13,6 +13,7 @@ import { campusService } from '@/services/campusService';
 import { roomService } from '@/services/roomService';
 import { sectorService } from '@/services/sectorService';
 import ProgrammationForm from './ProgrammationForm';
+import { useAuth } from '@/context/useAuth';
 
 export default function TimetableDashboard({ readOnly = false }) {
   const [programmations, setProgrammations] = useState([]);
@@ -38,6 +39,8 @@ export default function TimetableDashboard({ readOnly = false }) {
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
   const componentRef = useRef(null);
+  const { user } = useAuth();
+  const isTeacher = user?.roles?.includes('teacher');
   const requiresSelectionTeacher =
     viewMode === 'teacher' &&
     (!selectedTeacher || !selectedSector || !selectedSpecialty || !selectedLevel || !selectedYear);
@@ -62,33 +65,51 @@ export default function TimetableDashboard({ readOnly = false }) {
   });
 
   useEffect(() => {
+    let isMounted = true;
     const load = async () => {
       setLoading(true);
       try {
-      const [specData, subjectData, teacherData, levelData, yearData, campusData, roomData, sectorData] = await Promise.all([
-        specialtyService.getAll(),
-        subjectService.getAll(),
-        teacherService.getAll(),
-        levelService.getAll(),
-        yearService.getAll(),
-        campusService.getAll(),
-        roomService.getAll(),
-        sectorService.getAll(),
-      ]);
-      setSpecialties(specData || []);
-      setSubjects(subjectData || []);
-      setTeachers(teacherData || []);
-      setLevels(levelData || []);
-      setYears(yearData || []);
-      setCampuses(campusData || []);
-      setRooms(roomData || []);
-      setSectors(sectorData || []);
+        const [
+          specData,
+          subjectData,
+          teacherData,
+          levelData,
+          yearData,
+          campusData,
+          roomData,
+          sectorData,
+        ] = await Promise.all([
+          specialtyService.getAll(),
+          subjectService.getAll(),
+          teacherService.getAll(),
+          isTeacher ? levelService.getTeacherLevels() : levelService.getAll(),
+          yearService.getAll(),
+          isTeacher ? campusService.getTeacherCampuses() : campusService.getAll(),
+          roomService.getAll(),
+          isTeacher ? sectorService.getTeacherSectors() : sectorService.getAll(),
+        ]);
+
+        if (!isMounted) return;
+
+        setSpecialties(specData || []);
+        setSubjects(subjectData || []);
+        setTeachers(teacherData || []);
+        setLevels(levelData || []);
+        setYears(yearData || []);
+        setCampuses(campusData || []);
+        setRooms(roomData || []);
+        setSectors(sectorData || []);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     load();
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [isTeacher]);
 
   useEffect(() => {
     if (viewMode !== 'specialty') {
@@ -297,15 +318,17 @@ export default function TimetableDashboard({ readOnly = false }) {
           >
             Par spécialité
           </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('teacher')}
-            className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${
-              viewMode === 'teacher' ? 'bg-blue-700 text-white border-blue-700' : 'text-slate-500 border-slate-200'
-            }`}
-          >
-            Par enseignant
-          </button>
+          {!isTeacher && (
+            <button
+              type="button"
+              onClick={() => setViewMode('teacher')}
+              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border ${
+                viewMode === 'teacher' ? 'bg-blue-700 text-white border-blue-700' : 'text-slate-500 border-slate-200'
+              }`}
+            >
+              Par enseignant
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

@@ -62,10 +62,6 @@ class UserController extends Controller
             $user = User::create($data);
 
             // --- ENVOI DE L'EMAIL ---
-            // Option 1 : Via une Mailable (Recommandé)
-            // Mail::to($user->email)->send(new UserCreatedMail($user, $randomPassword));
-            
-            // Option 2 : Via une simple closure pour tester rapidement
             Mail::send([], [], function ($message) use ($user, $randomPassword) {
                 $message->to($user->email)
                     ->subject('Votre compte a été créé')
@@ -74,8 +70,6 @@ class UserController extends Controller
                             Email: {$user->email} <br>
                             Mot de passe: <b>{$randomPassword}</b>");
             });
-            // Ensure password is present and will be hashed via model cast
-            $user = User::create($data);
             if (!empty($roleName)) {
                 Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'sanctum']);
                 $rolesToSync = [$roleName];

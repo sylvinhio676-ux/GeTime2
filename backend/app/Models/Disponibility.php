@@ -21,11 +21,13 @@ class Disponibility extends Model
         'subject_id',
         'etablishment_id',
         'used',
+        'is_grouped',
     ];
 
     protected $casts =[
         'day' => JourEnum::class,
         'used' => 'boolean',
+        'is_grouped' => 'boolean',
     ];
 
     protected static function booted(): void

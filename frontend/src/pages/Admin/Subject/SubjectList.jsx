@@ -57,8 +57,8 @@ export default function SubjectList() {
           teacherService.getAll(),
           specialtyService.getAll(),
           subjectService.getQuotaStatus(),
-          isAdmin ? sectorService.getAll() : sectorService.getForTeacher(),
-          isAdmin ? levelService.getAll() : levelService.getForTeacher(),
+          isAdmin ? sectorService.getAll() : sectorService.getTeacherSectors(),
+          isAdmin ? levelService.getAll() : levelService.getTeacherLevels(),
         ]);
 
       setSubjects(subjectsData || []);

@@ -560,7 +560,11 @@ class ProgrammationController extends Controller
                 'action_url' => url('/dashboard/programmations'),
                 'action_label' => 'Voir le planning',
             ];
+            $roomId = $programmation->room_id;
             $programmation->delete();
+            if ($roomId) {
+                \App\Models\Room::where('id', $roomId)->update(['is_available' => true]);
+            }
             $this->notifyUsers($teacherUser, $programmerUser, $payload, request()->user()?->id);
             return successResponse(null, "Programmation supprimée avec succès");
         } catch (Exception $e) {

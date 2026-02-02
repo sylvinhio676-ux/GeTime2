@@ -16,9 +16,11 @@ class RoomController extends Controller
     public function index()
     {
         try {
-            // On charge les programmations avec les salles pour pouvoir vérifier l'occupation en JS
             $rooms = Room::with(['campus', 'programmations' => function($query) {
-                $query->where('day', now()->locale('fr')->dayName);
+                $query->with(['subject.teacher.user', 'programmer.user'])
+                    ->whereIn('status', ['validated', 'published'])
+                    ->orderBy('day')
+                    ->orderBy('hour_star');
             }])->get();
             return successResponse($rooms);
         } catch (Exception $e) {

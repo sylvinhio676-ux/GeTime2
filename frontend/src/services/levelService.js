@@ -13,6 +13,15 @@ export const levelService = {
         }
   },
 
+  getTeacherLevels: async () => {
+    try {
+      const response = await api.get('/teacher/levels');
+      return response.data.data || [];
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   getForTeacher: async () => {
     try {
       const response = await api.get('/teacher/levels');

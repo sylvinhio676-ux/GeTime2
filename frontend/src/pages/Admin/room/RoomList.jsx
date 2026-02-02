@@ -4,7 +4,7 @@ import { campusService } from '../../../services/campusService';
 import RoomForm from './RoomForm';
 import { 
   DoorOpen, Plus, Search, Users, MapPin, Pencil, 
-  Trash2, X, AlertCircle, CheckCircle2, Check, Ban 
+  Trash2, X, AlertCircle, CheckCircle2, Check, Ban, Info 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,8 @@ export default function RoomList() {
   const [editingData, setEditingData] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const [selectedIds, setSelectedIds] = useState([]);
+const PAGE_SIZE = 10;
 
   useEffect(() => { fetchInitialData(); }, []);
 
@@ -103,6 +104,45 @@ export default function RoomList() {
     }
   };
 
+  const [modalRoom, setModalRoom] = useState(null);
+
+  const openRoomModal = (room) => setModalRoom(room);
+
+  const closeRoomModal = () => setModalRoom(null);
+
+  const toggleRoomSelection = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((roomId) => roomId !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkStatusChange = async (available) => {
+    if (!selectedIds.length) return;
+    try {
+      await Promise.all(
+        selectedIds.map((id) => roomService.update(id, { is_available: available }))
+      );
+      showNotify(`Salle(s) marquée(s) comme ${available ? 'disponible(s)' : 'occupée(s)'}`);
+      setSelectedIds([]);
+      fetchInitialData();
+    } catch (error) {
+      showNotify("Impossible de mettre à jour les salles sélectionnées", 'error');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    if (!window.confirm(`Supprimer ${selectedIds.length} salle(s) ?`)) return;
+    try {
+      await Promise.all(selectedIds.map((id) => roomService.delete(id)));
+      showNotify(`${selectedIds.length} salle(s) supprimée(s)`);
+      setSelectedIds([]);
+      fetchInitialData();
+    } catch (error) {
+      showNotify("Impossible de supprimer les salles sélectionnées", 'error');
+    }
+  };
+
   return (
     <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-6">
       
@@ -145,11 +185,42 @@ export default function RoomList() {
           </div>
         </div>
 
+        {selectedIds.length > 0 && (
+          <div className="p-4 border-b border-border/40 flex flex-wrap gap-3 items-center">
+            <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+              {selectedIds.length} sélectionnée(s)
+            </p>
+            <Button variant="outline" onClick={() => handleBulkStatusChange(true)}>
+              <CheckCircle2 className="w-4 h-4" /> Marquer disponible
+            </Button>
+            <Button variant="outline" onClick={() => handleBulkStatusChange(false)}>
+              <Ban className="w-4 h-4" /> Marquer occupée
+            </Button>
+            <Button variant="destructive" onClick={handleBulkDelete}>
+              <Trash2 className="w-4 h-4" /> Supprimer
+            </Button>
+          </div>
+        )}
+
         {/* TABLEAU */}
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[900px]">
             <thead className="bg-muted/50 text-muted-foreground text-[10px] uppercase font-black tracking-widest border-b">
               <tr>
+                <th className="px-6 py-4 w-10">
+                  <input
+                    type="checkbox"
+                    className="rounded border-border"
+                    checked={
+                      selectedIds.length > 0 && selectedIds.length === pagedRooms.length
+                    }
+                    onChange={(e) =>
+                      setSelectedIds(
+                        e.target.checked ? pagedRooms.map((room) => room.id) : []
+                      )
+                    }
+                  />
+                </th>
                 <th className="px-6 py-4">Code Salle</th>
                 <th className="px-6 py-4">Capacité</th>
                 <th className="px-6 py-4">Statut</th>
@@ -163,6 +234,14 @@ export default function RoomList() {
 
                 return (
                   <tr key={room.id} className="group hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        className="rounded border-border"
+                        checked={selectedIds.includes(room.id)}
+                        onChange={() => toggleRoomSelection(room.id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 font-bold text-sm tracking-tight text-foreground">{room.code}</td>
                     <td className="px-6 py-4 text-muted-foreground text-sm font-bold">
                       <Users className="inline w-3.5 h-3.5 mr-2" /> {room.capacity} places
@@ -185,6 +264,15 @@ export default function RoomList() {
                       <div className="flex justify-end gap-2">
                         <button onClick={() => { setEditingData(room); setShowForm(true); }} className="p-2 hover:bg-muted rounded-lg text-foreground/70"><Pencil className="w-4 h-4" /></button>
                         <button onClick={() => handleDelete(room.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                        {isOccupied && (
+                          <Badge
+                            className="cursor-pointer rounded-full p-2 text-[12px]"
+                            variant="ghost"
+                            onClick={() => openRoomModal(room)}
+                          >
+                            <Info className="w-4 h-4 text-foreground" />
+                          </Badge>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -195,6 +283,63 @@ export default function RoomList() {
         </div>
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
+
+      {modalRoom && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-foreground/60 backdrop-blur-sm" onClick={closeRoomModal} />
+          <div className="relative w-full max-w-lg bg-card rounded-[2rem] border border-border shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Salle {modalRoom.code}</p>
+                <h3 className="text-lg font-black text-foreground">Créneaux programmés</h3>
+              </div>
+              <button onClick={closeRoomModal} className="text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {modalRoom.programmations?.length ? (
+                modalRoom.programmations.map((prog) => (
+                  <article key={prog.id} className="bg-muted/40 p-4 rounded-2xl border border-border space-y-3">
+                    <header className="flex items-center justify-between text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+                      <span>Salle {modalRoom.code}</span>
+                      <span>{prog.day}</span>
+                    </header>
+                    <div className="text-sm font-semibold text-foreground">
+                      {prog.subject?.subject_name || "Matière indisponible"}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                      <div>
+                        <p className="font-black text-[9px] uppercase tracking-[0.4em]">Horaires</p>
+                        <p>{prog.hour_star} — {prog.hour_end}</p>
+                      </div>
+                      <div>
+                        <p className="font-black text-[9px] uppercase tracking-[0.4em]">Enseignant</p>
+                        <p>{prog.subject?.teacher?.user?.name || "—"}</p>
+                      </div>
+                      <div>
+                        <p className="font-black text-[9px] uppercase tracking-[0.4em]">Programmeur</p>
+                        <p>
+                          {prog.programmer?.user?.name || "—"}
+                          {prog.programmer?.registration_number ? ` · ${prog.programmer.registration_number}` : ""}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-black text-[9px] uppercase tracking-[0.4em]">Status</p>
+                        <p className="text-[10px] uppercase tracking-[0.3em]">
+                          {prog.status || "—"}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucun créneau associé.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* FORMULAIRE MODAL */}
       {showForm && (

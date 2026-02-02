@@ -6,7 +6,6 @@ import {
   Mail, Bell, History, MapPin, MapPinHouse, ListCheck, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { logout } from "@/services/auth";
 import { useAuth } from "@/context/useAuth";
 import { notificationService } from "@/services/notificationService";
 import getimeLogo from "@/assets/getime-logo.svg";
@@ -29,8 +28,9 @@ export default function Sidebar() {
     });
   };
 
+  const { logout: contextLogout } = useAuth();
   const handleLogout = async () => {
-    logout();
+    await contextLogout();
     navigate("/", { replace: true });
   };
 
@@ -123,7 +123,12 @@ export default function Sidebar() {
                   ) : (
                     canAny("view-teacher") && <SidebarItem to="/dashboard/teachers" icon={Users} label="Enseignants" isCollapsed={isCollapsed} onClick={toggleSidebar} />
                   )}
-                  {hasRole("teacher") && <SidebarItem to="/dashboard/teacher-rooms" icon={MapPin} label="Salles attribuées" isCollapsed={isCollapsed} onClick={toggleSidebar} />}
+                  {hasRole("teacher") && (
+                    <>
+                      <SidebarItem to="/dashboard/teacher-rooms" icon={MapPin} label="Salles attribuées" isCollapsed={isCollapsed} onClick={toggleSidebar} />
+                      <SidebarItem to="/dashboard/teacher-specialties" icon={GraduationCap} label="Mes filières" isCollapsed={isCollapsed} onClick={toggleSidebar} />
+                    </>
+                  )}
                   {canAny("view-subject") && <SidebarItem to="/dashboard/subjects" icon={BookOpen} label="Matières" isCollapsed={isCollapsed} onClick={toggleSidebar} />}
                   {canAny("view-room") && !hasRole("teacher") && <SidebarItem to="/dashboard/rooms" icon={Building2} label="Salles" isCollapsed={isCollapsed} onClick={toggleSidebar} />}
                   {!isAdmin && canAny("view-teacher") && <SidebarItem to="/dashboard/programmers" icon={CircleUser} label="Programmeurs" isCollapsed={isCollapsed} onClick={toggleSidebar} />}

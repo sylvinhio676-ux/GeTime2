@@ -9,4 +9,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    allowedHosts: ["enterprising-teri-symbiotically.ngrok-free.dev", "localhost"],
+    hmr: {
+      host: "enterprising-teri-symbiotically.ngrok-free.dev",
+      protocol: "wss",
+    },
+  },
 })

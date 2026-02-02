@@ -175,8 +175,11 @@ export default function QuotaDashboard() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40">
-                            {pagedSubjects.map((subject) => (
-                                <tr key={subject.subject} className="group hover:bg-muted/50 transition-colors">
+                        {pagedSubjects.map((subject, index) => (
+                            <tr
+                                key={subject.id ?? `${subject.subject ?? 'subject'}-${subject.teacher ?? 'teacher'}-${index}`}
+                                className="group hover:bg-muted/50 transition-colors"
+                            >
                                     <td className="px-8 py-4 font-medium">{subject.subject}</td>
                                     <td className="px-8 py-4">{subject.teacher}</td>
                                     <td className="px-8 py-4">

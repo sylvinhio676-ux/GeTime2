@@ -52,4 +52,14 @@ export const userService = {
             throw error.response?.data || error;
         }
     }
+
+    ,
+    assignSpecialties: async (id, specialties) => {
+        try {
+            const response = await api.patch(`${ENDPOINT}/${id}/specialties`, { specialties });
+            return response.data.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    }
 }

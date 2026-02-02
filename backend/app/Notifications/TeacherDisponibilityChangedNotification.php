@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enum\JourEnum;
 use App\Models\Disponibility;
 use App\Notifications\Channels\FcmChannel;
 use Illuminate\Bus\Queueable;
@@ -31,7 +32,7 @@ class TeacherDisponibilityChangedNotification extends Notification implements Sh
             'action' => $this->action,
             'disponibility_id' => $d->id,
             'subject_id' => $d->subject_id,
-            'day' => $d->day,
+            'day' => $this->formatDay(),
             'hour_start' => $d->hour_star,
             'hour_end' => $d->hour_end,
         ];
@@ -43,9 +44,9 @@ class TeacherDisponibilityChangedNotification extends Notification implements Sh
 
         $title = "Disponibilité enseignant";
         $body = match ($this->action) {
-            'created' => "Nouvelle disponibilité : {$d->day} {$d->hour_star}-{$d->hour_end}",
-            'updated' => "Disponibilité modifiée : {$d->day} {$d->hour_star}-{$d->hour_end}",
-            'deleted' => "Disponibilité supprimée : {$d->day} {$d->hour_star}-{$d->hour_end}",
+            'created' => "Nouvelle disponibilité : {$this->formatDay()} {$d->hour_star}-{$d->hour_end}",
+            'updated' => "Disponibilité modifiée : {$this->formatDay()} {$d->hour_star}-{$d->hour_end}",
+            'deleted' => "Disponibilité supprimée : {$this->formatDay()} {$d->hour_star}-{$d->hour_end}",
             default => "Disponibilité mise à jour",
         };
 
@@ -59,5 +60,14 @@ class TeacherDisponibilityChangedNotification extends Notification implements Sh
                 'subject_id' => $d->subject_id,
             ],
         ];
+    }
+
+    private function formatDay(): string
+    {
+        $day = $this->disponibility->day;
+        if ($day instanceof JourEnum) {
+            return $day->value;
+        }
+        return (string) ($day ?? '—');
     }
 }

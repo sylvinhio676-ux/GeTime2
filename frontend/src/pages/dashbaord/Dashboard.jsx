@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users, BookOpen, School, Activity, CalendarCheck,
   GraduationCap, TrendingUp, Plus, 
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const isAdmin = hasRole("super_admin") || hasRole("admin");
   const isProgrammer = hasRole("programmer");
   const isTeacher = hasRole("teacher");
+  const navigate = useNavigate();
   const [adminData, setAdminData] = useState({
     users: [], rooms: [], subjects: [], specialities: [], 
     campuses: [], programmers: [], etablishments: [],
@@ -271,7 +273,7 @@ function AdminDashboard({ data, refresh }) {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge className="bg-delta-positive/10 text-delta-positive border-delta-positive/20 font-bold">
+                          <Badge className="bg-primary/10 text-primary border-primary/20 font-bold">
                             {prog.status ? prog.status.charAt(0).toUpperCase() + prog.status.slice(1) : "Validé"}
                           </Badge>
                         </td>
@@ -286,18 +288,18 @@ function AdminDashboard({ data, refresh }) {
           {/* Right Sidebar: Quick Actions & Status */}
           <div className="space-y-8">
             {/* Actions Rapides Système */}
-            <div className="bg-primary rounded-3xl p-6 text-primary-foreground shadow-2xl">
-              <h3 className="font-bold flex items-center gap-2 mb-6">
+            <div className="bg-card rounded-3xl p-6 shadow-2xl border border-border/60 text-primary-foreground">
+              <h3 className="font-bold flex items-center gap-2 mb-6 text-primary">
                 <Activity className="w-5 h-5 text-primary-foreground/70" /> Gestion Rapide
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <QuickAction icon={Clock} label="Dispos" count={2} />
-                <QuickAction icon={BarChart2} label="Niveaux" />
-                <QuickAction icon={School} label="Salles" count={1} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <QuickAction icon={Clock} label="Dispos" count={data.disponibilities?.length ?? 0} />
+                <QuickAction icon={BarChart2} label="Niveaux" count={data.levels.length} />
+                <QuickAction icon={School} label="Salles" count={data.rooms.length} />
                 <QuickAction icon={BookOpen} label="Syllabus" />
               </div>
-              <Button className="w-full mt-6 bg-primary hover:bg-primary/80 border-none h-12">
-                 Générer Emploi du Temps
+              <Button className="w-full mt-6 bg-primary hover:bg-primary/90 border-none h-12">
+                Générer Emploi du Temps
               </Button>
             </div>
 
@@ -308,7 +310,7 @@ function AdminDashboard({ data, refresh }) {
                 {[
                   { label: 'Informatique', val: 75, col: 'bg-muted/60' },
                   { label: 'Génie Civil', val: 40, col: 'bg-accent' },
-                  { label: 'Management', val: 90, col: 'bg-delta-positive' }
+                  { label: 'Management', val: 90, col: 'bg-primary/10' }
                 ].map((item, i) => (
                   <div key={i} className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
@@ -341,10 +343,10 @@ function ProgrammerDashboard({ data, isProgrammer }) {
   return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-[1400px] mx-auto space-y-8">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-delta-positive/20 shadow-sm">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-primary/20 shadow-sm">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="text-delta-positive border-delta-positive/30 bg-delta-positive/10">
+              <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
                 <CalendarClock className="w-3 h-3 mr-1" />
                 Année active: {activeYear ? `${activeYear.date_star} → ${activeYear.date_end}` : "—"}
               </Badge>
@@ -352,7 +354,7 @@ function ProgrammerDashboard({ data, isProgrammer }) {
             <h1 className="text-3xl font-dark text-foreground tracking-tight">{title}</h1>
             <p className="text-muted-foreground text-sm font-medium mt-1">{subtitle}</p>
           </div>
-          <Button className="bg-delta-positive hover:bg-delta-positive/90 text-primary-foreground shadow-primary/20 shadow-lg">
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 shadow-lg">
             <ClipboardList className="w-4 h-4 mr-2" /> Nouvelle Programmation
           </Button>
         </header>
@@ -369,7 +371,7 @@ function ProgrammerDashboard({ data, isProgrammer }) {
             <section className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
               <div className="p-6 border-b border-border/40 flex justify-between items-center bg-muted/30">
                 <h3 className="font-bold text-foreground flex items-center gap-2">
-                  <CalendarCheck className="w-5 h-5 text-delta-positive" /> Séances à venir
+                  <CalendarCheck className="w-5 h-5 text-primary" /> Séances à venir
                 </h3>
                 <Button variant="ghost" size="sm">Voir tout</Button>
               </div>
@@ -406,7 +408,7 @@ function ProgrammerDashboard({ data, isProgrammer }) {
                                 ? "border-rose-200 bg-rose-50 text-rose-700"
                                 : prog.status === "draft"
                                   ? "border-muted-foreground/40 bg-muted-foreground/10 text-muted-foreground"
-                                  : "border-delta-positive/20 bg-delta-positive/10 text-delta-positive"
+                                  : "border-primary/20 bg-primary/10 text-primary"
                             }`}
                           >
                             {prog.status ? prog.status.charAt(0).toUpperCase() + prog.status.slice(1) : "Planifié"}
@@ -425,20 +427,20 @@ function ProgrammerDashboard({ data, isProgrammer }) {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-delta-positive rounded-3xl p-6 text-primary-foreground shadow-2xl">
-              <h3 className="font-bold flex items-center gap-2 mb-6">
-                <Activity className="w-5 h-5 text-primary-foreground/70" /> Raccourcis
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <QuickAction icon={UserCheck} label="Enseignants" count={isProgrammer ? data.teachers.length : undefined} />
-                <QuickAction icon={Layers} label="Niveaux" count={data.levels.length} />
-                <QuickAction icon={BookOpen} label="Matières" count={data.subjects.length} />
-                <QuickAction icon={School} label="Salles" count={data.rooms.length} />
-              </div>
-              <Button className="w-full mt-6 bg-delta-positive hover:bg-delta-positive border-none h-12">
-                Générer Planning
-              </Button>
+          <div className="bg-card rounded-3xl p-6 shadow-2xl text-primary-foreground">
+            <h3 className="font-bold flex items-center gap-2 mb-6 text-primary">
+              <Activity className="w-5 h-5 text-primary-foreground/70" /> Raccourcis
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <QuickAction icon={UserCheck} label="Enseignants" count={isProgrammer ? data.teachers.length : data.teachers.length} />
+              <QuickAction icon={Layers} label="Niveaux" count={data.levels.length} />
+              <QuickAction icon={BookOpen} label="Matières" count={data.subjects.length} />
+              <QuickAction icon={School} label="Salles" count={data.rooms.length} />
             </div>
+            <Button className="w-full mt-6 bg-primary hover:bg-primary/90 border-none h-12">
+              Générer Planning
+            </Button>
+          </div>
 
             <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
               <h3 className="font-bold text-foreground mb-4">Charge par niveau</h3>
@@ -449,7 +451,7 @@ function ProgrammerDashboard({ data, isProgrammer }) {
                       <span className="text-muted-foreground uppercase tracking-tighter">{level.name_level}</span>
                       <span className="text-foreground">—</span>
                     </div>
-                    <Progress value={40} className="h-1.5 bg-delta-positive/20" />
+                    <Progress value={40} className="h-1.5 bg-primary/20" />
                   </div>
                 ))}
               </div>
@@ -465,23 +467,24 @@ function ProgrammerDashboard({ data, isProgrammer }) {
 
 function TeacherDashboard({ data }) {
   const activeYear = data.years[data.years.length - 1];
+  const teacherNavigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
-      <div className="max-w-[1400px] mx-auto space-y-8">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-primary/20 shadow-sm">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
-                <CalendarClock className="w-3 h-3 mr-1" />
-                Année active: {activeYear ? `${activeYear.date_star} → ${activeYear.date_end}` : "—"}
-              </Badge>
+        <div className="max-w-[1400px] mx-auto space-y-8">
+          <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-primary/20 shadow-sm">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
+                  <CalendarClock className="w-3 h-3 mr-1" />
+                  Année active: {activeYear ? `${activeYear.date_star} → ${activeYear.date_end}` : "—"}
+                </Badge>
+              </div>
+              <h1 className="text-3xl font-black text-foreground tracking-tight">Tableau de bord Enseignant</h1>
+              <p className="text-muted-foreground text-sm font-medium mt-1">Vos cours, disponibilités et emploi du temps</p>
             </div>
-            <h1 className="text-3xl font-black text-foreground tracking-tight">Tableau de bord Enseignant</h1>
-            <p className="text-muted-foreground text-sm font-medium mt-1">Vos cours, disponibilités et emploi du temps</p>
-          </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 shadow-lg">
-            <CalendarClock className="w-4 h-4 mr-2" /> Voir l'emploi du temps
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20 shadow-lg" onClick={() => teacherNavigate('/dashboard/notifications')}>
+            <CalendarClock className="w-4 h-4 mr-2" /> Voir les rappels
           </Button>
         </header>
 
@@ -539,15 +542,15 @@ function TeacherDashboard({ data }) {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-primary rounded-3xl p-6 text-primary-foreground shadow-2xl">
+            <div className="bg-card rounded-3xl p-6 shadow-2xl border border-border/60 text-primary-foreground">
               <h3 className="font-bold flex items-center gap-2 mb-6">
                 <Activity className="w-5 h-5 text-primary-foreground/70" /> Raccourcis
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <QuickAction icon={CalendarCheck} label="Dispos" count={data.disponibilities.length} />
                 <QuickAction icon={BookOpen} label="Matières" count={data.subjects.length} />
                 <QuickAction icon={GraduationCap} label="Spécialités" count={data.specialties.length} />
-                <QuickAction icon={CalendarClock} label="Emploi du temps" />
+                <QuickAction icon={CalendarClock} label="Notifications" onClick={() => teacherNavigate('/dashboard/notifications')} />
               </div>
               <Button className="w-full mt-6 bg-primary hover:bg-primary/90 border-none h-12">
                 Ajouter disponibilités
@@ -582,7 +585,7 @@ function TeacherDashboard({ data }) {
 function StatWidget({ title, value, icon: Icon, trend, color, up }) {
   const colorStyles = {
     indigo: "bg-muted text-muted-foreground ring-border/40",
-    emerald: "bg-delta-positive/10 text-delta-positive ring-delta-positive/20",
+    emerald: "bg-primary/10 text-primary ring-primary/20",
     blue: "bg-primary/10 text-primary ring-primary/20",
     orange: "bg-accent/10 text-accent ring-accent/20"
   };
@@ -594,7 +597,7 @@ function StatWidget({ title, value, icon: Icon, trend, color, up }) {
           <Icon className="w-6 h-6" />
         </div>
         {trend && (
-          <Badge variant="secondary" className={`${up ? 'text-delta-positive' : 'text-muted-foreground'} bg-muted border-none font-bold`}>
+            <Badge variant="secondary" className={`${up ? 'text-primary' : 'text-muted-foreground'} bg-muted border-none font-bold`}>
             {trend} <ArrowUpRight className="w-3 h-3 ml-1" />
           </Badge>
         )}
@@ -607,17 +610,21 @@ function StatWidget({ title, value, icon: Icon, trend, color, up }) {
   );
 }
 
-function QuickAction({ icon: Icon, label, count }) {
+function QuickAction({ icon: Icon, label, count, onClick }) {
+  const Wrapper = onClick ? "button" : "div";
   return (
-    <button className="relative flex flex-col items-center justify-center p-4 rounded-2xl bg-card/5 border border-primary-foreground/15 hover:bg-card/10 transition-all gap-2 group">
-      {count && (
-        <span className="absolute -top-1 -right-1 w-5 h-5 bg-muted/60 rounded-full text-[10px] flex items-center justify-center font-bold shadow-lg">
-          {count}
-        </span>
+    <Wrapper
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-border/60 shadow-sm gap-3 min-h-[150px] text-center ${onClick ? "cursor-pointer hover:shadow-md" : ""}`}
+    >
+      <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-xl shadow-inner">
+        <Icon className="w-5 h-5 text-primary" />
+      </div>
+      {typeof count === "number" && (
+        <span className="text-2xl font-black text-primary">{count}</span>
       )}
-      <Icon className="w-5 h-5 text-primary-foreground/70 group-hover:scale-110 transition-transform" />
-      <span className="text-[10px] font-bold text-primary-foreground/80 uppercase tracking-tighter">{label}</span>
-    </button>
+      <span className="text-xs font-bold text-muted-foreground uppercase tracking-[0.3em] w-full break-words leading-tight">{label}</span>
+    </Wrapper>
   );
 }
 

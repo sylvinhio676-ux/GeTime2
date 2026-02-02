@@ -11,6 +11,8 @@ use App\Models\User;
 use App\Notifications\ProgrammationNotification;
 use App\Services\DisponibilityToProgrammationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Exception;
 
 class DisponibilityController extends Controller
@@ -166,17 +168,159 @@ class DisponibilityController extends Controller
             if ($user && $user->hasRole('teacher')) {
                 return forbiddenResponse('Accès refusé');
             }
-            $overrides = array_filter(
-                $request->only(['room_id', 'programmer_id', 'year_id', 'status']),
-                fn ($value) => $value !== null
-            );
 
-            $programmation = $service->convert($disponibility, $overrides);
-            $this->notifyProgrammationCreation($programmation, $request->user()?->id);
-            return successResponse($programmation, "Programmation créée à partir de la disponibilité");
+            return $this->performConversion($request, $disponibility, $service);
         } catch (Exception $e) {
             return errorResponse($e->getMessage());
         }
+    }
+
+    public function convertAsAdmin(Request $request, Disponibility $disponibility, DisponibilityToProgrammationService $service)
+    {
+        try {
+            return $this->performConversion($request, $disponibility, $service);
+        } catch (Exception $e) {
+            return errorResponse($e->getMessage());
+        }
+    }
+
+    private function performConversion(Request $request, Disponibility $disponibility, DisponibilityToProgrammationService $service)
+    {
+        $overrides = array_filter(
+            $request->only(['room_id', 'programmer_id', 'year_id', 'status']),
+            fn ($value) => $value !== null
+        );
+
+        $programmation = $service->convert($disponibility, $overrides);
+        $this->notifyProgrammationCreation($programmation, $request->user()?->id);
+        return successResponse($programmation, "Programmation créée à partir de la disponibilité");
+    }
+
+    public function group(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:2'],
+            'ids.*' => ['integer', 'exists:disponibilities,id'],
+        ]);
+
+        $disponibilities = Disponibility::whereIn('id', $data['ids'])
+            ->with(['subject', 'etablishment'])
+            ->get();
+
+        if ($disponibilities->count() < 2) {
+            return errorResponse('Au moins deux disponibilités doivent être sélectionnées');
+        }
+
+        $first = $disponibilities->first();
+        $day = $first->day;
+        $subjectId = $first->subject_id;
+        $etabId = $first->etablishment_id;
+        $minutes = $disponibilities->map(fn($d) => Carbon::parse($d->hour_star)->diffInMinutes(Carbon::parse($d->hour_end)));
+        if (!$disponibilities->every(fn($d) => $d->day == $day && $d->subject_id == $subjectId && $d->etablishment_id == $etabId)) {
+            return errorResponse('Les disponibilités doivent partager la même matière/jour/établissement');
+        }
+
+        $starts = $disponibilities->map(fn($d) => Carbon::parse($d->hour_star));
+        $ends = $disponibilities->map(fn($d) => Carbon::parse($d->hour_end));
+        $aggregateStart = $starts->min()->format('H:i');
+        $aggregateEnd = $ends->max()->format('H:i');
+
+        DB::transaction(function () use ($first, $disponibilities, $aggregateStart, $aggregateEnd) {
+            $first->update([
+                'hour_star' => $aggregateStart,
+                'hour_end' => $aggregateEnd,
+                'is_grouped' => true,
+            ]);
+            $idsToDelete = $disponibilities->pluck('id')->filter(fn($id) => $id !== $first->id);
+            Disponibility::whereIn('id', $idsToDelete)->delete();
+        });
+
+        return successResponse([
+            'start' => $aggregateStart,
+            'end' => $aggregateEnd,
+            'day' => $day,
+            'subject_id' => $subjectId,
+        ], "Disponibilités regroupées");
+    }
+
+    public function ungroup(Request $request)
+    {
+        $data = $request->validate([
+            'id' => ['required', 'integer', 'exists:disponibilities,id'],
+            'slot_minutes' => ['nullable', 'integer', 'min:30'],
+        ]);
+
+        $slotMinutes = $data['slot_minutes'] ?? 120;
+        $disponibility = Disponibility::findOrFail($data['id']);
+        $start = Carbon::parse($disponibility->hour_star);
+        $end = Carbon::parse($disponibility->hour_end);
+
+        if ($start->greaterThanOrEqualTo($end)) {
+            return errorResponse('Plage invalide pour la désagrégation');
+        }
+
+        $slots = [];
+        $cursor = $start->copy();
+        while ($cursor->lt($end)) {
+            $slotEnd = $cursor->copy()->addMinutes($slotMinutes);
+            if ($slotEnd->gt($end)) {
+                $slotEnd = $end->copy();
+            }
+            $slots[] = [
+                'hour_star' => $cursor->format('H:i'),
+                'hour_end' => $slotEnd->format('H:i'),
+            ];
+            $cursor = $slotEnd->copy();
+        }
+
+        if (count($slots) <= 1) {
+            return errorResponse('Impossible de désagréger un créneau trop court');
+        }
+
+        DB::transaction(function () use ($disponibility, $slots) {
+            $disponibility->delete();
+            foreach ($slots as $slot) {
+                Disponibility::create([
+                    'day' => $disponibility->day,
+                    'hour_star' => $slot['hour_star'],
+                    'hour_end' => $slot['hour_end'],
+                    'subject_id' => $disponibility->subject_id,
+                    'etablishment_id' => $disponibility->etablishment_id,
+                    'is_grouped' => false,
+                ]);
+            }
+        });
+
+        return successResponse($slots, "Disponibilité désagrégée en " . count($slots) . " blocs");
+    }
+
+    public function convertMultiple(Request $request, DisponibilityToProgrammationService $service)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:disponibilities,id'],
+        ]);
+
+        $user = $request->user();
+        if ($user && $user->hasRole('teacher')) {
+            return forbiddenResponse('Accès refusé');
+        }
+
+        $converted = [];
+        $errors = [];
+        foreach ($data['ids'] as $id) {
+            try {
+                $disp = Disponibility::findOrFail($id);
+                $converted[] = $service->convert($disp);
+            } catch (Exception $e) {
+                $errors[$id] = $e->getMessage();
+            }
+        }
+
+        return successResponse([
+            'converted' => $converted,
+            'errors' => $errors,
+        ], 'Conversion groupée terminée');
     }
 
     private function notifyProgrammationCreation(Programmation $programmation, ?int $actorId = null): void

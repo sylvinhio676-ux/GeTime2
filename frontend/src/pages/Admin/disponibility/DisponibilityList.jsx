@@ -158,6 +158,70 @@ export default function DisponibilityList() {
     }
   };
 
+  const selectedDisponibilities = useMemo(
+    () => disponibilities.filter((d) => selectedIds.includes(d.id)),
+    [disponibilities, selectedIds]
+  );
+
+  const parseTimeToMinutes = (value) => {
+    if (!value) return 0;
+    const [hours, mins] = value.split(':').map(Number);
+    return hours * 60 + mins;
+  };
+
+  const hasSameDaySubject = useMemo(() => {
+    if (selectedDisponibilities.length < 2) return false;
+    const signatures = selectedDisponibilities.map(
+      (d) => `${d.day}|${d.subject_id}|${d.etablishment_id}`
+    );
+    return new Set(signatures).size === 1;
+  }, [selectedDisponibilities]);
+
+  const durationsMinutes = selectedDisponibilities.map(
+    (d) => parseTimeToMinutes(d.hour_end) - parseTimeToMinutes(d.hour_star)
+  );
+
+  const canGroupSelection = hasSameDaySubject;
+  const canUngroupSelection = selectedDisponibilities.length === 1 && durationsMinutes[0] > 120;
+  const canConvertSelection = selectedIds.length > 0 && !isTeacher;
+
+  const handleGroupSelected = async () => {
+    if (!canGroupSelection) return;
+    try {
+      await disponibilityService.group(selectedIds);
+      showNotify(`Disponibilités regroupées en ${selectedIds.length} créneau(x).`);
+      setSelectedIds([]);
+      loadInitialData();
+    } catch (error) {
+      showNotify(getErrorMessage(error, "Impossible de regrouper les créneaux"), 'error');
+    }
+  };
+
+  const handleUngroupSelected = async () => {
+    if (!canUngroupSelection) return;
+    const [selected] = selectedDisponibilities;
+    try {
+      await disponibilityService.ungroup(selected.id);
+      showNotify("Disponibilité désagrégée en plusieurs blocs.");
+      setSelectedIds([]);
+      loadInitialData();
+    } catch (error) {
+      showNotify(getErrorMessage(error, "Impossible de désagréger"), 'error');
+    }
+  };
+
+  const handleConvertSelection = async () => {
+    if (!canConvertSelection) return;
+    try {
+      await disponibilityService.convertMultiple(selectedIds);
+      showNotify(`${selectedIds.length} disponibilité(s) convertie(s)`);
+      setSelectedIds([]);
+      loadInitialData();
+    } catch (error) {
+      showNotify(getErrorMessage(error, "Conversion groupée impossible"), 'error');
+    }
+  };
+
   // Sélection multiple
   const toggleSelection = (id) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -214,6 +278,38 @@ export default function DisponibilityList() {
         </div>
       </div>
 
+      {/* ACTIONS SUR SÉLECTION */}
+      {(selectedIds.length > 0) && (
+        <div className="bg-card rounded-[2rem] border border-border p-5 shadow-sm flex flex-wrap gap-3">
+          <Button
+            variant="outline"
+            onClick={handleGroupSelected}
+            disabled={!canGroupSelection}
+            className="gap-2 flex-1 md:flex-initial"
+          >
+            <Filter className="w-4 h-4" /> Grouper
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleUngroupSelected}
+            disabled={!canUngroupSelection}
+            className="gap-2 flex-1 md:flex-initial"
+          >
+            <X className="w-4 h-4" /> Dégrouper
+          </Button>
+          {!isTeacher && (
+            <Button
+              variant="secondary"
+              onClick={handleConvertSelection}
+              disabled={!canConvertSelection}
+              className="gap-2 flex-1 md:flex-initial"
+            >
+              <CheckCircle2 className="w-4 h-4" /> Convertir ({selectedIds.length})
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* LIST TABLE */}
       <div className="bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -265,6 +361,11 @@ export default function DisponibilityList() {
                       <Badge variant={disp.used ? "default" : "secondary"} className={`rounded-lg px-2 py-0.5 text-[9px] font-black uppercase ${disp.used ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
                         {disp.used ? 'Programmée' : 'Disponible'}
                       </Badge>
+                      {disp.is_grouped && (
+                        <div className="mt-1 text-[9px] font-black uppercase tracking-[0.3em] text-amber-500">
+                          Groupée
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex justify-end gap-1">

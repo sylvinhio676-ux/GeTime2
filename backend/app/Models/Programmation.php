@@ -59,6 +59,9 @@ class Programmation extends Model
         static::deleted(function ($programmation) {
             app(\App\Services\QuotaService::class)->updateQuotaOnDelete($programmation);
             static::updateSubjectStatus($programmation->subject_id);
+            if ($programmation->room_id) {
+                \App\Models\Room::where('id', $programmation->room_id)->update(['is_available' => true]);
+            }
         });
     }
 
